@@ -13,6 +13,7 @@ A web platform to discover startups in your country, enabling users to support t
 ## Project Structure
 
 ```
+
 startup-repository/
 ├── backend/
 │   ├── app/
@@ -51,7 +52,7 @@ startup-repository/
 │   │   ├── index.vue
 │   │   ├── startups/
 │   │   │   ├── index.vue
-│   │   │   ├── _id.vue
+│   │   │   ├──_id.vue
 │   │   ├── login.vue
 │   │   ├── register.vue
 │   │   ├── dashboard.vue
@@ -79,6 +80,7 @@ startup-repository/
 ├── docker-compose.yml
 ├── README.md
 └── .gitignore
+
 ```
 
 ## Task Breakdown (1-Month Timeline)
