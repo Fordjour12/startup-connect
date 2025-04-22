@@ -1,0 +1,45 @@
+app.egg*
+.venv/
+.env
+build/
+dist/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+
+
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+__pycache__/
+.pytest_cache/
+
+# Pytest
+.pytest_cache/
+
+# Pytest
+.pytest_cache/
