@@ -4,8 +4,25 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@nuxt/image', '@nuxt/fonts', 'shadcn-nuxt'],
+  modules: [
+    '@nuxt/image',
+    '@nuxt/fonts',
+    'shadcn-nuxt',
+    '@nuxt/eslint',
+    '@nuxtjs/color-mode'
+  ],
+  colorMode: {
+    classSuffix: ''
+  },
   css: ['~/assets/css/tailwind.css'],
+  fonts: {
+    families: [
+      {
+        name: 'Poppins',
+        provider: 'google'
+      },
+    ]
+  },
   shadcn: {
     /**
      * Prefix for all the imported component
