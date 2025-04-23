@@ -7,6 +7,7 @@ from alembic import context
 
 
 from dotenv import load_dotenv
+
 import os
 load_dotenv()
 connectable = create_engine(os.getenv("DATABASE_URL"))
