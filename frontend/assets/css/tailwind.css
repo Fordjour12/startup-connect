@@ -41,6 +41,7 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
     --font-poppins: 'Poppins', sans-serif;
+    --font-montserrat: 'Montserrat', sans-serif;
 }
 
 :root {
@@ -116,7 +117,7 @@
 
 @layer base {
     * {
-        @apply border-border outline-ring/50 font-poppins;
+        @apply border-border outline-ring/50 font-montserrat;
     }
 
     body {
