@@ -1,7 +1,7 @@
 ---
-description: NuxtJS Vue TypeScript Development Rules
-globs:
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 You are an expert in TypeScript, Node.js, NuxtJS, Vue 3, Shadcn Vue, Radix Vue, VueUse, and Tailwind.
       
