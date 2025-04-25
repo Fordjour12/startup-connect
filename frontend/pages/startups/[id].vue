@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FileUpload from '@/components/FileUpload.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,6 +22,17 @@ if (!startup.value) {
 
 // Now we can safely use startup.value as it's guaranteed to be defined
 const startupData = startup.value
+
+// Handle file uploads
+const handleFileUpload = (files: File[]) => {
+  // In a real application, you would upload the files to your server
+  console.log('Uploading files:', files)
+}
+
+const handleFileRemove = (fileId: string) => {
+  // In a real application, you would remove the file from your server
+  console.log('Removing file:', fileId)
+}
 </script>
 
 <template>
@@ -37,7 +49,7 @@ const startupData = startup.value
           <Card>
             <CardHeader>
               <div class="flex items-center gap-4">
-                <img :src="startupData.logo" :alt="startupData.name" class="w-16 h-16 rounded-lg object-cover" />
+                <img :src="startupData.logo" :alt="startupData.name" class="w-16 h-16 rounded-lg object-cover" >
                 <div>
                   <CardTitle class="text-2xl">{{ startupData.name }}</CardTitle>
                   <CardDescription>{{ startupData.industry }}</CardDescription>
@@ -92,6 +104,23 @@ const startupData = startup.value
                   </Badge>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <!-- Documents Section -->
+          <Card class="mt-8">
+            <CardHeader>
+              <CardTitle>Documents</CardTitle>
+              <CardDescription>Pitch decks, financial reports, and other documents</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FileUpload
+                accept=".pdf,.doc,.docx,.ppt,.pptx"
+                :max-size="10"
+                :multiple="true"
+                @upload="handleFileUpload"
+                @remove="handleFileRemove"
+              />
             </CardContent>
           </Card>
         </div>
