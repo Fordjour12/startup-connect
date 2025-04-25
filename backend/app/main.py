@@ -1,13 +1,28 @@
-from api.endpoints import auth
-from core.database import engine
+# libraries
 from fastapi import FastAPI
+from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
-from models.user import Base
+
+# endpoints
+from app.api.main import api_router
+
+# models
+# from models.user import Base
+
+# from core.database import engine
+from app.core.config import settings
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="StartupConnect API")
+def custom_generate_unique_id(route:APIRoute) -> str:
+    return f"{route.tags} - {route.name}"
+
+app = FastAPI(
+     title=settings.API_V1_STR,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    generate_unique_id_function=custom_generate_unique_id,
+)
 
 # Configure CORS
 app.add_middleware(
@@ -18,10 +33,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth.router, prefix="/auth", tags=["authentication"])
-
 
 @app.get("/")
 async def root():
     return {"message": "Welcome to StartupConnect API"}
+
+
+# Include routers
+app.include_router(api_router, prefix=settings.API_V1_STR)
