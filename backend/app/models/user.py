@@ -1,10 +1,7 @@
 import enum
+from typing import List, Optional
 
-from sqlalchemy import Boolean, Enum, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Mapped, mapped_column
-
-Base = declarative_base()
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class UserRole(str, enum.Enum):
@@ -13,12 +10,32 @@ class UserRole(str, enum.Enum):
     INVESTOR = "investor"
 
 
-class User(Base):
-    __tablename__ = "users"
+class UserBase(SQLModel):
+    email: str = Field(unique=True, index=True)
+    role: UserRole
+    is_active: bool = Field(default=True)
+    is_verified: bool = Field(default=False)
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+
+class User(UserBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hashed_password: str
+
+    # Relationships
+    startups: List["Startup"] = Relationship(back_populates="founder")
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class UserRead(UserBase):
+    id: int
+
+
+class UserUpdate(SQLModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+    is_verified: Optional[bool] = None

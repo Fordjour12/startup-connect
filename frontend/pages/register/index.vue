@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import LoginForm from '@/components/LoginForm.vue'
-import { GalleryVerticalEnd } from 'lucide-vue-next'
+import RegistrationForm from '@/components/RegistrationForm.vue';
+import { GalleryVerticalEnd } from 'lucide-vue-next';
 </script>
 
 <script lang="ts">
@@ -22,12 +22,14 @@ export const description = 'A two column login page with a cover image.'
             </div>
             <div class="flex flex-1 items-center justify-center">
                 <div class="w-full max-w-xs">
-                    <LoginForm />
+                    <RegistrationForm />
                 </div>
             </div>
         </div>
         <div class="bg-muted relative hidden lg:block">
-            <img src="/image.jpeg" alt="cover art"
+            <img
+                src="/image.jpeg" 
+                alt="cover art"
                 class="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale">
         </div>
     </div>

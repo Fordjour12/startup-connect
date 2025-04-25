@@ -21,6 +21,10 @@ export default defineNuxtConfig({
         name: 'Poppins',
         provider: 'google'
       },
+      {
+        name: 'Montserrat',
+        provider: 'google'
+      }
     ]
   },
   shadcn: {
