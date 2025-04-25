@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     'shadcn-nuxt',
     '@nuxt/eslint',
-    '@nuxtjs/color-mode'
+    '@nuxtjs/color-mode',
   ],
   colorMode: {
     classSuffix: ''
@@ -43,4 +43,15 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+  app: {
+    head: {
+      title: 'StartupConnect',
+      meta: [
+        { name: 'description', content: 'Connect with innovative startups and investors' }
+      ]
+    }
+  },
+  routeRules: {
+    '/startups/**': { ssr: true }
+  }
 })
