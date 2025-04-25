@@ -1,17 +1,23 @@
 from datetime import timedelta
 
 from core.database import get_db
-from core.security import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
-from crud.user import authenticate_user, create_user, get_current_active_user
+from core.security import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    create_access_token,
+    get_current_active_user,
+)
+from crud.user import authenticate_user, create_user
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from schemas.user import Token, User, UserCreate
+from models.user import User
+from schemas.user import Token, UserCreate
+from schemas.user import User as UserSchema
 from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=User)
+@router.post("/register", response_model=UserSchema)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
@@ -39,6 +45,6 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+@router.get("/me", response_model=UserSchema)
+async def read_users_me(current_user: UserSchema = Depends(get_current_active_user)):
     return current_user
