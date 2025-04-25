@@ -1,8 +1,8 @@
 import enum
+from typing import Optional
 
-from models.user import Base
-from sqlalchemy import Column, Enum, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import relationship
+from models.user import User
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class Industry(str, enum.Enum):
@@ -23,21 +23,40 @@ class FundingStage(str, enum.Enum):
     SCALE = "scale"
 
 
-class Startup(Base):
-    __tablename__ = "startups"
+class StartupBase(SQLModel):
+    name: str = Field(index=True)
+    description: str
+    industry: Industry
+    location: str
+    funding_goal: float
+    funding_stage: FundingStage
+    website: Optional[str] = None
+    pitch_deck_url: Optional[str] = None
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, nullable=False)
-    description = Column(Text, nullable=False)
-    industry = Column(Enum(Industry), nullable=False)
-    location = Column(String, nullable=False)
-    funding_goal = Column(Float, nullable=False)
-    funding_stage = Column(Enum(FundingStage), nullable=False)
-    website = Column(String)
-    pitch_deck_url = Column(String)
 
-    # Foreign Keys
-    founder_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+class Startup(StartupBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    founder_id: int = Field(foreign_key="user.id")
 
     # Relationships
-    founder = relationship("User", back_populates="startups")
+    founder: User = Relationship(back_populates="startups")
+
+
+class StartupCreate(StartupBase):
+    pass
+
+
+class StartupRead(StartupBase):
+    id: int
+    founder_id: int
+
+
+class StartupUpdate(SQLModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    industry: Optional[Industry] = None
+    location: Optional[str] = None
+    funding_goal: Optional[float] = None
+    funding_stage: Optional[FundingStage] = None
+    website: Optional[str] = None
+    pitch_deck_url: Optional[str] = None
