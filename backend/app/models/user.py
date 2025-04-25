@@ -3,6 +3,8 @@ from typing import List, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.models.startup import Startup
+
 
 class UserRole(str, enum.Enum):
     STARTUP = "startup"

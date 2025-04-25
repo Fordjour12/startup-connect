@@ -1,6 +1,5 @@
 app.egg*
 .venv/
-.env
 build/
 dist/
 *.pyc
