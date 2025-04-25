@@ -1,16 +1,11 @@
-from logging.config import fileConfig
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
-from alembic import context
-
-
-from dotenv import load_dotenv
-
 import os
-load_dotenv()
-connectable = create_engine(os.getenv("DATABASE_URL"))
+
+from logging.config import fileConfig
+from alembic import context
+from sqlalchemy import engine_from_config,pool
+
+from .app.models import SQLModel
+from app.core.config import settings
 
 
 # this is the Alembic Config object, which provides
@@ -26,13 +21,17 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+#
+
+target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+def get_url():
+    return str(settings.SQLALCHEMY_DATABASE_URL)
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -46,7 +45,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
