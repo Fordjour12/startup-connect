@@ -1,7 +1,6 @@
 import enum
 from typing import Optional
 
-from models.user import User
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -39,7 +38,7 @@ class Startup(StartupBase, table=True):
     founder_id: int = Field(foreign_key="user.id")
 
     # Relationships
-    founder: User = Relationship(back_populates="startups")
+    founder: "User" = Relationship(back_populates="startups")  # type: ignore  # noqa: F821
 
 
 class StartupCreate(StartupBase):
