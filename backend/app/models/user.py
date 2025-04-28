@@ -1,6 +1,8 @@
 import enum
+import uuid
 from typing import List, Optional
 
+from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -11,14 +13,15 @@ class UserRole(str, enum.Enum):
 
 
 class UserBase(SQLModel):
-    email: str = Field(unique=True, index=True)
+    full_name: str = Field(default=None, max_length=255)
+    email: EmailStr = Field(unique=True, index=True)
     role: UserRole
     is_active: bool = Field(default=True)
     is_verified: bool = Field(default=False)
 
 
 class User(UserBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
 
     # Relationships
@@ -26,11 +29,19 @@ class User(UserBase, table=True):
 
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(min_length=8, max_length=40)
 
 
-class UserRead(UserBase):
-    id: int
+class UserRegister(SQLModel):
+    full_name: str = Field(default=None, max_length=255)
+    email: EmailStr = Field(unique=True, index=True)
+    password: str = Field(min_length=8, max_length=40)
+    role: UserRole = Field(default=None)
+
+
+# Public Response
+class UserPublic(UserBase):
+    id: uuid.UUID
 
 
 class UserUpdate(SQLModel):
@@ -39,3 +50,8 @@ class UserUpdate(SQLModel):
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
+
+
+class TokenPayload(SQLModel):
+    exp: int
+    sub: str | None = None

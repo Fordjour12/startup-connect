@@ -1,28 +1,7 @@
 import { computed, ref } from 'vue'
-import { useInvestor } from './useInvestor'
+import type { DashboardMetrics, InvestmentTrend } from '~/types'
 
-export interface DashboardMetrics {
-  totalInvestments: number
-  activeInvestments: number
-  totalPortfolioValue: number
-  averageROI: number
-  recentActivity: {
-    type: 'investment' | 'match' | 'update'
-    title: string
-    date: string
-    details: string
-  }[]
-}
-
-export interface InvestmentTrend {
-  date: string
-  amount: number
-  count: number
-}
-
-export const useInvestorDashboard = () => {
-  const { investor, portfolio, matchedStartups, isLoading, error, fetchInvestor, fetchPortfolio, fetchMatchedStartups } = useInvestor()
-  
+export function useInvestorDashboard() {
   const metrics = ref<DashboardMetrics>({
     totalInvestments: 0,
     activeInvestments: 0,
@@ -34,91 +13,41 @@ export const useInvestorDashboard = () => {
   const investmentTrends = ref<InvestmentTrend[]>([])
   const selectedTimeRange = ref<'week' | 'month' | 'year'>('month')
   const selectedMetric = ref<'amount' | 'count'>('amount')
-
-  const fetchDashboardData = async () => {
-    await Promise.all([
-      fetchInvestor(),
-      fetchPortfolio(),
-      fetchMatchedStartups()
-    ])
-    updateMetrics()
-    fetchInvestmentTrends()
-  }
-
-  const updateMetrics = () => {
-    if (!portfolio.value) return
-
-    metrics.value = {
-      totalInvestments: portfolio.value.totalInvestments,
-      activeInvestments: portfolio.value.activeInvestments,
-      totalPortfolioValue: portfolio.value.totalValue,
-      averageROI: portfolio.value.investments.reduce((acc, inv) => acc + inv.roi, 0) / portfolio.value.investments.length,
-      recentActivity: generateRecentActivity()
-    }
-  }
-
-  const generateRecentActivity = () => {
-    const activities = []
-
-    // Add recent investments
-    if (portfolio.value) {
-      portfolio.value.investments
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5)
-        .forEach(inv => {
-          activities.push({
-            type: 'investment',
-            title: `Invested in ${inv.company}`,
-            date: new Date(inv.date).toISOString(),
-            details: `Amount: $${inv.amount.toLocaleString()}`
-          })
-        })
-    }
-
-    // Add recent matches
-    matchedStartups.value
-      .sort((a, b) => b.matchScore - a.matchScore)
-      .slice(0, 5)
-      .forEach(startup => {
-        activities.push({
-          type: 'match',
-          title: `New match: ${startup.name}`,
-          date: new Date().toISOString(),
-          details: `Match score: ${startup.matchScore}%`
-        })
-      })
-
-    return activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  }
-
-  const fetchInvestmentTrends = async () => {
-    // TODO: Replace with actual API call
-    const response = await fetch(`/api/investor/trends?timeRange=${selectedTimeRange.value}`)
-    const data = await response.json()
-    investmentTrends.value = data
-  }
-
-  const updateTimeRange = (range: 'week' | 'month' | 'year') => {
-    selectedTimeRange.value = range
-    fetchInvestmentTrends()
-  }
-
-  const updateMetric = (metric: 'amount' | 'count') => {
-    selectedMetric.value = metric
-  }
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   const topPerformingInvestments = computed(() => {
-    if (!portfolio.value) return []
-    return [...portfolio.value.investments]
-      .sort((a, b) => b.roi - a.roi)
-      .slice(0, 5)
+    // This would be populated from the server response
+    return []
   })
 
-  const recentMatches = computed(() => {
-    return [...matchedStartups.value]
-      .sort((a, b) => b.matchScore - a.matchScore)
-      .slice(0, 5)
-  })
+  async function fetchDashboardData() {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const { data } = await useFetch('/api/investor/dashboard', {
+        query: {
+          timeRange: selectedTimeRange.value
+        }
+      })
+
+      if (data.value) {
+        metrics.value = data.value.metrics
+        investmentTrends.value = data.value.trends
+      }
+    } catch (err) {
+      error.value = 'Failed to fetch dashboard data'
+      console.error('Error fetching dashboard data:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  function updateTimeRange(range: 'week' | 'month' | 'year') {
+    selectedTimeRange.value = range
+    fetchDashboardData()
+  }
 
   return {
     metrics,
@@ -126,11 +55,9 @@ export const useInvestorDashboard = () => {
     selectedTimeRange,
     selectedMetric,
     topPerformingInvestments,
-    recentMatches,
     isLoading,
     error,
     fetchDashboardData,
-    updateTimeRange,
-    updateMetric
+    updateTimeRange
   }
 } 

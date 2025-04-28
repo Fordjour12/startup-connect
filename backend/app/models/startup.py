@@ -1,4 +1,5 @@
 import enum
+import uuid
 from typing import Optional
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -34,8 +35,8 @@ class StartupBase(SQLModel):
 
 
 class Startup(StartupBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    founder_id: int = Field(foreign_key="user.id")
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    founder_id: uuid.UUID = Field(foreign_key="user.id")
 
     # Relationships
     founder: "User" = Relationship(back_populates="startups")  # type: ignore  # noqa: F821
@@ -46,8 +47,8 @@ class StartupCreate(StartupBase):
 
 
 class StartupRead(StartupBase):
-    id: int
-    founder_id: int
+    id: uuid.UUID
+    founder_id: uuid.UUID
 
 
 class StartupUpdate(SQLModel):

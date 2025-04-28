@@ -1,64 +1,68 @@
+import uuid
 from typing import List, Optional
 
-from core.security import get_password_hash, verify_password
-from models.user import User
-from schemas.user import UserCreate, UserUpdate
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
+
+from app.core.security import get_password_hash, verify_password
+from app.models.user import User, UserCreate
 
 
-def get_user(db: Session, user_id: int) -> Optional[User]:
-    return db.query(User).filter(User.id == user_id).first()
+def get_user(*, db: Session, user_id: uuid.UUID) -> Optional[User]:
+    return db.get(User, user_id)
 
 
-def get_user_by_email(db: Session, email: str) -> Optional[User]:
-    return db.query(User).filter(User.email == email).first()
+def get_user_by_email(*, db: Session, email: str) -> User | None:
+    statement = select(User).where(User.email == email)
+    return db.exec(statement).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[User]:
-    return db.query(User).offset(skip).limit(limit).all()
+def get_users(*, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
+    statement = select(User).offset(skip).limit(limit)
+    return db.exec(statement).all()  # type: ignore
 
 
-def create_user(db: Session, user: UserCreate) -> User:
-    hashed_password = get_password_hash(user.password)
-    db_user = User(email=user.email, hashed_password=hashed_password, role=user.role)
-    db.add(db_user)
+def create_user(*, db: Session, user_create: UserCreate) -> User:
+    db_usr_obj = User.model_validate(
+        user_create, update={"hashed_password": get_password_hash(user_create.password)}
+    )
+    db.add(db_usr_obj)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(db_usr_obj)
+    return db_usr_obj
 
 
-def update_user(db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
-    db_user = get_user(db, user_id)
-    if not db_user:
-        return None
+# def update_user(*, db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
+#     db_user = get_user(db, user_id)
+#     if not db_user:
+#         return None
 
-    update_data = user.model_dump(exclude_unset=True)
-    if "password" in update_data:
-        update_data["hashed_password"] = get_password_hash(update_data.pop("password"))
+#     update_data = user.model_dump(exclude_unset=True)
+#     if "password" in update_data:
+#         update_data["hashed_password"] = get_password_hash(update_data.pop("password"))
 
-    for field, value in update_data.items():
-        setattr(db_user, field, value)
+#     for field, value in update_data.items():
+#         setattr(db_user, field, value)
 
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-
-def delete_user(db: Session, user_id: int) -> bool:
-    db_user = get_user(db, user_id)
-    if not db_user:
-        return False
-
-    db.delete(db_user)
-    db.commit()
-    return True
+#     db.add(db_user)
+#     db.commit()
+#     db.refresh(db_user)
+#     return db_user
 
 
-def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
-    user = get_user_by_email(db, email)
+# def delete_user(*, db: Session, user_id: int) -> bool:
+#     db_user = get_user(db, user_id)
+#     if not db_user:
+#         return False
+
+#     db.delete(db_user)
+#     db.commit()
+#     return True
+
+
+def authenticate_user(*, db: Session, email: str, password: str) -> Optional[User]:
+    user = get_user_by_email(db=db, email=email)
     if not user:
         return None
-    hashed_password = getattr(user, "hashed_password")
-    if not verify_password(password, hashed_password):
+    if not verify_password(password, user.hashed_password):
         return None
     return user

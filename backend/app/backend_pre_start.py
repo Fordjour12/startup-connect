@@ -1,6 +1,6 @@
 import logging
 
-from core.database import engine
+from app.core.database import engine
 from sqlalchemy import Engine
 from sqlmodel import Session, select
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
