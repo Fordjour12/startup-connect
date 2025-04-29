@@ -4,7 +4,8 @@ set -e
 set -x
 
 # Let the DB start
-python app/backend_pre_start.py
+cd "$(dirname "$0")/.."  # Change to project root
+PYTHONPATH=$PYTHONPATH:. python app/backend_pre_start.py
 
 # Run migrations
 alembic upgrade head

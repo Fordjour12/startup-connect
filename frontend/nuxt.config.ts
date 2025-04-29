@@ -53,5 +53,17 @@ export default defineNuxtConfig({
   },
   routeRules: {
     '/startups/**': { ssr: true }
-  }
+  },
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.API_BASE_URL,
+    },
+  },
+  // nitro: {
+  //   routeRules: {
+  //     '/api/**': {
+  //       proxy: 'http://localhost:8000/api/v1/**',
+  //     },
+  //   },
+  // },
 })
