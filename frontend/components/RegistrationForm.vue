@@ -43,6 +43,12 @@ const formSchema = toTypedSchema(z.object({
 
 const form = useForm({
     validationSchema: formSchema,
+    initialValues: {
+        name: '',
+        email: '',
+        password: '',
+        role: 'startup',
+    },
 })
 
 const onSubmit = form.handleSubmit(async (values) => {
@@ -60,9 +66,9 @@ const onSubmit = form.handleSubmit(async (values) => {
             })
         }
 
-    } catch (error) {
+    } catch (error: unknown) {
         toast.warning('Registration failed', {
-            description: 'There was an error creating your account. Please try again.',
+            description: error instanceof Error ? error.message : 'There was an error creating your account. Please try again.',
         })
     } finally {
         isLoading.value = false
@@ -158,9 +164,11 @@ const onSubmit = form.handleSubmit(async (values) => {
         </div>
         <div class="text-center text-sm">
             Already have an account?
-            <a href="#" class="underline underline-offset-4">
-                Log in
-            </a>
+            <Button variant="link" as-child>
+                <NuxtLink to="/login" class="underline underline-offset-4">
+                    Log in
+                </NuxtLink>
+            </Button>
         </div>
     </form>
 </template>

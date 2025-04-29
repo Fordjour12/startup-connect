@@ -51,6 +51,10 @@ class UserUpdate(SQLModel):
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
 
+# Json access token payload
+class Token(SQLModel):
+    access_token: str
+    token_type: str = "bearer"
 
 class TokenPayload(SQLModel):
     exp: int

@@ -31,6 +31,15 @@ def create_user(*, db: Session, user_create: UserCreate) -> User:
     return db_usr_obj
 
 
+def authenticate_user(*, db: Session, email: str, password: str) -> User | None:
+    user = get_user_by_email(db=db, email=email)
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+
 # def update_user(*, db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
 #     db_user = get_user(db, user_id)
 #     if not db_user:
@@ -57,12 +66,3 @@ def create_user(*, db: Session, user_create: UserCreate) -> User:
 #     db.delete(db_user)
 #     db.commit()
 #     return True
-
-
-def authenticate_user(*, db: Session, email: str, password: str) -> Optional[User]:
-    user = get_user_by_email(db=db, email=email)
-    if not user:
-        return None
-    if not verify_password(password, user.hashed_password):
-        return None
-    return user

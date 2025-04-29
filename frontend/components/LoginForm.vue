@@ -1,41 +1,114 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue'
+import { ref } from 'vue'
+import { useForm } from 'vee-validate'
+import { toTypedSchema } from '@vee-validate/zod'
+import * as z from 'zod'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form'
+// import { toast } from "vue-sonner"
+import { vAutoAnimate } from '@formkit/auto-animate/vue'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps<{
     class?: HTMLAttributes['class']
 }>()
+
+// const isLoading = ref(false)
+
+const formSchema = toTypedSchema(z.object({
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(8, 'Password must be at least 8 characters')
+        .regex(/[0-9]/, 'Password must contain at least one number')
+        .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+}))
+
+const form = useForm({
+    validationSchema: formSchema,
+})
+
+const authStore = useAuthStore()
+
+const onSubmit = form.handleSubmit(async (values) => {
+    await authStore.login(values)
+
+
+
+    // console.log('Values:', values)
+    //
+    // isLoading.value = true
+    // try {
+    //     console.log('Making API request to /api/login')
+    //     const response = await $fetch('/api/login', {
+    //         method: 'POST',
+    //         body: values,
+    //     })
+
+    //     if (response) {
+    //         toast('Login successful', {
+    //             description: 'You have been logged in successfully.',
+    //         })
+    //     }
+
+    // } catch (error: unknown) {
+    //     toast.warning('Login failed', {
+    //         description: error instanceof Error ? error.message : 'There was an error logging in. Please try again.',
+    //     })
+    // } finally {
+    //     isLoading.value = false
+    // }
+})
 </script>
 
 <template>
-    <form :class="cn('flex flex-col gap-6', props.class)">
+    <form :class="cn('flex flex-col gap-6', props.class)" @submit="onSubmit">
+
         <div class="flex flex-col items-center gap-2 text-center">
             <h1 class="text-2xl font-bold">
                 Login to your account
             </h1>
             <p class="text-muted-foreground text-sm text-balance">
-                Enter your email below to login to your account
+                Enter your details to login to your account
             </p>
         </div>
         <div class="grid gap-6">
             <div class="grid gap-3">
-                <Label for="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" required />
+                <FormField v-slot="{ componentField }" name="email">
+                    <FormItem v-auto-animate>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                            <Input v-bind="componentField" type="email" placeholder="m@example.com" required />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                </FormField>
             </div>
             <div class="grid gap-3">
-                <div class="flex items-center">
-                    <Label for="password">Password</Label>
-                    <a href="#" class="ml-auto text-sm underline-offset-4 hover:underline">
-                        Forgot your password?
-                    </a>
-                </div>
-                <Input id="password" type="password" required />
+                <FormField v-slot="{ componentField }" name="password">
+                    <FormItem v-auto-animate>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                            <Input v-bind="componentField" type="password" required />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                </FormField>
+                <a href="#" class="ml-auto text-sm underline-offset-4 hover:underline">
+                    Forgot your password?
+                </a>
             </div>
-            <Button type="submit" class-name="w-full">
-                Login
+            <Button type="submit" class-name="w-full" :disabled="authStore.loading">
+                <span v-if="authStore.loading"
+                    class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                {{ authStore.loading ? 'Logging in...' : 'Login' }}
             </Button>
             <div
                 class="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -54,9 +127,11 @@ const props = defineProps<{
         </div>
         <div class="text-center text-sm">
             Don't have an account?
-            <a href="#" class="underline underline-offset-4">
-                Sign up
-            </a>
+            <Button variant="link" as-child>
+                <NuxtLink to="/register" class="underline underline-offset-4">
+                    Sign up
+                </NuxtLink>
+            </Button>
         </div>
     </form>
 </template>

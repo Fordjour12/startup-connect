@@ -1,15 +1,8 @@
 import { defineEventHandler, readBody } from 'h3';
 
 export default defineEventHandler(async (event) => {
-  console.log('Signup endpoint hit')
   const body = await readBody(event);
-  console.log('Received body:', body)
   const { email, password, role, name } = body;
-
-  console.log('Email:', email)
-  console.log('Password:', password)
-  console.log('Role:', role)
-  console.log('Name:', name)
 
   if (!email || !password || !role || !name) {
     console.log('Missing required fields')

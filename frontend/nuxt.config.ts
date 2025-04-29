@@ -10,6 +10,7 @@ export default defineNuxtConfig({
     'shadcn-nuxt',
     '@nuxt/eslint',
     '@nuxtjs/color-mode',
+    '@pinia/nuxt',
   ],
   colorMode: {
     classSuffix: ''
@@ -28,9 +29,6 @@ export default defineNuxtConfig({
     ]
   },
   shadcn: {
-    /**
-     * Prefix for all the imported component
-     */
     prefix: '',
     /**
      * Directory that the component lives in.
@@ -38,21 +36,28 @@ export default defineNuxtConfig({
      */
     componentDir: './components/ui'
   },
+  plugins: [
+    './plugins/auth.ts',
+    './plugins/api.ts',
+  ],
   vite: {
     plugins: [
       tailwindcss(),
+
     ],
   },
   app: {
     head: {
       title: 'StartupConnect',
       meta: [
-        { name: 'description', content: 'Connect with innovative startups and investors' }
-      ]
-    }
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      ],
+    },
   },
+
   routeRules: {
-    '/startups/**': { ssr: true }
+    '/startups/**': { ssr: true },
   },
   runtimeConfig: {
     public: {
@@ -66,4 +71,5 @@ export default defineNuxtConfig({
   //     },
   //   },
   // },
+  components: true,
 })
