@@ -3,8 +3,6 @@ from typing import List, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.models.startup import Startup
-
 
 class UserRole(str, enum.Enum):
     STARTUP = "startup"
@@ -24,7 +22,7 @@ class User(UserBase, table=True):
     hashed_password: str
 
     # Relationships
-    startups: List["Startup"] = Relationship(back_populates="founder")
+    startups: List["Startup"] = Relationship(back_populates="founder")  # type: ignore # noqa: F821
 
 
 class UserCreate(UserBase):
