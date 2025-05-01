@@ -11,9 +11,6 @@ import type { Startup } from '@/data/startups'
 import { startups } from '@/data/startups'
 import { Building2, DollarSign, MoreVertical, Search, TrendingUp, Users } from 'lucide-vue-next'
 
-definePageMeta({
-    middleware: ['auth'],
-})
 
 // Statistics
 const stats = ref([
