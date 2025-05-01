@@ -14,7 +14,7 @@ from app.models.user import User,TokenPayload
 from sqlmodel import Session
 
 reusable_Oauth2 = OAuth2PasswordBearer(
-    tokenUrl = f"{settings.API_V1_STR}/login/access-token"
+    tokenUrl = f"{settings.API_V1_STR}/users/login/access-token"
 )
 
 def get_db() -> Generator[Session,None,None]:
@@ -29,7 +29,7 @@ TokenDep = Annotated[str, Depends(reusable_Oauth2)]
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
     try:
-        payload = jwt.decoded(
+        payload = jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM]
@@ -58,8 +58,8 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
-def get_current_active_user(current_user: CurrentUser) -> User:
-    return current_user
+# def get_current_active_user(current_user: CurrentUser) -> User:
+#     return current_user
 
 
 # def get_current_active_superuser(current_user: CurrentUser) -> User:

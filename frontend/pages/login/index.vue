@@ -27,7 +27,7 @@ export const description = 'A two column login page with a cover image.'
             </div>
         </div>
         <div class="bg-muted relative hidden lg:block">
-            <img src="/image.jpeg" alt="cover art"
+            <img src="/image-1.jpeg" alt="cover art"
                 class="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale">
         </div>
     </div>
