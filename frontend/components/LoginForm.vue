@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue'
-import { ref } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import * as z from 'zod'
@@ -39,32 +38,6 @@ const authStore = useAuthStore()
 
 const onSubmit = form.handleSubmit(async (values) => {
     await authStore.login(values)
-
-
-
-    // console.log('Values:', values)
-    //
-    // isLoading.value = true
-    // try {
-    //     console.log('Making API request to /api/login')
-    //     const response = await $fetch('/api/login', {
-    //         method: 'POST',
-    //         body: values,
-    //     })
-
-    //     if (response) {
-    //         toast('Login successful', {
-    //             description: 'You have been logged in successfully.',
-    //         })
-    //     }
-
-    // } catch (error: unknown) {
-    //     toast.warning('Login failed', {
-    //         description: error instanceof Error ? error.message : 'There was an error logging in. Please try again.',
-    //     })
-    // } finally {
-    //     isLoading.value = false
-    // }
 })
 </script>
 
