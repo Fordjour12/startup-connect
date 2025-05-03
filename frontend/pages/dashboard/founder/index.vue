@@ -2,10 +2,11 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { ArrowUpIcon, DollarSignIcon, FileTextIcon, TrendingUpIcon } from 'lucide-vue-next'
 
-definePageMeta({
-    middleware: 'auth'
-})
+// definePageMeta({
+//     middleware: 'auth'
+// })
 
 // TODO: Add data fetching for profile completeness, recent activity, etc.
 </script>
@@ -20,24 +21,96 @@ definePageMeta({
 
         <!-- Main Content -->
         <main class="container mx-auto py-6">
-            <!-- Profile Completeness Card -->
+            <!-- Funding Progress Card -->
             <Card class="mb-6">
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <div>
-                            <CardTitle>Profile Completeness</CardTitle>
-                            <CardDescription>Complete your profile to increase visibility to investors</CardDescription>
+                            <CardTitle>Fundraising Progress</CardTitle>
+                            <CardDescription>Track your fundraising journey</CardDescription>
                         </div>
                         <div class="text-right">
-                            <div class="text-3xl font-bold text-primary">75%</div>
-                            <div class="text-sm text-muted-foreground">Complete</div>
+                            <div class="text-3xl font-bold text-primary">$2.5M</div>
+                            <div class="text-sm text-muted-foreground">of $5M goal</div>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Progress :model-value="75" class="h-2" />
+                    <Progress :model-value="50" class="h-2 mb-2" />
+                    <div class="flex justify-between text-sm text-muted-foreground">
+                        <span>12 Investors</span>
+                        <span>50% Complete</span>
+                    </div>
                 </CardContent>
             </Card>
+
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Monthly Revenue -->
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle class="text-sm font-medium">Monthly Revenue</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex items-baseline space-x-2">
+                            <div class="text-2xl font-bold">$45.2K</div>
+                            <div class="text-sm text-emerald-500 flex items-center">
+                                <ArrowUpIcon class="w-4 h-4 mr-1" />
+                                12%
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted-foreground mt-1">+$5.2K from last month</p>
+                    </CardContent>
+                </Card>
+
+                <!-- Active Users -->
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle class="text-sm font-medium">Active Users</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex items-baseline space-x-2">
+                            <div class="text-2xl font-bold">2,350</div>
+                            <div class="text-sm text-emerald-500 flex items-center">
+                                <ArrowUpIcon class="w-4 h-4 mr-1" />
+                                18%
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted-foreground mt-1">+350 new users this month</p>
+                    </CardContent>
+                </Card>
+
+                <!-- Investor Interest -->
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle class="text-sm font-medium">Investor Interest</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex items-baseline space-x-2">
+                            <div class="text-2xl font-bold">24</div>
+                            <div class="text-sm text-emerald-500 flex items-center">
+                                <ArrowUpIcon class="w-4 h-4 mr-1" />
+                                8%
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted-foreground mt-1">Profile views this week</p>
+                    </CardContent>
+                </Card>
+
+                <!-- Runway -->
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle class="text-sm font-medium">Runway</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex items-baseline space-x-2">
+                            <div class="text-2xl font-bold">14</div>
+                            <div class="text-sm text-muted-foreground">months</div>
+                        </div>
+                        <p class="text-xs text-muted-foreground mt-1">At current burn rate</p>
+                    </CardContent>
+                </Card>
+            </div>
 
             <!-- Quick Actions Grid -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-6">
@@ -49,40 +122,57 @@ definePageMeta({
                     </CardHeader>
                     <CardContent>
                         <Button asChild>
-                            <NuxtLink to="/dashboard/founder/startup/create">
+                            <NuxtLink to="/dashboard/founder/startup">
                                 Manage Profile
                             </NuxtLink>
                         </Button>
                     </CardContent>
                 </Card>
 
-                <!-- Messages Card -->
+                <!-- Investor Communications -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Messages</CardTitle>
-                        <CardDescription>View and respond to investor messages</CardDescription>
+                        <CardTitle>Investor Relations</CardTitle>
+                        <CardDescription>Manage communications and track investor engagement</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button asChild>
-                            <NuxtLink to="/dashboard/founder/messages">
-                                View Messages
-                            </NuxtLink>
-                        </Button>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Active Conversations</span>
+                                <span class="font-medium">8</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>Pending Responses</span>
+                                <span class="font-medium">3</span>
+                            </div>
+                            <Button asChild class="w-full mt-4">
+                                <NuxtLink to="/dashboard/founder/messages">
+                                    View Messages
+                                </NuxtLink>
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
 
-                <!-- Settings Card -->
+                <!-- Due Diligence -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Settings</CardTitle>
-                        <CardDescription>Manage your account settings and preferences</CardDescription>
+                        <CardTitle>Due Diligence</CardTitle>
+                        <CardDescription>Track and manage investor due diligence requests</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button asChild>
-                            <NuxtLink to="/dashboard/founder/settings">
-                                View Settings
-                            </NuxtLink>
-                        </Button>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Documents Uploaded</span>
+                                <span class="font-medium">15/20</span>
+                            </div>
+                            <Progress :model-value="75" class="h-2" />
+                            <Button asChild class="w-full mt-4">
+                                <NuxtLink to="/dashboard/founder/documents">
+                                    Manage Documents
+                                </NuxtLink>
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -102,24 +192,18 @@ definePageMeta({
                                     <div class="relative flex space-x-3">
                                         <div>
                                             <span
-                                                class="h-8 w-8 rounded-full bg-primary flex items-center justify-center ring-8 ring-background">
-                                                <svg class="h-5 w-5 text-primary-foreground"
-                                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                                    fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
+                                                class="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center ring-8 ring-background">
+                                                <DollarSignIcon class="h-4 w-4 text-white" />
                                             </span>
                                         </div>
                                         <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                             <div>
-                                                <p class="text-sm text-muted-foreground">Profile updated <span
-                                                        class="font-medium text-foreground">Company Information</span>
+                                                <p class="text-sm text-muted-foreground">New investment interest from <span
+                                                        class="font-medium text-foreground">Tech Ventures Capital</span>
                                                 </p>
                                             </div>
                                             <div class="text-right text-sm whitespace-nowrap text-muted-foreground">
-                                                <time datetime="2024-01-20">20 minutes ago</time>
+                                                <time datetime="2024-01-20">10 minutes ago</time>
                                             </div>
                                         </div>
                                     </div>
@@ -132,23 +216,38 @@ definePageMeta({
                                     <div class="relative flex space-x-3">
                                         <div>
                                             <span
-                                                class="h-8 w-8 rounded-full bg-primary flex items-center justify-center ring-8 ring-background">
-                                                <svg class="h-5 w-5 text-primary-foreground"
-                                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                                    fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
+                                                class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-background">
+                                                <FileTextIcon class="h-4 w-4 text-white" />
                                             </span>
                                         </div>
                                         <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                             <div>
-                                                <p class="text-sm text-muted-foreground">New message from <span
-                                                        class="font-medium text-foreground">Investor XYZ</span></p>
+                                                <p class="text-sm text-muted-foreground">Due diligence documents requested by <span
+                                                        class="font-medium text-foreground">Growth Fund LLC</span></p>
                                             </div>
                                             <div class="text-right text-sm whitespace-nowrap text-muted-foreground">
                                                 <time datetime="2024-01-20">1 hour ago</time>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="relative pb-8">
+                                    <div class="relative flex space-x-3">
+                                        <div>
+                                            <span
+                                                class="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center ring-8 ring-background">
+                                                <TrendingUpIcon class="h-4 w-4 text-white" />
+                                            </span>
+                                        </div>
+                                        <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                            <div>
+                                                <p class="text-sm text-muted-foreground">Monthly revenue milestone reached: <span
+                                                        class="font-medium text-foreground">$45K</span></p>
+                                            </div>
+                                            <div class="text-right text-sm whitespace-nowrap text-muted-foreground">
+                                                <time datetime="2024-01-20">2 hours ago</time>
                                             </div>
                                         </div>
                                     </div>

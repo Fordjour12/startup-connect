@@ -36,9 +36,9 @@ const filteredStartups = ref<Startup[]>([])
 
 // Filter states
 const searchQuery = ref('')
-const selectedIndustry = ref('')
-const selectedStage = ref('')
-const selectedRegion = ref('')
+const selectedIndustry = ref('all')
+const selectedStage = ref('all')
+const selectedRegion = ref('all')
 const sortBy = ref('newest')
 const viewMode = ref<'grid' | 'list'>('grid')
 const fundingRange = ref([0, 10000000])
@@ -248,7 +248,7 @@ const formatCurrency = (amount: number) => {
                   <SelectValue placeholder="Select Industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Industries</SelectItem>
+                  <SelectItem value="all">All Industries</SelectItem>
                   <SelectItem v-for="industry in industries" :key="industry" :value="industry">
                     {{ industry }}
                   </SelectItem>
@@ -264,7 +264,7 @@ const formatCurrency = (amount: number) => {
                   <SelectValue placeholder="Select Stage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Stages</SelectItem>
+                  <SelectItem value="all">All Stages</SelectItem>
                   <SelectItem v-for="stage in stages" :key="stage" :value="stage">
                     {{ stage }}
                   </SelectItem>
@@ -280,7 +280,7 @@ const formatCurrency = (amount: number) => {
                   <SelectValue placeholder="Select Region" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Regions</SelectItem>
+                  <SelectItem value="all">All Regions</SelectItem>
                   <SelectItem v-for="region in regions" :key="region" :value="region">
                     {{ region }}
                   </SelectItem>
