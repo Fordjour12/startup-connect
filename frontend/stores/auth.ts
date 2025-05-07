@@ -1,42 +1,22 @@
+import type { State, User, Credentials, AuthResponse } from "@/types";
 import { defineStore } from "pinia";
 import { toast } from "vue-sonner";
 
-interface User {
-    id: number;
-    email: string;
-    full_name: string;
-    role: string;
-    is_active: boolean;
-}
 
-interface Credentials {
-    email: string;
-    password: string;
-}
-
-interface AuthResponse {
-    access_token: string;
-    token_type: string;
-}
-
-interface State {
-    user: User | null;
-    loading: boolean;
-    error: string | null;
-    token: string | null;
-}
 
 export const useAuthStore = defineStore("auth", {
     state: (): State => ({
         user: null,
         loading: false,
         error: null,
-        token: null
+        token: null,
+        authenticated: false,
+        ready: false
     }),
 
 
     getters: {
-        isAuthenticated: (state): boolean => !!state.user,
+        isAuthenticated: (state): boolean => state.authenticated,
         getUser: (state): User | null => state.user,
         isLoading: (state): boolean => state.loading,
         getError: (state): string | null => state.error,
@@ -55,26 +35,17 @@ export const useAuthStore = defineStore("auth", {
                 });
 
                 if (response) {
-                    // Store token in a cookie that's accessible in SSR
-                    const tokenCookie = useCookie('auth_token', {
-                        maxAge: 60 * 60 * 24 * 7, // 7 days
-                        path: '/',
-                        secure: process.env.NODE_ENV === 'production',
-                        sameSite: 'strict'
-                    });
-                    tokenCookie.value = response.access_token;
+                    this.token = response.access_token;
+                    this.authenticated = true;
+                    sessionStorage.setItem('authToken', this.token);
 
                     toast('Login successful', {
                         description: 'You have been logged in successfully.',
                     })
+                    // Fetch user information
+                    await this.fetchUserInformation();
+                    return true;
                 }
-
-                // Store token in the store
-                this.token = response.access_token;
-
-                console.log(this.token)
-                // Fetch user information
-                await this.fetchUserInformation(this.token);
 
             } catch (error: unknown) {
                 this.error = error instanceof Error ? error.message : 'Failed to login';
@@ -87,20 +58,18 @@ export const useAuthStore = defineStore("auth", {
             }
         },
 
-        async fetchUserInformation(token: string) {
+        async fetchUserInformation() {
             this.loading = true;
             this.error = null;
-            this.token = token;
+            const token = sessionStorage.getItem('authToken');
 
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
 
             try {
-                // Get the token from the cookie directly
 
-                // if (!token) {
-                //     throw new Error('No authentication token found');
-                // }
-
-                const response = await $fetch<User>('http://localhost:8000/api/v1/users/me', {
+                const response = await $fetch<User>("/api/me", {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -113,6 +82,7 @@ export const useAuthStore = defineStore("auth", {
                 throw error;
             } finally {
                 this.loading = false;
+                this.ready = true;
             }
         },
 
@@ -133,6 +103,28 @@ export const useAuthStore = defineStore("auth", {
             } finally {
                 this.loading = false;
             }
+        },
+
+        async initializeFromSessionStorage() {
+            const token = sessionStorage.getItem('authToken');
+            if (token) {
+                this.token = token;
+                this.authenticated = true;
+                try {
+                    await this.fetchUserInformation();
+                    console.log('Auth store initialized with token, authenticated:', this.authenticated);
+                } catch (error) {
+                    console.error('Failed to fetch user information:', error);
+                    this.authenticated = false;
+                    this.token = null;
+                    sessionStorage.removeItem('authToken');
+                }
+            } else {
+                console.log('No auth token found in sessionStorage');
+                this.authenticated = false;
+                this.token = null;
+            }
+            this.ready = true;
         },
 
         // Reset store state

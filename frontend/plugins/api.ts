@@ -1,6 +1,5 @@
 import type { FetchOptions } from 'ofetch';
 import { useAuthStore } from '@/stores/auth';
-import type { $Fetch } from 'nitropack';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -10,22 +9,19 @@ interface ApiError extends Error {
   statusMessage?: string;
 }
 
-type CustomFetchOptions = Omit<FetchOptions, 'method'> & {
-  method?: HttpMethod;
-  headers?: HeadersInit;
-};
-
 export default defineNuxtPlugin((_nuxtApp) => {
   const { $fetch } = useNuxtApp();
+  const fetchTyped = $fetch as typeof import('ofetch').$fetch;
   const authStore = useAuthStore();
 
-  const apiFetch = async <T>(
+  const ApiFetchWithAuth = async <T>(
     url: string,
-    options: CustomFetchOptions = {}
+    options: FetchOptions<'json'> = {}
   ): Promise<T> => {
-    const customOptions: CustomFetchOptions = {
+    const customOptions: FetchOptions<'json'> = {
       ...options,
-      method: (options.method?.toUpperCase() as HttpMethod) || 'GET'
+      method: (options.method?.toUpperCase() as HttpMethod) || 'GET',
+      responseType: 'json',
     };
 
     // Add authorization header if token exists
@@ -37,8 +33,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
     }
 
     try {
-      const fetchInstance = $fetch as $Fetch;
-      return await fetchInstance<T>(url, customOptions);
+      return await fetchTyped<T>(url, customOptions);
     } catch (error) {
       const apiError = error as ApiError;
 
@@ -78,7 +73,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
 
   return {
     provide: {
-      apiFetch,
+      ApiFetchWithAuth,
     },
   };
 });
