@@ -1,7 +1,8 @@
 import enum
 import uuid
-from typing import Optional
+from typing import List, Optional, Dict, Any
 
+from sqlalchemy import Column, JSON
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -12,6 +13,25 @@ class Industry(str, enum.Enum):
     EDUCATION = "education"
     RETAIL = "retail"
     MANUFACTURING = "manufacturing"
+    REAL_ESTATE = "real_estate"
+    ENERGY = "energy"
+    TRANSPORTATION = "transportation"
+    MEDIA = "media"
+    ENTERTAINMENT = "entertainment"
+    FOOD_BEVERAGE = "food_beverage"
+    AGRICULTURE = "agriculture"
+    HOSPITALITY = "hospitality"
+    CONSTRUCTION = "construction"
+    TELECOMMUNICATIONS = "telecommunications"
+    BIOTECHNOLOGY = "biotechnology"
+    AEROSPACE = "aerospace"
+    AUTOMOTIVE = "automotive"
+    ECOMMERCE = "ecommerce"
+    GAMING = "gaming"
+    CYBERSECURITY = "cybersecurity"
+    FINTECH = "fintech"
+    HEALTHTECH = "healthtech"
+    EDTECH = "edtech"
     OTHER = "other"
 
 
@@ -19,8 +39,71 @@ class FundingStage(str, enum.Enum):
     IDEA = "idea"
     MVP = "mvp"
     EARLY_STAGE = "early_stage"
-    GROWTH = "growth"
-    SCALE = "scale"
+    PRESEED = "pre_seed"
+    SEED = "seed"
+    SERIES_A = "series_a"
+    SERIES_B = "series_b"
+    SERIES_C = "series_c"
+    IPO = "ipo"
+    MERGER_ACQUISITION = "merger_acquisition"
+    OTHER = "other"
+
+
+class TeamMember(SQLModel):
+    name: str
+    role: str
+    bio: Optional[str] = None
+
+
+class Funding(SQLModel):
+    total: Optional[float] = None
+    last_round: Optional[str] = None
+    investors: Optional[str] = None
+
+
+class Metrics(SQLModel):
+    revenue: Optional[str] = None
+    growth: Optional[str] = None
+    customers: Optional[int] = None
+
+
+class SocialMedia(SQLModel):
+    twitter: Optional[str] = None
+    linkedin: Optional[str] = None
+    facebook: Optional[str] = None
+    instagram: Optional[str] = None
+
+
+class Contact(SQLModel):
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+
+class Traction(SQLModel):
+    users: Optional[int] = None
+    revenue: Optional[float] = None
+    growth: Optional[float] = None
+    partnerships: Optional[str] = None
+
+
+class UseOfFunds(SQLModel):
+    product: Optional[float] = None
+    marketing: Optional[float] = None
+    operations: Optional[float] = None
+    team: Optional[float] = None
+    other: Optional[float] = None
+
+
+class TimelineEvent(SQLModel):
+    date: str
+    title: str
+    description: Optional[str] = None
+
+
+class Timeline(SQLModel):
+    past: List[TimelineEvent] = []
+    future: List[TimelineEvent] = []
 
 
 class StartupBase(SQLModel):
@@ -28,27 +111,58 @@ class StartupBase(SQLModel):
     description: str
     industry: Industry
     location: str
-    funding_goal: float
     funding_stage: FundingStage
+    funding_goal: Optional[float] = None
+    founded_year: Optional[str] = None
+    team_size: Optional[int] = None
     website: Optional[str] = None
+    logo_url: Optional[str] = None
     pitch_deck_url: Optional[str] = None
+    business_model: Optional[str] = None
+    target_market: Optional[str] = None
+    competitors: Optional[str] = None
 
 
 class Startup(StartupBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     founder_id: uuid.UUID = Field(foreign_key="user.id")
 
+    # JSON fields stored with SQLAlchemy JSON type
+    team_members: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    funding: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    metrics: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    social_media: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    contact: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    traction: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    use_of_funds: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    timeline: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+
     # Relationships
     founder: "User" = Relationship(back_populates="startups")  # type: ignore  # noqa: F821
 
 
 class StartupCreate(StartupBase):
-    pass
+    team_members: Optional[Dict[str, Any]] = None
+    funding: Optional[Dict[str, Any]] = None
+    metrics: Optional[Dict[str, Any]] = None
+    social_media: Optional[Dict[str, Any]] = None
+    contact: Optional[Dict[str, Any]] = None
+    traction: Optional[Dict[str, Any]] = None
+    use_of_funds: Optional[Dict[str, Any]] = None
+    timeline: Optional[Dict[str, Any]] = None
 
 
 class StartupRead(StartupBase):
     id: uuid.UUID
     founder_id: uuid.UUID
+    team_members: Optional[Dict[str, Any]] = None
+    funding: Optional[Dict[str, Any]] = None
+    metrics: Optional[Dict[str, Any]] = None
+    social_media: Optional[Dict[str, Any]] = None
+    contact: Optional[Dict[str, Any]] = None
+    traction: Optional[Dict[str, Any]] = None
+    use_of_funds: Optional[Dict[str, Any]] = None
+    timeline: Optional[Dict[str, Any]] = None
 
 
 class StartupUpdate(SQLModel):
@@ -58,5 +172,19 @@ class StartupUpdate(SQLModel):
     location: Optional[str] = None
     funding_goal: Optional[float] = None
     funding_stage: Optional[FundingStage] = None
+    founded_year: Optional[str] = None
+    team_size: Optional[int] = None
     website: Optional[str] = None
+    logo_url: Optional[str] = None
     pitch_deck_url: Optional[str] = None
+    business_model: Optional[str] = None
+    target_market: Optional[str] = None
+    competitors: Optional[str] = None
+    team_members: Optional[Dict[str, Any]] = None
+    funding: Optional[Dict[str, Any]] = None
+    metrics: Optional[Dict[str, Any]] = None
+    social_media: Optional[Dict[str, Any]] = None
+    contact: Optional[Dict[str, Any]] = None
+    traction: Optional[Dict[str, Any]] = None
+    use_of_funds: Optional[Dict[str, Any]] = None
+    timeline: Optional[Dict[str, Any]] = None

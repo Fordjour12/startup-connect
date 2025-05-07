@@ -1,8 +1,8 @@
-"""users_startup_init_models
+"""users/investors & startups migration
 
-Revision ID: e1fb02146814
+Revision ID: 773bda61d81a
 Revises:
-Create Date: 2025-04-28 12:42:19.604909
+Create Date: 2025-05-03 19:24:11.896435
 
 """
 from typing import Sequence, Union
@@ -11,9 +11,8 @@ from alembic import op
 import sqlalchemy as sa
 import sqlmodel
 
-
 # revision identifiers, used by Alembic.
-revision: str = 'e1fb02146814'
+revision: str = '773bda61d81a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -38,12 +37,26 @@ def upgrade() -> None:
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('industry', sa.Enum('TECHNOLOGY', 'HEALTHCARE', 'FINANCE', 'EDUCATION', 'RETAIL', 'MANUFACTURING', 'OTHER', name='industry'), nullable=False),
     sa.Column('location', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('funding_goal', sa.Float(), nullable=False),
-    sa.Column('funding_stage', sa.Enum('IDEA', 'MVP', 'EARLY_STAGE', 'GROWTH', 'SCALE', name='fundingstage'), nullable=False),
+    sa.Column('funding_stage', sa.Enum('IDEA', 'MVP', 'EARLY_STAGE', 'PRESEED', 'SEED', 'SERIES_A', 'SERIES_B', 'SERIES_C', 'IPO', 'MERGER_ACQUISITION', 'OTHER', name='fundingstage'), nullable=False),
+    sa.Column('funding_goal', sa.Float(), nullable=True),
+    sa.Column('founded_year', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('team_size', sa.Integer(), nullable=True),
     sa.Column('website', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('logo_url', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('pitch_deck_url', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('business_model', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('target_market', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('competitors', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('founder_id', sa.Uuid(), nullable=False),
+    sa.Column('team_members', sa.JSON(), nullable=True),
+    sa.Column('funding', sa.JSON(), nullable=True),
+    sa.Column('metrics', sa.JSON(), nullable=True),
+    sa.Column('social_media', sa.JSON(), nullable=True),
+    sa.Column('contact', sa.JSON(), nullable=True),
+    sa.Column('traction', sa.JSON(), nullable=True),
+    sa.Column('use_of_funds', sa.JSON(), nullable=True),
+    sa.Column('timeline', sa.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['founder_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

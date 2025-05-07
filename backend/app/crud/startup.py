@@ -1,15 +1,28 @@
-from typing import List, Optional
+from typing import Optional, Sequence
 
 from sqlmodel import Session, select
 
-from app.models.startup import Startup
-from app.schemas.startup import StartupCreate, StartupUpdate
+from app.models.startup import Startup, StartupCreate, StartupUpdate
 
-
+"""
+    Get a startup by id 
+    @param db: Session
+    @param startup_id: int
+    @return Optional[Startup]   
+"""
 def get_startup(db: Session, startup_id: int) -> Optional[Startup]:
     return db.get(Startup, startup_id)
 
-
+"""
+    Get all startups
+    @param db: Session
+    @param skip: int
+    @param limit: int
+    @param industry: Optional[str]
+    @param location: Optional[str]
+    @param funding_stage: Optional[str]
+    @return Sequence[Startup]
+"""
 def get_startups(
     db: Session,
     skip: int = 0,
@@ -17,7 +30,7 @@ def get_startups(
     industry: Optional[str] = None,
     location: Optional[str] = None,
     funding_stage: Optional[str] = None,
-) -> List[Startup]:
+) -> Sequence[Startup]:
     statement = select(Startup)
 
     if industry:
@@ -28,9 +41,16 @@ def get_startups(
         statement = statement.where(Startup.funding_stage == funding_stage)
 
     statement = statement.offset(skip).limit(limit)
-    return db.exec(statement).all()
+    results = db.exec(statement).all()
+    return results
 
 
+"""
+    Create a startup
+    @param db: Session
+    @param startup: StartupCreate
+    @return Startup
+"""
 def create_startup(db: Session, startup: StartupCreate) -> Startup:
     db_startup = Startup(**startup.model_dump())
     db.add(db_startup)
@@ -38,7 +58,13 @@ def create_startup(db: Session, startup: StartupCreate) -> Startup:
     db.refresh(db_startup)
     return db_startup
 
-
+"""
+    Update a startup
+    @param db: Session
+    @param startup_id: int
+    @param startup: StartupUpdate
+    @return Optional[Startup]
+"""
 def update_startup(
     db: Session, startup_id: int, startup: StartupUpdate
 ) -> Optional[Startup]:
@@ -55,7 +81,12 @@ def update_startup(
     db.refresh(db_startup)
     return db_startup
 
-
+"""
+    Delete a startup
+    @param db: Session
+    @param startup_id: int
+    @return bool
+"""
 def delete_startup(db: Session, startup_id: int) -> bool:
     db_startup = get_startup(db, startup_id)
     if not db_startup:
@@ -66,39 +97,91 @@ def delete_startup(db: Session, startup_id: int) -> bool:
     return True
 
 
+"""
+    Get a startup by founder id
+    @param db: Session
+    @param founder_id: int
+    @return Optional[Startup]
+"""
 def get_startup_by_founder(db: Session, founder_id: int) -> Optional[Startup]:
     statement = select(Startup).where(Startup.founder_id == founder_id)
-    return db.exec(statement).first()
+    result = db.exec(statement).first()
+    return result
 
-
-def get_startups_by_founder(db: Session, founder_id: int) -> List[Startup]:
+"""
+    Get all startups by founder id
+    @param db: Session
+    @param founder_id: int
+    @return Sequence[Startup]
+"""
+def get_startups_by_founder(db: Session, founder_id: int) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.founder_id == founder_id)
-    return db.exec(statement).all()
+    results = db.exec(statement).all()
+    return results
 
 
-def get_startups_by_industry(db: Session, industry: str) -> List[Startup]:
+"""
+    Get all startups by industry
+    @param db: Session
+    @param industry: str
+    @return Sequence[Startup]
+"""
+def get_startups_by_industry(db: Session, industry: str) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.industry == industry)
-    return db.exec(statement).all()
+    results = db.exec(statement).all()
+    return results
 
 
-def get_startups_by_location(db: Session, location: str) -> List[Startup]:
+"""
+    Get all startups by location
+    @param db: Session
+    @param location: str
+    @return Sequence[Startup]
+"""
+def get_startups_by_location(db: Session, location: str) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.location == location)
-    return db.exec(statement).all()
+    results = db.exec(statement).all()
+    return results
 
-
-def get_startups_by_funding_stage(db: Session, funding_stage: str) -> List[Startup]:
+"""
+    Get all startups by funding stage
+    @param db: Session
+    @param funding_stage: str
+    @return Sequence[Startup]
+"""
+def get_startups_by_funding_stage(db: Session, funding_stage: str) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.funding_stage == funding_stage)
-    return db.exec(statement).all()
+    results = db.exec(statement).all()
+    return results
 
-
-def get_startups_by_funding_amount(db: Session, funding_amount: float) -> List[Startup]:
-    return db.query(Startup).filter(Startup.funding_amount == funding_amount).all()
+""" 
+def get_startups_by_funding_amount(db: Session, funding_amount: float) -> Sequence[Startup]:
+    statement = select(Startup).where(
+        Startup.funding_goal >= funding_amount,
+        Startup.funding_goal <= funding_amount + 1000000,
+    )
+    results = db.exec(statement).all()
+    return results
 
 
 def get_startups_by_funding_amount_range(
     db: Session, min_funding: float, max_funding: float
-) -> List[Startup]:
+) -> Sequence[Startup]:
     statement = select(Startup).where(
         Startup.funding_goal >= min_funding, Startup.funding_goal <= max_funding
     )
-    return db.exec(statement).all()
+    results = db.exec(statement).all()
+    return results
+
+
+def get_startups_by_funding_goal_range(
+    db: Session, min_funding: float, max_funding: float
+) -> Sequence[Startup]:
+    statement = select(Startup).where(
+        Startup.funding_goal >= min_funding, Startup.funding_goal <= max_funding
+    )
+    results = db.exec(statement).all()
+    return results
+
+
+"""
