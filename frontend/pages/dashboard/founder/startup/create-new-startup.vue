@@ -35,8 +35,8 @@ const formSchema = toTypedSchema(z.object({
   industry: z.string().min(1, "Please select an industry"),
   location: z.string().min(1, "Please enter a location"),
   fundingStage: z.string().min(1, "Please select a funding stage"),
-  foundedYear: z.string().min(4, "Please enter a valid year"),
-  teamSize: z.string().min(1, "Please enter team size"),
+  foundedYear: z.number().min(4, "Please enter a valid year"),
+  teamSize: z.number().min(1, "Please enter team size"),
   website: z.string().url("Please enter a valid website URL"),
   logo: z.any().optional(),
   teamMembers: z.array(z.object({
@@ -106,8 +106,8 @@ const form = useForm({
     industry: "",
     location: "",
     fundingStage: "",
-    foundedYear: "",
-    teamSize: "",
+    foundedYear: 0,
+    teamSize: 0,
     website: "",
     logo: null,
     teamMembers: [],
@@ -269,8 +269,12 @@ const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true;
   try {
     // Here you would typically make an API call to create the startup
-    console.log("Creating startup:", values);
-    console.log("Pitch deck file:", pitchDeckFile.value);
+    const response = await $fetch("/api/create-new-startup",{
+      method: "POST",
+      body: values
+    })
+    // console.log("Creating startup:", values);
+    // console.log("Pitch deck file:", pitchDeckFile.value);
 
     toast.success("Startup created successfully", {
       description: "Your startup profile has been created and is now visible to investors."

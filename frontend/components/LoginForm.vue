@@ -13,15 +13,14 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form'
-// import { toast } from "vue-sonner"
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRoute, useRouter } from 'vue-router'
 
 const props = defineProps<{
     class?: HTMLAttributes['class']
 }>()
 
-// const isLoading = ref(false)
 
 const formSchema = toTypedSchema(z.object({
     email: z.string().email('Invalid email address'),
@@ -35,9 +34,23 @@ const form = useForm({
 })
 
 const authStore = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 
 const onSubmit = form.handleSubmit(async (values) => {
-    await authStore.login(values)
+    try {
+        await authStore.login(values)
+
+        // Check if there's a redirect parameter in the URL
+        const redirect = route.query.redirect as string
+        if (redirect) {
+            router.push(redirect)
+        } else {
+            router.push('/dashboard')
+        }
+    } catch (error) {
+        console.error('Login error:', error)
+    }
 })
 </script>
 

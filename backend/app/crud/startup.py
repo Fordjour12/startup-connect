@@ -10,8 +10,11 @@ from app.models.startup import Startup, StartupCreate, StartupUpdate
     @param startup_id: int
     @return Optional[Startup]   
 """
+
+
 def get_startup(db: Session, startup_id: int) -> Optional[Startup]:
     return db.get(Startup, startup_id)
+
 
 """
     Get all startups
@@ -23,6 +26,8 @@ def get_startup(db: Session, startup_id: int) -> Optional[Startup]:
     @param funding_stage: Optional[str]
     @return Sequence[Startup]
 """
+
+
 def get_startups(
     db: Session,
     skip: int = 0,
@@ -51,12 +56,15 @@ def get_startups(
     @param startup: StartupCreate
     @return Startup
 """
+
+
 def create_startup(db: Session, startup: StartupCreate) -> Startup:
     db_startup = Startup(**startup.model_dump())
     db.add(db_startup)
     db.commit()
     db.refresh(db_startup)
     return db_startup
+
 
 """
     Update a startup
@@ -65,6 +73,8 @@ def create_startup(db: Session, startup: StartupCreate) -> Startup:
     @param startup: StartupUpdate
     @return Optional[Startup]
 """
+
+
 def update_startup(
     db: Session, startup_id: int, startup: StartupUpdate
 ) -> Optional[Startup]:
@@ -81,12 +91,15 @@ def update_startup(
     db.refresh(db_startup)
     return db_startup
 
+
 """
     Delete a startup
     @param db: Session
     @param startup_id: int
     @return bool
 """
+
+
 def delete_startup(db: Session, startup_id: int) -> bool:
     db_startup = get_startup(db, startup_id)
     if not db_startup:
@@ -103,10 +116,13 @@ def delete_startup(db: Session, startup_id: int) -> bool:
     @param founder_id: int
     @return Optional[Startup]
 """
+
+
 def get_startup_by_founder(db: Session, founder_id: int) -> Optional[Startup]:
     statement = select(Startup).where(Startup.founder_id == founder_id)
     result = db.exec(statement).first()
     return result
+
 
 """
     Get all startups by founder id
@@ -114,6 +130,8 @@ def get_startup_by_founder(db: Session, founder_id: int) -> Optional[Startup]:
     @param founder_id: int
     @return Sequence[Startup]
 """
+
+
 def get_startups_by_founder(db: Session, founder_id: int) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.founder_id == founder_id)
     results = db.exec(statement).all()
@@ -126,6 +144,8 @@ def get_startups_by_founder(db: Session, founder_id: int) -> Sequence[Startup]:
     @param industry: str
     @return Sequence[Startup]
 """
+
+
 def get_startups_by_industry(db: Session, industry: str) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.industry == industry)
     results = db.exec(statement).all()
@@ -138,10 +158,13 @@ def get_startups_by_industry(db: Session, industry: str) -> Sequence[Startup]:
     @param location: str
     @return Sequence[Startup]
 """
+
+
 def get_startups_by_location(db: Session, location: str) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.location == location)
     results = db.exec(statement).all()
     return results
+
 
 """
     Get all startups by funding stage
@@ -149,10 +172,13 @@ def get_startups_by_location(db: Session, location: str) -> Sequence[Startup]:
     @param funding_stage: str
     @return Sequence[Startup]
 """
+
+
 def get_startups_by_funding_stage(db: Session, funding_stage: str) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.funding_stage == funding_stage)
     results = db.exec(statement).all()
     return results
+
 
 """ 
 def get_startups_by_funding_amount(db: Session, funding_amount: float) -> Sequence[Startup]:

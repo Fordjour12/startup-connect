@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import FilterPanel from '@/components/FilterPanel.vue'
-import SearchBar from '@/components/SearchBar.vue'
-import StartupCard from '@/components/StartupCard.vue'
-import { searchStartups, startups } from '@/data/startups'
+// import FilterPanel from '@/components/FilterPanel.vue'
+// import SearchBar from '@/components/SearchBar.vue'
+// import StartupCard from '@/components/StartupCard.vue'
+// // import { searchStartups, startups } from '@/data/startups'
+
+//  onMounted(async () => {
+//    const startups  = await $fetch("http://localhost:8000/api/v1/startups")
+//    console.log(startups)
+//  })
+
 
 const showFilters = ref(false)
 const searchQuery = ref('')
@@ -12,6 +18,7 @@ const activeFilters = ref({
   fundingStage: ''
 })
 
+/*
 const filteredStartups = computed(() => {
   let result = startups
 
@@ -42,6 +49,7 @@ const handleFilters = (filters: any) => {
   activeFilters.value = filters
   showFilters.value = false
 }
+*/
 </script>
 
 <template>
@@ -53,19 +61,19 @@ const handleFilters = (filters: any) => {
       </div>
 
       <div class="flex flex-col gap-4">
-        <SearchBar
+        <!-- <SearchBar
           @search="handleSearch"
           @toggle-filters="showFilters = !showFilters"
-        />
+        /> -->
 
         <div class="flex gap-4">
           <div class="flex-1">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <StartupCard
+              <!-- <StartupCard
                 v-for="startup in filteredStartups"
                 :key="startup.id"
                 :startup="startup"
-              />
+              /> -->
             </div>
           </div>
 
@@ -78,10 +86,10 @@ const handleFilters = (filters: any) => {
             leave-to-class="opacity-0 translate-x-4"
           >
             <div v-if="showFilters" class="w-80">
-              <FilterPanel
+              <!-- <FilterPanel
                 @close="showFilters = false"
                 @apply="handleFilters"
-              />
+              /> -->
             </div>
           </Transition>
         </div>

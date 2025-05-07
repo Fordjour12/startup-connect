@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
-from typing import List
+from typing import Any, List
 
 from app.api.deps import SessionDep
-from app.crud.startup import get_startups
-from app.models.startup import Startup
+from app.crud.startup import get_startups, create_startup
+from app.models.startup import Startup, StartupCreate
 
 router = APIRouter(prefix="/startups", tags=["startups"])
 
@@ -19,9 +19,16 @@ async def get_all_startups(session: SessionDep):
     return startups
 
 
-@router.post("/create")
-async def create_startup():
-    return {"message": "Startup created"}
+@router.post("/create", status_code=status.HTTP_201_CREATED)
+async def create_new_startup(session: SessionDep, startup: StartupCreate) -> Any:
+    try:
+        """Create a startup"""
+        startup_new_startup_process = create_startup(db=session, startup=startup)
+        return startup_new_startup_process
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
 @router.put("/update")
