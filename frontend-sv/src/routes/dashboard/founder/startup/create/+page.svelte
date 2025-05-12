@@ -201,9 +201,8 @@
             <div
                 class={cn(
                     "grid grid-cols-1 lg:grid-cols-2 gap-8",
-                    !showPreview && "!grid-cols-1"
+                    !showPreview && "!grid-cols-1",
                 )}
-                
             >
                 <!-- Form Section -->
                 <NewStartupForm {data} />

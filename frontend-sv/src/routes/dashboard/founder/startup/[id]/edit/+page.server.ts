@@ -1,12 +1,17 @@
-import { error } from "@sveltejs/kit";
-import type { PageServerLoad } from "./$types";
+import { startupSchema } from "$lib/schemas/startup-schema";
+import { error, fail } from "@sveltejs/kit";
+import { superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
+import type { Actions, PageServerLoad } from "./$types";
 
 // Mock database - replace with actual data fetching logic
+// In a real app, this would fetch from your database
+// const mockStartups: Record<string, Omit<Startup, 'id'>> = {
 const mockStartups: Record<string, any> = {
     "1": {
         name: "Innovatech Solutions",
         description: "Pioneering AI-driven solutions for the future of sustainable energy. Our platform optimizes energy consumption for large industrial complexes, reducing costs and carbon footprint significantly.",
-        industry: "Clean Energy", 
+        industry: "Clean Energy",
         location: "San Francisco, USA",
         fundingStage: "Series A",
         foundedYear: 2021,
@@ -65,7 +70,6 @@ const mockStartups: Record<string, any> = {
     // Add more mock startups if needed
 };
 
-
 export const load: PageServerLoad = async ({ params }) => {
     const startupId = params.id;
     const startupData = mockStartups[startupId];
@@ -74,10 +78,37 @@ export const load: PageServerLoad = async ({ params }) => {
         error(404, "Startup not found");
     }
 
-    // In a real application, you would fetch this data from your database
-    // based on the startupId and potentially the logged-in user's permissions.
+    // Initialize the form with the fetched data
+    const form = await superValidate(startupData, zod(startupSchema));
 
     return {
-        startup: startupData,
+        form,
+        startupId, // Pass the ID to the page if needed (e.g., for the form action)
     };
+};
+
+export const actions: Actions = {
+    default: async ({ request, params }) => {
+        const startupId = params.id;
+        const existingData = mockStartups[startupId]; // Get existing data for context if needed
+
+        if (!existingData) {
+             error(404, "Startup not found during update attempt");
+        }
+
+        const form = await superValidate(request, zod(startupSchema));
+
+        if (!form.valid) {
+            // Return validation errors
+            return fail(400, { form });
+        }
+
+        // TODO: Update the actual data in your database
+        console.log("Updating startup:", startupId, form.data);
+        // Example: Update mock data (won't persist across requests unless handled differently)
+        // mockStartups[startupId] = { ...existingData, ...form.data };
+
+        // Return the validated form data on success
+        return { form };
+    },
 };
