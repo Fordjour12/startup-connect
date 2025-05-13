@@ -11,7 +11,6 @@
     import { cn } from "@/utils";
     import { zodClient } from "sveltekit-superforms/adapters";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-    import AlertCircle from "@lucide/svelte/icons/alert-circle";
 
     let { data }: { data: { form: SuperValidated<Infer<LoginSchema>> } } =
         $props();
