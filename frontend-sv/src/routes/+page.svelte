@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Homepage from "@/components/homepage-3.svelte";
+    import Homepage from "@/components/homepage-4.svelte";
 </script>
 
 <Homepage />
