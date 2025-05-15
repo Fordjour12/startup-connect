@@ -57,6 +57,9 @@ Svelte Runes
   ```typescript
   $inspect(count);
   ```
+- `onclick`: move to more friendly synntac
+	```html
+	<button onclick={}> {content} </button>
 
 UI and Styling
 - Use Tailwind CSS for utility-first styling approach.
