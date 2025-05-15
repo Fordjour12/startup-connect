@@ -1,11 +1,12 @@
 <script lang="ts">
+    import Chart from "chart.js/auto";
     import { onMount, onDestroy } from "svelte";
     import { cn } from "$lib/utils";
     import type { Proportions } from "@lucide/svelte";
     import Card from "../card/card.svelte";
 
     // Chart.js needs to be imported dynamically for SSR compatibility
-    let Chart: any;
+    // let Chart: any;
 
     type ChartType =
         | "line"
@@ -40,8 +41,9 @@
 
     onMount(async () => {
         // Dynamically import Chart.js for client-side rendering
-        const ChartModule = await import("chart.js/auto");
-        Chart = ChartModule.default;
+        // const ChartModule = await import("chart.js");
+        // Chart = ChartModule.default;
+
 
         // Register any necessary controllers, elements, scales, etc.
 
