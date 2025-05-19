@@ -498,7 +498,7 @@
 									(newEvent.type = value)}
 							>
 								<SelectTrigger>
-										placeholder="Select event type"
+									placeholder="Select event type"
 								</SelectTrigger>
 								<SelectContent>
 									{#each eventTypes as eventType}
@@ -525,9 +525,7 @@
 										| "medium"
 										| "low")}
 							>
-								<SelectTrigger>
-									Set priority
-								</SelectTrigger>
+								<SelectTrigger>Set priority</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="high">High</SelectItem>
 									<SelectItem value="medium"
