@@ -24,14 +24,14 @@
             icon: "git-branch",
         },
         {
-            title: "Calendar",
-            href: "/dashboard/investor/calendar",
-            icon: "calendar",
-        },
-        {
             title: "Messages",
             href: "/dashboard/investor/messages",
             icon: "message-square",
+        },
+        {
+            title: "Calendar",
+            href: "/dashboard/investor/calendar",
+            icon: "calendar",
         },
     ];
 
