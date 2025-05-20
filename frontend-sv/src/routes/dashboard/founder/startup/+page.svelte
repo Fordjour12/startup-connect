@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { page } from "$app/stores";
     import { Button } from "$lib/components/ui/button";
     import { Input } from "$lib/components/ui/input";
     import * as Select from "$lib/components/ui/select";
@@ -605,7 +604,7 @@
                 </Select.Trigger>
                 <Select.Content>
                     <Select.Group>
-                        <Select.GroupHeading>Industries</Select.GroupHeading>
+                        <Select.Label>Industries</Select.Label>
                         {#each industryOptions as option}
                             <Select.Item value={option.value}
                                 >{option.label}</Select.Item
@@ -625,7 +624,7 @@
                 </Select.Trigger>
                 <Select.Content>
                     <Select.Group>
-                        <Select.GroupHeading>Stages</Select.GroupHeading>
+                        <Select.Label>Stages</Select.Label>
                         {#each stageOptions as option}
                             <Select.Item value={option.value}>
                                 {option.label}
@@ -645,7 +644,7 @@
                 </Select.Trigger>
                 <Select.Content>
                     <Select.Group>
-                        <Select.GroupHeading>Sort Options</Select.GroupHeading>
+                        <Select.Label>Sort Options</Select.Label>
                         {#each sortOptions as option}
                             <Select.Item value={option.value}>
                                 {option.label}

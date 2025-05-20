@@ -253,7 +253,7 @@
                                 href={startup.pitch_deck_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 h-8 rounded-md px-3 text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow"
+                                class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 h-8 rounded-md px-3 text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow"
                             >
                                 View Pitch
                             </a>

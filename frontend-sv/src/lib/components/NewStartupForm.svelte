@@ -30,8 +30,7 @@
     } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
 
-    let { data }: { data: { form: SuperValidated<Infer<StartupSchema>> } } =
-        $props();
+    let { data }: { data: { form: SuperValidated<Infer<StartupSchema>> } } = $props();
 
     // Use superForm to manage the form state
     const form = superForm(data.form, {

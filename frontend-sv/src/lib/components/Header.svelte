@@ -1,6 +1,6 @@
 <script lang="ts">
     //  not store should be state
-    import { page } from "$app/stores";
+    import { page } from "$app/state";
     import { Button } from "@/components/ui/button";
     import { cn } from "@/utils";
     import Logo from "@lucide/svelte/icons/aperture";
@@ -14,6 +14,7 @@
         SheetTrigger,
         SheetClose,
     } from "$lib/components/ui/sheet";
+    import { setMode } from "mode-watcher";
     import ModeToggle from "./ModeToggle.svelte";
     import UserDropdown from "./UserDropdown.svelte";
 
@@ -54,7 +55,7 @@
 
     // Close mobile menu when page changes
     $effect(() => {
-        if (menuOpen && $page) {
+        if (menuOpen && page) {
             menuOpen = false;
         }
     });
@@ -62,10 +63,10 @@
     // Determine if a nav item is active
     function isActive(href: string): boolean {
         return (
-            $page.url.pathname === href ||
-            ($page.url.pathname !== "/" &&
+            page.url.pathname === href ||
+            (page.url.pathname !== "/" &&
                 href !== "/" &&
-                $page.url.pathname.startsWith(href))
+                page.url.pathname.startsWith(href))
         );
     }
 </script>
@@ -73,9 +74,10 @@
 <header
     class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 >
-    <div class="container flex h-16 items-center">
+    <div class="container flex h-16 items-center mx-auto">
         <div class="mr-4 flex items-center">
             <a href="/" class="flex items-center space-x-2">
+                <!-- <img src="/logo-black.svg" alt="Logo" class="h-6 w-6" /> -->
                 <img src="/logo.svg" alt="Logo" class="h-6 w-6" />
                 <span class="font-bold">{appName}</span>
             </a>
@@ -121,7 +123,7 @@
         <div class="flex flex-1 items-center justify-end md:hidden">
             <ModeToggle />
 
-            <Sheet bind:open={menuOpen}>
+            <Sheet>
                 <SheetTrigger>
                     <Button variant="ghost" size="icon" class="ml-2">
                         <Menu class="h-5 w-5" />

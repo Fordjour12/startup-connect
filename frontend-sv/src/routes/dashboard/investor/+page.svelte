@@ -8,9 +8,12 @@
         CardHeader,
         CardTitle,
     } from "$lib/components/ui/card";
-    import { Chart } from "$lib/components/ui/chart";
-    import InvestorNavigation from "@/components/investor/InvestorNavigation.svelte";
+    import InvestorOverviewCard from "@/components/investor/InvestorOverviewCard.svelte";
     import type { PageData } from "./$types";
+    import PortfolioAllocationChart from "./components/PortfolioAllocationChart.svelte";
+    import PortfolioChart from "./components/PortfolioChart.svelte";
+
+    import { formatCurrency } from "@/utils";
 
     // Get server-loaded data
     let { data }: { data: PageData } = $props();
@@ -21,91 +24,6 @@
     const watchlistAlerts = $state(data.watchlistAlerts);
     const upcomingEvents = $state(data.upcomingEvents);
     const marketInsights = $state(data.marketInsights);
-
-    // Chart data for portfolio value
-    const portfolioChartData = $state({
-        labels: [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-        ],
-        datasets: [
-            {
-                label: "Portfolio Value",
-                data: portfolioData.historicalValues,
-                borderColor: "rgb(59, 130, 246)",
-                backgroundColor: "rgba(59, 130, 246, 0.1)",
-                tension: 0.3,
-                fill: true,
-            },
-        ],
-    });
-
-    // Chart data for portfolio allocation
-    const allocationChartData = $state({
-        labels: ["Tech", "Health", "Fintech", "Consumer"],
-        datasets: [
-            {
-                data: [
-                    portfolioData.allocation.tech,
-                    portfolioData.allocation.health,
-                    portfolioData.allocation.fintech,
-                    portfolioData.allocation.consumer,
-                ],
-                backgroundColor: [
-                    "rgb(59, 130, 246)",
-                    "rgb(34, 197, 94)",
-                    "rgb(168, 85, 247)",
-                    "rgb(251, 191, 36)",
-                ],
-            },
-        ],
-    });
-
-    // Chart options
-    const lineChartOptions = {
-        scales: {
-            y: {
-                beginAtZero: false,
-                ticks: {
-                    callback: (value: number) =>
-                        `$${(value / 1000).toFixed(0)}k`,
-                },
-            },
-        },
-        plugins: {
-            tooltip: {
-                callbacks: {
-                    label: (context: any) =>
-                        `Value: $${(context.raw / 1000).toFixed(0)}k`,
-                },
-            },
-        },
-    };
-
-    const doughnutChartOptions = {
-        plugins: {
-            legend: {
-                display: false,
-            },
-        },
-        cutout: "70%",
-    };
-
-    function formatCurrency(amount: number): string {
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-            maximumFractionDigits: 0,
-        }).format(amount);
-    }
 
     function getPriorityClass(priority: string): string {
         switch (priority) {
@@ -155,19 +73,19 @@
             </a>
         </div>
     </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6">
-        <div class="md:col-span-1">
-            <div class="bg-card rounded-lg shadow p-4">
-                <InvestorNavigation />
-            </div>
-        </div>
-
+    <!-- grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6 -->
+    <div class="">
         <div class="md:col-span-3 lg:col-span-4">
             <!-- Main dashboard grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+                <!-- Overview Summary -->
+                <InvestorOverviewCard
+                    {portfolioData}
+                    class="col-span-1 md:col-span-2 lg:col-span-6"
+                />
+
                 <!-- Portfolio Summary -->
-                <Card class="lg:col-span-2">
+                <Card class="lg:col-span-4">
                     <CardHeader>
                         <CardTitle>Portfolio Summary</CardTitle>
                         <CardDescription>
@@ -177,119 +95,21 @@
                     <CardContent>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <Chart
-                                    type="line"
-                                    data={portfolioChartData}
-                                    options={lineChartOptions}
-                                    height="200px"
-                                    width="100%"
-                                    className=""
+                                <PortfolioChart
+                                    portfolioData={data.portfolioData}
                                 />
-                                <div class="mt-4 grid grid-cols-2 gap-2">
-                                    <div class="bg-secondary rounded-lg p-4">
-                                        <p
-                                            class="text-sm text-muted-foreground"
-                                        >
-                                            Total Invested
-                                        </p>
-                                        <p class="text-2xl font-bold">
-                                            {formatCurrency(
-                                                portfolioData.totalInvested,
-                                            )}
-                                        </p>
-                                    </div>
-                                    <div class="bg-secondary rounded-lg p-4">
-                                        <p
-                                            class="text-sm text-muted-foreground"
-                                        >
-                                            Current Value
-                                        </p>
-                                        <p class="text-2xl font-bold">
-                                            {formatCurrency(
-                                                portfolioData.currentValue,
-                                            )}
-                                        </p>
-                                    </div>
-                                    <div class="bg-secondary rounded-lg p-4">
-                                        <p
-                                            class="text-sm text-muted-foreground"
-                                        >
-                                            Returns
-                                        </p>
-                                        <p
-                                            class="text-2xl font-bold text-emerald-500"
-                                        >
-                                            +{portfolioData.returns}%
-                                        </p>
-                                    </div>
-                                    <div class="bg-secondary rounded-lg p-4">
-                                        <p
-                                            class="text-sm text-muted-foreground"
-                                        >
-                                            Companies
-                                        </p>
-                                        <p class="text-2xl font-bold">7</p>
-                                    </div>
-                                </div>
                             </div>
                             <div>
-                                <h3 class="text-lg font-semibold mb-2">
-                                    Portfolio Allocation
-                                </h3>
-                                <Chart
-                                    type="doughnut"
-                                    data={allocationChartData}
-                                    options={doughnutChartOptions}
-                                    height="200px"
-                                    className=""
-                                    width=""
+                                <PortfolioAllocationChart
+                                    portfolioData={data.portfolioData}
                                 />
-
-                                <div class="mt-4 grid grid-cols-2 gap-2">
-                                    <div class="flex items-center">
-                                        <div
-                                            class="w-3 h-3 rounded-full bg-blue-500 mr-2"
-                                        ></div>
-                                        <span class="text-sm"
-                                            >Tech ({portfolioData.allocation
-                                                .tech}%)</span
-                                        >
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div
-                                            class="w-3 h-3 rounded-full bg-green-500 mr-2"
-                                        ></div>
-                                        <span class="text-sm"
-                                            >Health ({portfolioData.allocation
-                                                .health}%)</span
-                                        >
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div
-                                            class="w-3 h-3 rounded-full bg-purple-500 mr-2"
-                                        ></div>
-                                        <span class="text-sm"
-                                            >Fintech ({portfolioData.allocation
-                                                .fintech}%)</span
-                                        >
-                                    </div>
-                                    <div class="flex items-center">
-                                        <div
-                                            class="w-3 h-3 rounded-full bg-amber-500 mr-2"
-                                        ></div>
-                                        <span class="text-sm"
-                                            >Consumer ({portfolioData.allocation
-                                                .consumer}%)</span
-                                        >
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <!-- Investment Activity -->
-                <Card>
+                <Card class="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Investment Activity</CardTitle>
                         <CardDescription
@@ -425,7 +245,7 @@
                 </Card>
 
                 <!-- Watchlist Alerts -->
-                <Card>
+                <Card class="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Watchlist Alerts</CardTitle>
                         <CardDescription
@@ -466,7 +286,7 @@
                 </Card>
 
                 <!-- Upcoming Events -->
-                <Card>
+                <Card class="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Upcoming Events</CardTitle>
                         <CardDescription
@@ -545,7 +365,7 @@
                 </Card>
 
                 <!-- Market Insights -->
-                <Card class="lg:col-span-2">
+                <Card class="md:col-span-2 lg:col-span-6">
                     <CardHeader>
                         <CardTitle>Market Insights</CardTitle>
                         <CardDescription
