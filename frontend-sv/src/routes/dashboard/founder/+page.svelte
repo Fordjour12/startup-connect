@@ -981,7 +981,75 @@
                     </div>
                 </Card.Root>
             </div>
+
+            <!-- Additional Management Cards Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Customer & Market Insights Card -->
+                <Card.Root class="overflow-hidden lg:col-span-1">
+                    <div
+                        class="bg-gradient-to-br from-black/90 to-black/95 text-white p-6 h-full border border-white/10"
+                    >
+                        <h2
+                            class="text-lg font-semibold mb-2 flex items-center gap-2"
+                        >
+                            <Users class="h-4 w-4 text-blue-400" />
+                            Customer & Market Insights
+                        </h2>
+                        <p class="text-white/70 mb-6">
+                            Track customer feedback and monitor relevant market
+                            trends
+                        </p>
+
+                        <div class="space-y-3 mb-6">
+                            <div
+                                class="flex justify-between items-center bg-white/10 p-2 px-3 rounded-md"
+                            >
+                                <span class="text-sm">NPS Score</span>
+                                <span
+                                    class="font-semibold text-green-400 flex items-center"
+                                >
+                                    <TrendingUp class="h-3 w-3 mr-1.5" />
+                                    42 (+8)
+                                </span>
+                            </div>
+
+                            <div
+                                class="flex justify-between items-center bg-white/10 p-2 px-3 rounded-md"
+                            >
+                                <span class="text-sm">Feature Requests</span>
+                                <span class="font-semibold">48</span>
+                            </div>
+
+                            <div
+                                class="flex justify-between items-center bg-white/10 p-2 px-3 rounded-md"
+                            >
+                                <span class="text-sm">Market Trends</span>
+                                <span
+                                    class="font-semibold text-amber-400 flex items-center"
+                                >
+                                    4 active
+                                </span>
+                            </div>
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            class="w-full bg-white/5 border-white/20 text-white hover:bg-white/10"
+                            href="/dashboard/founder/insights"
+                        >
+                            <BarChart class="mr-2 h-4 w-4" />
+                            View Insights
+                        </Button>
+                    </div>
+                </Card.Root>
+
+                <!-- Empty space for future cards -->
+                <div class="lg:col-span-2"></div>
+            </div>
         </Tabs.Content>
+
+        <!-- Investors Tab Content -->
+        <!-- Tasks Tab Content -->
     </Tabs.Root>
 </div>
 
@@ -1012,15 +1080,5 @@
         box-shadow:
             0 10px 15px -3px rgba(0, 0, 0, 0.1),
             0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    /* Hide scrollbars for certain elements */
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
     }
 </style>

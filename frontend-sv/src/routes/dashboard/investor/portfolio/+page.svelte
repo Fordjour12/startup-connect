@@ -11,7 +11,6 @@
         CardHeader,
         CardTitle,
     } from "$lib/components/ui/card";
-    import { Chart } from "$lib/components/ui/chart";
     import { Progress } from "$lib/components/ui/progress";
     import {
         Table,
@@ -27,7 +26,7 @@
         TabsList,
         TabsTrigger,
     } from "$lib/components/ui/tabs";
-    import { portfolioManager } from "@/portfolio/PortfolioManager";
+    import { portfolioManager } from "@/PortfolioManager.svelte";
     import { onMount } from "svelte";
     import type { PageData } from "./$types";
 
@@ -195,16 +194,11 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6">
-        <div class="md:col-span-1">
-            <div class="bg-card rounded-lg shadow p-4">
-                <InvestorNavigation />
-            </div>
-        </div>
-
+    <!-- grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-6 -->
+    <div>
         <div class="md:col-span-3 lg:col-span-4">
             <Tabs value="investments" class="w-full">
-                <TabsList class="grid grid-cols-5 w-full mb-6">
+                <TabsList>
                     <TabsTrigger value="investments">Investments</TabsTrigger>
                     <TabsTrigger value="documents">Documents</TabsTrigger>
                     <TabsTrigger value="roi">ROI Analysis</TabsTrigger>
@@ -369,14 +363,14 @@
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Chart
+                                <!-- <Chart
                                     type="bar"
                                     data={roiChartData}
                                     options={roiChartOptions}
                                     height="300px"
                                     width="100%"
                                     className="bg-emerald-100"
-                                />
+                                /> -->
                             </CardContent>
                         </Card>
 
@@ -646,14 +640,14 @@
                                     class="grid grid-cols-1 md:grid-cols-2 gap-6"
                                 >
                                     <div>
-                                        <Chart
+                                        <!-- <Chart
                                             type="doughnut"
                                             data={riskChartData}
                                             options={doughnutChartOptions}
                                             height="250px"
                                             width="100%"
                                             className="bg-emerald-100"
-                                        />
+                                        /> -->
                                     </div>
                                     <div class="flex flex-col justify-center">
                                         <div class="space-y-4">
@@ -723,14 +717,14 @@
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Chart
+                                <!-- <Chart
                                     type="doughnut"
                                     data={diversificationChartData}
                                     options={doughnutChartOptions}
                                     height="250px"
                                     width="100%"
                                     className="bg-emerald-100"
-                                />
+                                /> -->
                                 <div class="grid grid-cols-2 gap-2 mt-4">
                                     {#each Object.entries(riskAssessment.sectorDiversification) as [sector, percentage]}
                                         <div

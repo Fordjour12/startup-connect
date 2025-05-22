@@ -9,12 +9,7 @@
 		CardTitle,
 	} from "$lib/components/ui/card";
 	import { Button } from "$lib/components/ui/button";
-	import {
-		Tabs,
-		TabsContent,
-		TabsList,
-		TabsTrigger,
-	} from "$lib/components/ui/tabs";
+
 	import {
 		Avatar,
 		AvatarFallback,
@@ -26,7 +21,6 @@
 	import { Separator } from "$lib/components/ui/separator";
 	import { Textarea } from "$lib/components/ui/textarea";
 	import { cn } from "$lib/utils";
-	import InvestorNavigation from "$lib/components/investor/InvestorNavigation.svelte";
 	import {
 		Bell,
 		Shield,
@@ -213,9 +207,6 @@
 		<!-- Sidebar -->
 		<div class="md:col-span-1">
 			<div class="bg-card rounded-lg shadow p-4 space-y-6">
-				<InvestorNavigation />
-
-				<Separator />
 
 				<!-- Settings Nav -->
 				<nav class="flex flex-col space-y-1 w-full">

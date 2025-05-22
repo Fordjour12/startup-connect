@@ -17,7 +17,7 @@
         SelectItem,
         SelectTrigger,
     } from "$lib/components/ui/select";
-    import { portfolioManager } from "@/portfolio/PortfolioManager";
+    import { portfolioManager } from "@/PortfolioManager.svelte";
 
     // Local state
     let open = $state(false);
@@ -214,8 +214,7 @@
             <Button variant="outline" onclick={() => (open = false)}
                 >Cancel</Button
             >
-            <Button type="submit" onclick={handleSubmit}>Add Investment</Button
-            >
+            <Button type="submit" onclick={handleSubmit}>Add Investment</Button>
         </DialogFooter>
     </DialogContent>
 </Dialog>

@@ -1,11 +1,10 @@
 <script lang="ts">
     import "../app.css";
+    import {Toaster} from "@/components/ui/sonner"
     import { ModeWatcher } from "mode-watcher";
-    import { Toaster } from "@/components/ui/sonner";
     let { children } = $props();
 </script>
 
-<Toaster />
+<Toaster/>
 <ModeWatcher />
-
 {@render children?.()}
