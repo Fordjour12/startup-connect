@@ -361,9 +361,8 @@
                                         <div
                                             class="flex-1 bg-primary rounded-sm"
                                             style:height="{percentage}%"
-                                            style:transition="height 0.3s
-                                            ease-out"
-                                        ></div>
+                                            style:transition="height 0.3s ease-out">
+                                                                                    </div>
                                     {/each}
                                 </div>
                             </div>
