@@ -4,6 +4,7 @@
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
     import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
     import { page } from "$app/state";
+    import NotificationDropdown from "$lib/components/dashboard/NotificationDropdown.svelte";
 
     // Helper to capitalize string
     function capitalize(str: string): string {
@@ -34,6 +35,12 @@
         });
     });
 
+    // Check if the current user is a founder to display founder-specific UI
+    let isFounder = $derived(() => {
+        const currentUrl = page.url;
+        return currentUrl.pathname.includes("/dashboard/founder");
+    });
+
     $effect(() => {
         console.log(page.url);
     });
@@ -42,31 +49,44 @@
 <header
     class="h-(--header-height) group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height) flex shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear"
 >
-    <div class="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <Sidebar.Trigger class="-ml-1" />
-        <Separator
-            orientation="vertical"
-            class="mx-2 data-[orientation=vertical]:h-4"
-        />
-        <!-- <h1 class="text-base font-medium">Documents</h1> -->
-        <Breadcrumb.Root>
-            <Breadcrumb.List>
-                {#each pathSegments() as segment, i (segment.href)}
-                    {#if i > 0}
-                        <Breadcrumb.Separator />
-                    {/if}
-
-                    <Breadcrumb.Item>
-                        {#if segment.isLast}
-                            <Breadcrumb.Page>{segment.name}</Breadcrumb.Page>
-                        {:else}
-                            <Breadcrumb.Link href={segment.href}
-                                >{segment.name}</Breadcrumb.Link
-                            >
+    <div class="flex w-full items-center justify-between px-4 lg:px-6">
+        <div class="flex items-center gap-1 lg:gap-2">
+            <Sidebar.Trigger class="-ml-1" />
+            <Separator
+                orientation="vertical"
+                class="mx-2 data-[orientation=vertical]:h-4"
+            />
+            <!-- <h1 class="text-base font-medium">Documents</h1> -->
+            <Breadcrumb.Root>
+                <Breadcrumb.List>
+                    {#each pathSegments() as segment, i (segment.href)}
+                        {#if i > 0}
+                            <Breadcrumb.Separator />
                         {/if}
-                    </Breadcrumb.Item>
-                {/each}
-            </Breadcrumb.List>
-        </Breadcrumb.Root>
+
+                        <Breadcrumb.Item>
+                            {#if segment.isLast}
+                                <Breadcrumb.Page>{segment.name}</Breadcrumb.Page
+                                >
+                            {:else}
+                                <Breadcrumb.Link href={segment.href}
+                                    >{segment.name}</Breadcrumb.Link
+                                >
+                            {/if}
+                        </Breadcrumb.Item>
+                    {/each}
+                </Breadcrumb.List>
+            </Breadcrumb.Root>
+        </div>
+
+        <!-- Right-side header actions -->
+        <div class="flex items-center gap-2">
+            {#if isFounder}
+                <NotificationDropdown />
+            {/if}
+
+            <!-- Other header actions can be added here -->
+            <Button variant="ghost" size="sm">Help</Button>
+        </div>
     </div>
 </header>
