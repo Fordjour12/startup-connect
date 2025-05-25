@@ -1,10 +1,11 @@
 import uuid
 from typing import List, Optional
+from datetime import datetime, timedelta
 
 from sqlmodel import Session, select
 
-from app.core.security import get_password_hash, verify_password
-from app.models.user import User, UserCreate
+from app.core.security import get_password_hash, verify_password  # type: ignore
+from app.models.user import User, UserCreate  # type: ignore
 
 
 def get_user(*, db: Session, user_id: uuid.UUID) -> Optional[User]:
@@ -38,6 +39,35 @@ def authenticate_user(*, db: Session, email: str, password: str) -> User | None:
     if not verify_password(password, user.hashed_password):
         return None
     return user
+
+
+def update_user_password_reset_token(*, db: Session, user: User, token: str) -> User:
+    """Update user with password reset token and expiry time."""
+    user.reset_token = token
+    user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def reset_user_password(*, db: Session, user: User, new_password: str) -> User:
+    """Reset user password and clear reset token."""
+    user.hashed_password = get_password_hash(new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def get_user_by_reset_token(*, db: Session, token: str) -> User | None:
+    """Get user by reset token if token is valid and not expired."""
+    statement = select(User).where(
+        User.reset_token == token, User.reset_token_expires > datetime.utcnow()
+    )
+    return db.exec(statement).first()
 
 
 # def update_user(*, db: Session, user_id: int, user: UserUpdate) -> Optional[User]:
