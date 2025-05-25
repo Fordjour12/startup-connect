@@ -8,7 +8,6 @@
     import {
         type RegisterSchema,
         registerSchema,
-        userTypes,
     } from "@/schemas/register-schema";
     import * as Form from "@/components/ui/form";
     import { Input } from "@/components/ui/input";
@@ -17,14 +16,14 @@
     import { zodClient } from "sveltekit-superforms/adapters";
     import * as Select from "@/components/ui/select";
 
-    let { data }: { data: { form: SuperValidated<Infer<RegisterSchema>> } } =
+    let { data }: { data: { form: SuperValidated<Infer<RegisterSchema>>} } =
         $props();
 
     const form = superForm(data.form, {
         validators: zodClient(registerSchema),
     });
 
-    const { form: formData, errors, enhance } = form;
+    const { form: formData, errors, enhance, delayed } = form;
 </script>
 
 <div class="grid gap-6">
@@ -142,7 +141,19 @@
                 {/if}
             </Form.Field>
 
-            <Button type="submit" class="w-full">Create Account</Button>
+            <Form.Button class="w-full" disabled={$delayed}>
+                            {#if $delayed}
+                                <div class="flex items-center justify-center gap-2">
+                                    <LoaderCircle
+                                        class="h-5 w-5 animate-spin"
+                                        strokeWidth={2}
+                                    />
+                                    <span>Creating account...</span>
+                                </div>
+                            {:else}
+                                <span>Create Account</span>
+                            {/if}
+                        </Form.Button>
         </div>
     </form>
 </div>

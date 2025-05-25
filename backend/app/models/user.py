@@ -1,6 +1,7 @@
 import enum
 import uuid
 from typing import List, Optional
+from datetime import datetime
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -23,6 +24,10 @@ class UserBase(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+
+    # Password reset fields
+    reset_token: Optional[str] = Field(default=None)
+    reset_token_expires: Optional[datetime] = Field(default=None)
 
     # Relationships
     startups: List["Startup"] = Relationship(back_populates="founder")  # type: ignore # noqa: F821
@@ -51,10 +56,26 @@ class UserUpdate(SQLModel):
     is_active: Optional[bool] = None
     is_verified: Optional[bool] = None
 
+
+# Password reset models
+class ForgotPasswordRequest(SQLModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(SQLModel):
+    token: str
+    new_password: str = Field(min_length=8, max_length=40)
+
+
+class PasswordResetResponse(SQLModel):
+    message: str
+
+
 # Json access token payload
 class Token(SQLModel):
     access_token: str
     token_type: str = "bearer"
+
 
 class TokenPayload(SQLModel):
     exp: int

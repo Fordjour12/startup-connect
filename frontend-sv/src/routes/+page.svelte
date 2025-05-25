@@ -4,17 +4,12 @@
     import { Button } from "@/components/ui/button";
     import * as Card from "@/components/ui/card";
     import { Input } from "@/components/ui/input";
-    import { Separator } from "@/components/ui/separator";
     import {
         ActivityIcon,
         ArrowRightIcon,
         BanknoteIcon,
         BarChartIcon,
-        ChevronDownIcon,
-        ChevronRightIcon,
-        CircleIcon,
         FacebookIcon,
-        FileTextIcon,
         GlobeIcon,
         HandshakeIcon,
         InstagramIcon,
@@ -22,21 +17,22 @@
         LinkedinIcon,
         LockIcon,
         MessageSquareIcon,
-        PieChartIcon,
         PlayIcon,
-        QuoteIcon,
         RocketIcon,
-        SearchIcon,
-        ShieldCheckIcon,
         SparklesIcon,
-        StarIcon,
-        TargetIcon,
         TrendingUpIcon,
-        TwitterIcon,
         UserPlusIcon,
         UsersIcon,
         ZapIcon,
+        TargetIcon,
+        ShieldCheckIcon,
+        FileTextIcon,
+        TwitterIcon,
+        ChevronRightIcon,
     } from "@lucide/svelte";
+
+    import type { LayoutProps } from "./$types";
+    let { data }: LayoutProps = $props();
 
     const featuredStartups = [
         {
@@ -300,7 +296,7 @@
 
 <!-- class=" container mx-auto min-h-screen flex flex-col bg-background text-foreground antialiased overflow-x-hidden" -->
 <div>
-    <Header />
+    <Header {data} />
 
     <!-- Hero Section -->
     <section
