@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import Any, List
 
-from app.api.deps import SessionDep
-from app.crud.startup import get_startups, create_startup
-from app.models.startup import Startup, StartupCreate
+from app.api.deps import SessionDep # type: ignore
+from app.crud.startup import get_startups, create_startup # type: ignore
+from app.models.startup import Startup, StartupCreate # type: ignore
 
 router = APIRouter(prefix="/startups", tags=["startups"])
 
