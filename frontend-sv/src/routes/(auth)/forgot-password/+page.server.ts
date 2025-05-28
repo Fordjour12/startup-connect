@@ -1,10 +1,11 @@
-import type { PageServerLoad, Actions } from "./$types";
+import { env } from "$env/dynamic/private";
+import { ApiEndpoint } from "@/endpoints";
+import { forgotPasswordSchema } from "@/schemas/forgot-password-schema";
+import type { ApiError, PasswordResetResponse } from "@/types/auth";
 import { fail } from "@sveltejs/kit";
 import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
-import { forgotPasswordSchema } from "@/schemas/forgot-password-schema";
-import { env } from "$env/dynamic/private";
-import { ApiEndpoint } from "@/endpoints";
+import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
     return {
@@ -33,16 +34,39 @@ export const actions: Actions = {
                 })
             });
 
-            // For security reasons, we always show the same message regardless of whether 
-            // the email exists or not. This prevents email enumeration attacks.
-            form.message = 'If an account with that email exists, we\'ve sent you a password reset link.';
-            return { form };
-            
+            if (!response.ok) {
+                const errorData: ApiError = await response.json();
+
+                // Handle specific error cases
+                if (response.status === 403 && errorData.detail.includes("deactivated")) {
+                    return fail(403, {
+                        form,
+                        message: "Account is deactivated. Please contact support."
+                    });
+                }
+
+                // For other errors, still show generic message for security
+                return {
+                    form,
+                    message: "If an account with that email exists, we've sent you a password reset link."
+                };
+            }
+
+            const data: PasswordResetResponse = await response.json();
+
+            // Always show the same message for security (prevents email enumeration)
+            return {
+                form,
+                message: data.message || "If an account with that email exists, we've sent you a password reset link."
+            };
+
         } catch (error) {
             console.error('Forgot password error:', error);
             // Still show the same message for security
-            form.message = 'If an account with that email exists, we\'ve sent you a password reset link.';
-            return { form };
+            return {
+                form,
+                message: "If an account with that email exists, we've sent you a password reset link."
+            };
         }
     }
 }; 

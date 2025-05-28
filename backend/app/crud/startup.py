@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional, Sequence
 
 from sqlmodel import Session, select
@@ -12,7 +13,7 @@ from app.models.startup import Startup, StartupCreate, StartupUpdate
 """
 
 
-def get_startup(db: Session, startup_id: int) -> Optional[Startup]:
+def get_startup(db: Session, startup_id: uuid.UUID) -> Optional[Startup]:
     return db.get(Startup, startup_id)
 
 
@@ -58,8 +59,12 @@ def get_startups(
 """
 
 
-def create_startup(db: Session, startup: StartupCreate) -> Startup:
-    db_startup = Startup(**startup.model_dump())
+def create_startup(
+    db: Session, startup: StartupCreate, founder_id: uuid.UUID
+) -> Startup:
+    startup_data = startup.model_dump()
+    startup_data["founder_id"] = founder_id
+    db_startup = Startup(**startup_data)
     db.add(db_startup)
     db.commit()
     db.refresh(db_startup)
@@ -69,14 +74,14 @@ def create_startup(db: Session, startup: StartupCreate) -> Startup:
 """
     Update a startup
     @param db: Session
-    @param startup_id: int
+    @param startup_id: uuid.UUID
     @param startup: StartupUpdate
     @return Optional[Startup]
 """
 
 
 def update_startup(
-    db: Session, startup_id: int, startup: StartupUpdate
+    db: Session, startup_id: uuid.UUID, startup: StartupUpdate
 ) -> Optional[Startup]:
     db_startup = get_startup(db, startup_id)
     if not db_startup:
@@ -95,12 +100,12 @@ def update_startup(
 """
     Delete a startup
     @param db: Session
-    @param startup_id: int
+    @param startup_id: uuid.UUID
     @return bool
 """
 
 
-def delete_startup(db: Session, startup_id: int) -> bool:
+def delete_startup(db: Session, startup_id: uuid.UUID) -> bool:
     db_startup = get_startup(db, startup_id)
     if not db_startup:
         return False
@@ -113,12 +118,12 @@ def delete_startup(db: Session, startup_id: int) -> bool:
 """
     Get a startup by founder id
     @param db: Session
-    @param founder_id: int
+    @param founder_id: uuid.UUID
     @return Optional[Startup]
 """
 
 
-def get_startup_by_founder(db: Session, founder_id: int) -> Optional[Startup]:
+def get_startup_by_founder(db: Session, founder_id: uuid.UUID) -> Optional[Startup]:
     statement = select(Startup).where(Startup.founder_id == founder_id)
     result = db.exec(statement).first()
     return result
@@ -127,12 +132,12 @@ def get_startup_by_founder(db: Session, founder_id: int) -> Optional[Startup]:
 """
     Get all startups by founder id
     @param db: Session
-    @param founder_id: int
+    @param founder_id: uuid.UUID
     @return Sequence[Startup]
 """
 
 
-def get_startups_by_founder(db: Session, founder_id: int) -> Sequence[Startup]:
+def get_startups_by_founder(db: Session, founder_id: uuid.UUID) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.founder_id == founder_id)
     results = db.exec(statement).all()
     return results

@@ -361,25 +361,36 @@
                         </p>
 
                         <!-- CTA Buttons -->
-                        <div
-                            class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fadeInUp animation-delay-600"
-                        >
+                        {#if !data.user.role}
+                            <div
+                                class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fadeInUp animation-delay-600"
+                            >
+                                <Button
+                                    size="lg"
+                                    class="rounded-full h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all transform hover:scale-105"
+                                >
+                                    <RocketIcon class="mr-2 h-5 w-5" />
+                                    Get Started Free
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    class="rounded-full h-12 px-8 hover:shadow-lg transition-all transform hover:scale-105"
+                                >
+                                    <PlayIcon class="mr-2 h-5 w-5" />
+                                    Watch Demo
+                                </Button>
+                            </div>
+                        {:else}
                             <Button
-                                size="lg"
+                                href={data.user.role === 'founder' ? '/dashboard/founder' : 
+                                      data.user.role === 'investor' ? '/dashboard/investor' : 
+                                      '/dashboard/supporter'}
                                 class="rounded-full h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all transform hover:scale-105"
                             >
-                                <RocketIcon class="mr-2 h-5 w-5" />
-                                Get Started Free
+                              Go to Dashboard
                             </Button>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                class="rounded-full h-12 px-8 hover:shadow-lg transition-all transform hover:scale-105"
-                            >
-                                <PlayIcon class="mr-2 h-5 w-5" />
-                                Watch Demo
-                            </Button>
-                        </div>
+                        {/if}
 
                         <!-- Stats Grid -->
                         <div

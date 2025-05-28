@@ -5,7 +5,7 @@ import secrets
 import jwt
 from passlib.context import CryptContext
 
-from app.core.config import settings  # type: ignore
+from app.core.config import settings
 
 
 ALGORITHM = "HS256"
@@ -52,3 +52,43 @@ def verify_password_reset_token(token: str) -> str | None:
         return email
     except jwt.PyJWTError:
         return None
+
+
+# Email verification token functions
+def generate_verification_token() -> str:
+    """Generate a secure random token for email verification."""
+    return secrets.token_urlsafe(32)
+
+
+def create_email_verification_token(user_id: str, email: str) -> str:
+    """Create a JWT token for email verification with user ID and email."""
+    expire = datetime.now(timezone.utc) + timedelta(hours=24)  # 24 hour expiry
+    to_encode = {
+        "exp": expire,
+        "sub": user_id,
+        "email": email,
+        "type": "email_verification",
+    }
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def verify_email_verification_token(token: str) -> dict | None:
+    """Verify email verification token and return user data if valid."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        email: str = payload.get("email")
+        token_type: str = payload.get("type")
+
+        if user_id is None or email is None or token_type != "email_verification":
+            return None
+
+        return {"user_id": user_id, "email": email}
+    except jwt.PyJWTError:
+        return None
+
+
+def create_verification_url(token: str, base_url: str = "http://localhost:3000") -> str:
+    """Create a complete verification URL with token."""
+    return f"{base_url}/verify-email?token={token}"

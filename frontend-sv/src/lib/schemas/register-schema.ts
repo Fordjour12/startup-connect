@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const userTypes = ['startup', 'supporter', 'investor'] as const;
+export const userTypes = ['founder', 'supporter', 'investor'] as const;
 
 // export const userTypes = ["STARTUP", "SUPPORTER", "INVESTOR", "SERVICE PROVIDER"] as const;
 // export const userTypes = ["Startup Founder", "Investor", "Service Provider"] as const;
@@ -18,4 +18,5 @@ export const registerSchema = z.object({
   }),
 });
 
+export type RegisterFormData = z.infer<typeof registerSchema>;
 export type RegisterSchema = typeof registerSchema;

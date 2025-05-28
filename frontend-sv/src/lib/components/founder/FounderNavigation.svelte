@@ -5,58 +5,70 @@
     import CalendarIcon from "@tabler/icons-svelte/icons/calendar";
     import CalendarEventIcon from "@tabler/icons-svelte/icons/calendar-event";
     import PieChartIcon from "@tabler/icons-svelte/icons/chart-pie";
+    import CurrencyDollarIcon from "@tabler/icons-svelte/icons/currency-dollar";
     import FileTextIcon from "@tabler/icons-svelte/icons/file-text";
-    import GitBranchIcon from "@tabler/icons-svelte/icons/git-branch";
     import LayoutDashboardIcon from "@tabler/icons-svelte/icons/layout-dashboard";
     import MessageSquareIcon from "@tabler/icons-svelte/icons/message-circle";
     import NotesIcon from "@tabler/icons-svelte/icons/notes";
+    import PresentationIcon from "@tabler/icons-svelte/icons/presentation";
     import RocketIcon from "@tabler/icons-svelte/icons/rocket";
+    import UsersIcon from "@tabler/icons-svelte/icons/users";
 
-    // Define navigation items with Tabler icons
+    // Define navigation items with Tabler icons for founders
     const navItems = [
         {
             title: "Dashboard",
-            href: "/dashboard/investor",
+            href: "/dashboard/founder",
             icon: LayoutDashboardIcon,
         },
         {
-            title: "Portfolio",
-            href: "/dashboard/investor/portfolio",
-            icon: PieChartIcon,
-        },
-        {
-            title: "Startups",
-            href: "/dashboard/investor/startups",
+            title: "My Startup",
+            href: "/dashboard/founder/startup",
             icon: RocketIcon,
         },
         {
-            title: "Pipeline",
-            href: "/dashboard/investor/pipeline",
-            icon: GitBranchIcon,
+            title: "Pitch Deck",
+            href: "/dashboard/founder/pitch-deck",
+            icon: PresentationIcon,
+        },
+        {
+            title: "Fundraising",
+            href: "/dashboard/founder/fundraising",
+            icon: CurrencyDollarIcon,
+        },
+        {
+            title: "Investors",
+            href: "/dashboard/founder/investors",
+            icon: UsersIcon,
+        },
+        {
+            title: "Analytics",
+            href: "/dashboard/founder/analytics",
+            icon: PieChartIcon,
         },
         {
             title: "Messages",
-            href: "/dashboard/investor/messages",
+            href: "/dashboard/founder/messages",
             icon: MessageSquareIcon,
         },
         {
             title: "Meetings",
-            href: "/dashboard/investor/meetings",
+            href: "/dashboard/founder/meetings",
             icon: CalendarEventIcon,
         },
         {
             title: "Updates",
-            href: "/dashboard/investor/updates",
+            href: "/dashboard/founder/updates",
             icon: FileTextIcon,
         },
         {
             title: "Notes",
-            href: "/dashboard/investor/notes",
+            href: "/dashboard/founder/notes",
             icon: NotesIcon,
         },
         {
             title: "Calendar",
-            href: "/dashboard/investor/calendar",
+            href: "/dashboard/founder/calendar",
             icon: CalendarIcon,
         },
     ];
@@ -64,7 +76,7 @@
     // Check if the current path matches a nav item
     function isActive(href: string): boolean {
         const currentPath = $page.url.pathname;
-        if (href === "/dashboard/investor") {
+        if (href === "/dashboard/founder") {
             return currentPath === href;
         }
         return currentPath.startsWith(href);

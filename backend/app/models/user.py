@@ -8,7 +8,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 class UserRole(str, enum.Enum):
-    STARTUP = "startup"
+    FOUNDER = "founder"
     SUPPORTER = "supporter"
     INVESTOR = "investor"
 
@@ -28,6 +28,10 @@ class User(UserBase, table=True):
     # Password reset fields
     reset_token: Optional[str] = Field(default=None)
     reset_token_expires: Optional[datetime] = Field(default=None)
+
+    # Email verification fields
+    verification_token: Optional[str] = Field(default=None)
+    verification_token_expires: Optional[datetime] = Field(default=None)
 
     # Relationships
     startups: List["Startup"] = Relationship(back_populates="founder")  # type: ignore # noqa: F821
@@ -71,6 +75,16 @@ class PasswordResetResponse(SQLModel):
     message: str
 
 
+# Email verification models
+class EmailVerificationRequest(SQLModel):
+    verification_token: str
+
+
+class EmailVerificationResponse(SQLModel):
+    message: str
+    user: Optional[UserPublic] = None
+
+
 # Json access token payload
 class Token(SQLModel):
     access_token: str
@@ -80,3 +94,11 @@ class Token(SQLModel):
 class TokenPayload(SQLModel):
     exp: int
     sub: str | None = None
+
+
+# Registration response with auto-login
+class UserRegistrationResponse(SQLModel):
+    user: UserPublic
+    access_token: str
+    token_type: str = "bearer"
+    message: str = "Account created successfully"
