@@ -30,8 +30,8 @@ class Industry(str, enum.Enum):
     GAMING = "gaming"
     CYBERSECURITY = "cybersecurity"
     FINTECH = "fintech"
-    HEALTHTECH = "healthtech"
-    EDTECH = "edtech"
+    HEALTH_TECH = "health_tech"
+    ED_TECH = "ed_tech"
     OTHER = "other"
 
 
@@ -39,7 +39,7 @@ class FundingStage(str, enum.Enum):
     IDEA = "idea"
     MVP = "mvp"
     EARLY_STAGE = "early_stage"
-    PRESEED = "pre_seed"
+    PRE_SEED = "pre_seed"
     SEED = "seed"
     SERIES_A = "series_a"
     SERIES_B = "series_b"
