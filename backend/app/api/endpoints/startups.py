@@ -1,9 +1,16 @@
-from fastapi import APIRouter, HTTPException, status
+import uuid
 from typing import Any, List
 
-from app.api.deps import SessionDep # type: ignore
-from app.crud.startup import get_startups, create_startup # type: ignore
-from app.models.startup import Startup, StartupCreate # type: ignore
+from fastapi import APIRouter, HTTPException, status
+
+from app.api.deps import CurrentUser, SessionDep
+from app.crud.startup import (
+    create_startup,
+    get_startup,
+    get_startups,
+    get_startups_by_founder,
+)
+from app.models.startup import Startup, StartupCreate, StartupRead
 
 router = APIRouter(prefix="/startups", tags=["startups"])
 
@@ -19,11 +26,28 @@ async def get_all_startups(session: SessionDep):
     return startups
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED)
-async def create_new_startup(session: SessionDep, startup: StartupCreate) -> Any:
+@router.get("/founder/{founder_id}", response_model=List[StartupRead])
+async def get_founder_startups(session: SessionDep, founder_id: uuid.UUID):
+    """Get all startups created by a specific founder"""
+    startups = get_startups_by_founder(db=session, founder_id=founder_id)
+    if not startups:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No startups found for founder {founder_id}",
+        )
+    return startups
+
+
+@router.post("/create", response_model=StartupRead, status_code=status.HTTP_201_CREATED)
+async def create_new_startup(
+    session: SessionDep, current_user: CurrentUser, startup: StartupCreate
+) -> Any:
+    """Create a startup (requires authentication)"""
     try:
-        """Create a startup"""
-        startup_new_startup_process = create_startup(db=session, startup=startup)
+        # Create startup with the current user as founder
+        startup_new_startup_process = create_startup(
+            db=session, startup=startup, founder_id=current_user.id
+        )
         return startup_new_startup_process
     except Exception as e:
         raise HTTPException(
@@ -41,6 +65,12 @@ async def delete_startup():
     return {"message": "Startup deleted"}
 
 
-@router.get("/:details")
-async def get_startup_details():
-    return {"message": "Startup details"}
+@router.get("/{startup_id}", response_model=StartupRead)
+async def get_startup_details(session: SessionDep, startup_id: uuid.UUID):
+    """Get startup details by ID"""
+    startup = get_startup(db=session, startup_id=startup_id)
+    if not startup:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Startup not found"
+        )
+    return startup

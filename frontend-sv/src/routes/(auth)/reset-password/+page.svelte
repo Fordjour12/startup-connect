@@ -2,7 +2,8 @@
 	import ResetPasswordForm from "$lib/components/ResetPasswordForm.svelte";
 	import type { PageData } from "./$types";
 
-	let { data }: { data: PageData } = $props();
+
+	let { data }: { data: PageProps } = $props();
 </script>
 
 <div

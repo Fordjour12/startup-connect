@@ -1,16 +1,29 @@
 // Define an enum for API endpoints
 export enum ApiEndpoint {
   // User related endpoints
-  GET_USER = 'users/me',
+  GET_USER = '/users/me',
   UPDATE_USER = '/api/user/update',
   DELETE_USER = '/api/user/delete',
 
   // Authentication endpoints
-  LOGIN = 'users/login/access-token',
-  REGISTER = 'users/register',
-  LOGOUT = '/api/auth/logout',
-  FORGOT_PASSWORD = '/api/auth/forgot-password',
-  RESET_PASSWORD = '/api/auth/reset-password',
+  LOGIN = '/auth/login/access-token',
+  REGISTER = '/auth/register',
+  REGISTER_EMAIL_FIRST = '/auth/register-email-first',
+  VERIFY_EMAIL = '/auth/verify-email',
+  RESEND_VERIFICATION = '/auth/resend-verification',
+  LOGOUT = '/auth/logout',
+  FORGOT_PASSWORD = '/auth/forgot-password',
+  RESET_PASSWORD = '/auth/reset-password',
+
+
+  // Startup related endpoints
+  GET_STARTUPS = '/startups/',
+  GET_FOUNDER_STARTUPS = '/startups/founder/{founder_id}',
+  CREATE_STARTUP = '/startups/create',
+  UPDATE_STARTUP = '/startups/update',
+  DELETE_STARTUP = '/startups/delete',
+  GET_STARTUP_DETAILS = '/startups/{startup_id}',
+
 
   // Product related endpoints
   GET_PRODUCTS = '/api/products',
