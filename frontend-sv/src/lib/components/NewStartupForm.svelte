@@ -17,6 +17,7 @@
         SelectTrigger,
     } from "$lib/components/ui/select";
     import { Textarea } from "$lib/components/ui/textarea";
+    import { Label } from "$lib/components/ui/label";
     import {
         type StartupSchema,
         startupSchema,
@@ -213,8 +214,8 @@
         </CardHeader>
         <CardContent class="space-y-4">
             <!-- Logo Upload -->
-            <!-- <div>
-                <Form.Label>Startup Logo</Form.Label>
+             <div>
+                <Label>Startup Logo</Label>
                 <div class="flex items-start gap-4">
                     <div class="flex-1">
                         <FileUpload
@@ -230,7 +231,7 @@
                         </p>
                     </div>
                 </div>
-            </div> -->
+            </div>
 
             <Form.Field {form} name="name">
                 <Form.Control>

@@ -40,138 +40,138 @@
     let showPreview = $state(true);
     let showTeamSection = $state(false);
 
-    // File handling with runes
-    let pitchDeckFile = $state<File | null>(null);
-    let logoFile = $state<File | null>(null);
-    let logoPreview = $state<string | null>(null);
-    let productScreenshots = $state<File[]>([]);
-    let demoVideo = $state<File | null>(null);
-    let screenshotPreviews = $state<string[]>([]);
+    // // File handling with runes
+    // let pitchDeckFile = $state<File | null>(null);
+    // let logoFile = $state<File | null>(null);
+    // let logoPreview = $state<string | null>(null);
+    // let productScreenshots = $state<File[]>([]);
+    // let demoVideo = $state<File | null>(null);
+    // let screenshotPreviews = $state<string[]>([]);
 
-    // Handlers for file uploads
-    function handleFileUpload(event: { detail: { files: File[] } }) {
-        if (event.detail.files.length > 0) {
-            pitchDeckFile = event.detail.files[0];
-        }
-    }
+    // // Handlers for file uploads
+    // function handleFileUpload(event: { detail: { files: File[] } }) {
+    //     if (event.detail.files.length > 0) {
+    //         pitchDeckFile = event.detail.files[0];
+    //     }
+    // }
 
-    function handleFileRemove() {
-        pitchDeckFile = null;
-    }
+    // function handleFileRemove() {
+    //     pitchDeckFile = null;
+    // }
 
-    function handleLogoUpload(event: { detail: { files: File[] } }) {
-        if (event.detail.files.length > 0) {
-            logoFile = event.detail.files[0];
-            logoPreview = URL.createObjectURL(event.detail.files[0]);
-        }
-    }
+    // function handleLogoUpload(event: { detail: { files: File[] } }) {
+    //     if (event.detail.files.length > 0) {
+    //         logoFile = event.detail.files[0];
+    //         logoPreview = URL.createObjectURL(event.detail.files[0]);
+    //     }
+    // }
 
-    function handleLogoRemove() {
-        logoFile = null;
-        if (logoPreview) {
-            URL.revokeObjectURL(logoPreview);
-            logoPreview = null;
-        }
-    }
+    // function handleLogoRemove() {
+    //     logoFile = null;
+    //     if (logoPreview) {
+    //         URL.revokeObjectURL(logoPreview);
+    //         logoPreview = null;
+    //     }
+    // }
 
-    function handleScreenshotUpload(event: { detail: { files: File[] } }) {
-        productScreenshots = event.detail.files;
-        screenshotPreviews = event.detail.files.map((file) =>
-            URL.createObjectURL(file),
-        );
-    }
+    // function handleScreenshotUpload(event: { detail: { files: File[] } }) {
+    //     productScreenshots = event.detail.files;
+    //     screenshotPreviews = event.detail.files.map((file) =>
+    //         URL.createObjectURL(file),
+    //     );
+    // }
 
-    function handleScreenshotRemove(index: number) {
-        URL.revokeObjectURL(screenshotPreviews[index]);
-        productScreenshots = productScreenshots.filter((_, i) => i !== index);
-        screenshotPreviews = screenshotPreviews.filter((_, i) => i !== index);
-    }
+    // function handleScreenshotRemove(index: number) {
+    //     URL.revokeObjectURL(screenshotPreviews[index]);
+    //     productScreenshots = productScreenshots.filter((_, i) => i !== index);
+    //     screenshotPreviews = screenshotPreviews.filter((_, i) => i !== index);
+    // }
 
-    function handleDemoVideoUpload(event: { detail: { files: File[] } }) {
-        if (event.detail.files.length > 0) {
-            demoVideo = event.detail.files[0];
-        }
-    }
+    // function handleDemoVideoUpload(event: { detail: { files: File[] } }) {
+    //     if (event.detail.files.length > 0) {
+    //         demoVideo = event.detail.files[0];
+    //     }
+    // }
 
-    function handleDemoVideoRemove() {
-        demoVideo = null;
-    }
+    // function handleDemoVideoRemove() {
+    //     demoVideo = null;
+    // }
 
-    // Team members
-    function addTeamMember() {
-        const currentTeamMembers = $formData.teamMembers || [];
-        $formData.teamMembers = [
-            ...currentTeamMembers,
-            {
-                name: "",
-                role: "",
-                bio: "",
-                linkedin: "",
-            },
-        ];
-    }
+    // // Team members
+    // function addTeamMember() {
+    //     const currentTeamMembers = $formData.teamMembers || [];
+    //     $formData.teamMembers = [
+    //         ...currentTeamMembers,
+    //         {
+    //             name: "",
+    //             role: "",
+    //             bio: "",
+    //             linkedin: "",
+    //         },
+    //     ];
+    // }
 
-    function removeTeamMember(index: number) {
-        const currentTeamMembers = $formData.teamMembers || [];
-        $formData.teamMembers = currentTeamMembers.filter(
-            (_, i) => i !== index,
-        );
-    }
+    // function removeTeamMember(index: number) {
+    //     const currentTeamMembers = $formData.teamMembers || [];
+    //     $formData.teamMembers = currentTeamMembers.filter(
+    //         (_, i) => i !== index,
+    //     );
+    // }
 
-    // Timeline milestones
-    function addPastMilestone() {
-        const timeline = $formData.timeline || { past: [], future: [] };
-        const currentPast = timeline.past || [];
+    // // Timeline milestones
+    // function addPastMilestone() {
+    //     const timeline = $formData.timeline || { past: [], future: [] };
+    //     const currentPast = timeline.past || [];
 
-        $formData.timeline = {
-            ...timeline,
-            past: [
-                ...currentPast,
-                {
-                    date: "",
-                    title: "",
-                    description: "",
-                    type: "achievement" as const,
-                },
-            ],
-        };
-    }
+    //     $formData.timeline = {
+    //         ...timeline,
+    //         past: [
+    //             ...currentPast,
+    //             {
+    //                 date: "",
+    //                 title: "",
+    //                 description: "",
+    //                 type: "achievement" as const,
+    //             },
+    //         ],
+    //     };
+    // }
 
-    function removePastMilestone(index: number) {
-        if (!$formData.timeline?.past) return;
+    // function removePastMilestone(index: number) {
+    //     if (!$formData.timeline?.past) return;
 
-        $formData.timeline = {
-            ...$formData.timeline,
-            past: $formData.timeline.past.filter((_, i) => i !== index),
-        };
-    }
+    //     $formData.timeline = {
+    //         ...$formData.timeline,
+    //         past: $formData.timeline.past.filter((_, i) => i !== index),
+    //     };
+    // }
 
-    function addFutureMilestone() {
-        const timeline = $formData.timeline || { past: [], future: [] };
-        const currentFuture = timeline.future || [];
+    // function addFutureMilestone() {
+    //     const timeline = $formData.timeline || { past: [], future: [] };
+    //     const currentFuture = timeline.future || [];
 
-        $formData.timeline = {
-            ...timeline,
-            future: [
-                ...currentFuture,
-                {
-                    date: "",
-                    title: "",
-                    description: "",
-                    type: "launch" as const,
-                },
-            ],
-        };
-    }
+    //     $formData.timeline = {
+    //         ...timeline,
+    //         future: [
+    //             ...currentFuture,
+    //             {
+    //                 date: "",
+    //                 title: "",
+    //                 description: "",
+    //                 type: "launch" as const,
+    //             },
+    //         ],
+    //     };
+    // }
 
-    function removeFutureMilestone(index: number) {
-        if (!$formData.timeline?.future) return;
+    // function removeFutureMilestone(index: number) {
+    //     if (!$formData.timeline?.future) return;
 
-        $formData.timeline = {
-            ...$formData.timeline,
-            future: $formData.timeline.future.filter((_, i) => i !== index),
-        };
-    }
+    //     $formData.timeline = {
+    //         ...$formData.timeline,
+    //         future: $formData.timeline.future.filter((_, i) => i !== index),
+    //     };
+    // }
 
     // Toggle functions
     function togglePreview() {
@@ -183,7 +183,7 @@
     }
 </script>
 
-<div class="container mx-auto py-8">
+<div class="container mx-auto py-5 px-3">
     <div class="mx-auto">
         <div class="flex flex-col gap-8">
             <div class="flex justify-between items-center">
