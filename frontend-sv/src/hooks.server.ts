@@ -1,8 +1,8 @@
-import type { Handle } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
-import { redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { ApiEndpoint } from '@/endpoints';
+import type { Handle } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
 
 export const getUserDetails: Handle = async ({ event, resolve }) => {
   // Skip authentication check for login page and other auth-related routes

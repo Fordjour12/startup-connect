@@ -38,12 +38,44 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "startupconnect"
 
     # SMTP Configuration
-    SMTP_HOST: str|None = "sandbox.smtp.mailtrap.io"
+    SMTP_HOST: str | None = "sandbox.smtp.mailtrap.io"
     SMTP_PORT: int = 2525
-    SMTP_USERNAME: str|None = "6d42aeb245abf1"
-    SMTP_PASSWORD: str|None = "367b2b69c52173"
+    SMTP_USERNAME: str | None = "6d42aeb245abf1"
+    SMTP_PASSWORD: str | None = "367b2b69c52173"
     SMTP_USE_TLS: bool = True
     SMTP_USE_SSL: bool = False
+
+    # MinIO/S3 Configuration
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin123"
+    MINIO_SECURE: bool = False  # Set to True in production with SSL
+    MINIO_BUCKET_NAME: str = "startup-connect-files"
+
+    # File Upload Configuration
+    MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
+    MAX_IMAGE_SIZE: int = 10 * 1024 * 1024  # 10MB
+    ALLOWED_IMAGE_TYPES: list[str] = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+    ]
+    ALLOWED_DOCUMENT_TYPES: list[str] = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "text/plain",
+        "text/csv",
+        "application/json",
+    ]
+
+    # Image Processing
+    IMAGE_MAX_WIDTH: int = 2048
+    IMAGE_MAX_HEIGHT: int = 2048
+    THUMBNAIL_SIZE: tuple[int, int] = (300, 300)
 
     # Environment
     ENVIRONMENT: str = "development"  # development, staging, production
@@ -66,4 +98,4 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list[str] = ["*"]
 
 
-settings = Settings()  
+settings = Settings()

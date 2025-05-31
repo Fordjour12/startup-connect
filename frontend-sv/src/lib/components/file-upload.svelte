@@ -1,16 +1,23 @@
 <script lang="ts">
     import { Button } from "$lib/components/ui/button";
-    import { createEventDispatcher } from "svelte";
 
-    export let accept = "*";
-    export let maxSize = 5; // In MB
-    export let multiple = false;
-    export let files: File[] = [];
+    interface Props {
+        accept?: string;
+        maxSize?: number; // In MB
+        multiple?: boolean;
+        files?: File[];
+        onUpload?: (files: File[]) => void;
+        onRemove?: (index: number) => void;
+    }
 
-    const dispatch = createEventDispatcher<{
-        upload: { files: File[] };
-        remove: { index: number };
-    }>();
+    let {
+        accept = "*",
+        maxSize = 5,
+        multiple = false,
+        files = $bindable([]),
+        onUpload,
+        onRemove,
+    }: Props = $props();
 
     function formatFileSize(bytes: number): string {
         if (bytes === 0) return "0 B";
@@ -43,7 +50,7 @@
 
         if (selectedFiles.length) {
             files = selectedFiles;
-            dispatch("upload", { files: selectedFiles });
+            onUpload?.(selectedFiles);
         }
 
         // Reset input so the same file can be selected again if needed
@@ -52,12 +59,12 @@
 
     function removeFile(index: number) {
         files = files.filter((_, i) => i !== index);
-        dispatch("remove", { index });
+        onRemove?.(index);
     }
 
     function removeAllFiles() {
         files = [];
-        dispatch("remove", { index: -1 });
+        onRemove?.(-1);
     }
 </script>
 
