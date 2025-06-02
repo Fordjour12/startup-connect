@@ -1,10 +1,8 @@
 <script lang="ts">
-    import { Button } from "$lib/components/ui/button/index.js";
+    import { page } from "$app/state";
+    import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
     import { Separator } from "$lib/components/ui/separator/index.js";
     import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-    import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
-    import { page } from "$app/state";
-    import NotificationDropdown from "$lib/components/dashboard/NotificationDropdown.svelte";
 
     // Helper to capitalize string
     function capitalize(str: string): string {
@@ -80,13 +78,12 @@
         </div>
 
         <!-- Right-side header actions -->
-        <div class="flex items-center gap-2">
+        <!-- <div class="flex items-center gap-2">
             {#if isFounder}
                 <NotificationDropdown />
             {/if}
 
-            <!-- Other header actions can be added here -->
             <Button variant="ghost" size="sm">Help</Button>
-        </div>
+        </div> -->
     </div>
 </header>

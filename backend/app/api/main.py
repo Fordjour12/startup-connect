@@ -1,9 +1,22 @@
-from fastapi import APIRouter,status
-from app.api.endpoints import users,startups,investor
+from fastapi import APIRouter
 
+from app.api.endpoints import user
+from app.api.endpoints import auth
+from app.api.endpoints import startups
+
+
+# Create the main API router
 api_router = APIRouter()
 
-api_router.get("/healthcheck", status_code=status.HTTP_200_OK, tags=["healthcheck"])(lambda: {"status": "ok"})
-api_router.include_router(users.router)
+
+# Health check endpoint
+@api_router.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy", "message": "StartupConnect API is running"}
+
+
+# Production-grade endpoints
+api_router.include_router(user.router)
+api_router.include_router(auth.router)
 api_router.include_router(startups.router)
-api_router.include_router(investor.router)

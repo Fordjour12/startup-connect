@@ -65,7 +65,7 @@ export const roleBasedRouteProtection: Handle = async ({ event, resolve }) => {
   const user = event.locals.user;
 
   // Only apply role-based protection to dashboard routes
-  if (event.url.pathname.startsWith('/dashboard/')) {
+  if (event.url.pathname.startsWith('/dashboard')) {
     if (!user) {
       throw redirect(302, '/login');
     }

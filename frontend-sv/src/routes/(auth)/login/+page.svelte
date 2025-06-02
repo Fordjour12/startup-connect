@@ -1,9 +1,13 @@
 <!-- +page.svelte -->
 <script lang="ts">
+    import { page } from "$app/stores";
     import LoginForm from "$lib/components/LoginForm.svelte";
-    import type { PageData } from "./$types";
+    import { CheckCircle } from "@lucide/svelte";
+    import type { PageProps } from "./$types";
 
-    let { data }: { data: PageData } = $props();
+    let { data }: { data: PageProps } = $props();
+    // Get success message from URL params (e.g., from password reset)
+    let successMessage = $derived($page.url.searchParams.get("message"));
 </script>
 
 <div
@@ -15,7 +19,7 @@
         <div class="absolute inset-0 bg-primary"></div>
         <div class="relative z-20 flex items-center text-lg font-medium">
             <img src="/logo.svg" alt="Logo" class="h-8 w-8 mr-2" />
-            Acme Inc.
+            StartupConnect
         </div>
         <div class="relative z-20 mt-auto">
             <blockquote class="space-y-2">
@@ -42,6 +46,16 @@
                     Enter your email below to login to your account
                 </p>
             </div>
+
+            {#if successMessage}
+                <div
+                    class="p-3 rounded-md border border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2"
+                >
+                    <CheckCircle class="h-4 w-4" />
+                    {successMessage}
+                </div>
+            {/if}
+
             <LoginForm {data} />
 
             <p class="px-8 text-center text-sm text-muted-foreground">

@@ -8,6 +8,7 @@
     import {
         type RegisterSchema,
         registerSchema,
+        userTypes,
     } from "@/schemas/register-schema";
     import * as Form from "@/components/ui/form";
     import { Input } from "@/components/ui/input";
@@ -15,9 +16,9 @@
     import { cn } from "@/utils";
     import { zodClient } from "sveltekit-superforms/adapters";
     import * as Select from "@/components/ui/select";
+    import { LoaderCircle } from "@lucide/svelte";
 
-    let { data }: { data: { form: SuperValidated<Infer<RegisterSchema>>} } =
-        $props();
+    let { data }: { data: { form: SuperValidated<Infer<RegisterSchema>>}} = $props();
 
     const form = superForm(data.form, {
         validators: zodClient(registerSchema),

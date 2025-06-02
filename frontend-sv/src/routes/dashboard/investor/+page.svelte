@@ -12,6 +12,7 @@
     import type { PageData } from "./$types";
     import PortfolioAllocationChart from "./components/PortfolioAllocationChart.svelte";
     import PortfolioChart from "./components/PortfolioChart.svelte";
+    import { Button } from "@/components/ui/button";
 
     import { formatCurrency } from "@/utils";
 
@@ -53,6 +54,37 @@
         }
     }
 </script>
+
+<div class="container mx-auto p-6">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold">Investor Dashboard</h1>
+        <p class="text-muted-foreground">Welcome back, {data.user?.full_name}!</p>
+    </div>
+    
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div class="p-6 border rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Startup Discovery</h3>
+            <p class="text-muted-foreground">Discover promising startups to invest in.</p>
+            <Button class="mt-4">Browse Startups</Button>
+        </div>
+        
+        <div class="p-6 border rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Portfolio</h3>
+            <p class="text-muted-foreground">Manage your investment portfolio.</p>
+            <Button class="mt-4">View Portfolio</Button>
+        </div>
+        
+        <div class="p-6 border rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Deal Flow</h3>
+            <p class="text-muted-foreground">Track your investment pipeline.</p>
+            <Button class="mt-4">View Deals</Button>
+        </div>
+    </div>
+    
+    <div class="mt-8">
+        <Button href="/logout" variant="outline">Logout</Button>
+    </div>
+</div>
 
 <div class="container mx-auto px-4 py-8">
     <div

@@ -4,12 +4,12 @@ from sqlalchemy import Engine
 from sqlmodel import Session, select
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
 
-from app.core.database import engine #type: ignore
+from app.core.db import engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-max_tries = 60 * 5  # 5mins
+max_tries = 60 * 3  # 3mins
 wait_seconds = 1
 
 
@@ -30,7 +30,11 @@ def init(db_engine: Engine) -> None:
 
 def main() -> None:
     logger.info("Starting backend Service")
-    init(engine)
+    if engine:
+        init(engine)
+        logger.info("Database connection verified")
+    else:
+        logger.warning("Database not configured - skipping database initialization")
     logger.info("Backend Service started")
 
 
