@@ -1,46 +1,34 @@
-<!-- LoginForm.svelte -->
 <script lang="ts">
     import {
         superForm,
         type SuperValidated,
         type Infer,
     } from "sveltekit-superforms";
-    import { type LoginSchema, loginSchema } from "@/schemas/login-schema";
+    import { type ForgotPasswordSchema, forgotPasswordSchema } from "@/schemas/forgot-password-schema";
     import * as Form from "@/components/ui/form";
     import { Input } from "@/components/ui/input";
     import { cn } from "@/utils";
     import { zodClient } from "sveltekit-superforms/adapters";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
     import CheckCircle from "@lucide/svelte/icons/check-circle";
-    import { page } from "$app/stores";
 
-    let { data }: { data: { form: SuperValidated<Infer<LoginSchema>> } } =
+    let { data }: { data: { form: SuperValidated<Infer<ForgotPasswordSchema>> } } =
         $props();
 
     const form = superForm(data.form, {
-        validators: zodClient(loginSchema),
+        validators: zodClient(forgotPasswordSchema),
     });
 
     const { form: formData, errors, enhance, delayed, message } = form;
-
-    // Get success message from URL parameters
-    let successMessage = $derived($page.url.searchParams.get("message"));
 </script>
 
 <div class="grid gap-6">
     <form method="POST" use:enhance>
-        {#if successMessage}
+        {#if $message}
             <div
                 class="mb-4 p-3 rounded-md border border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2"
             >
                 <CheckCircle class="h-4 w-4" />
-                {successMessage}
-            </div>
-        {/if}
-        {#if $message}
-            <div
-                class="mb-4 p-3 rounded-md border border-destructive bg-destructive/10 text-destructive text-sm"
-            >
                 {$message}
             </div>
         {/if}
@@ -72,41 +60,6 @@
                 {/if}
             </Form.Field>
 
-            <Form.Field {form} name="password">
-                <Form.Control>
-                    {#snippet children({ props })}
-                        <Form.Label>Password</Form.Label>
-                        <Input
-                            {...props}
-                            type="password"
-                            placeholder="••••••••"
-                            autocomplete="current-password"
-                            class={cn(
-                                "w-full",
-                                $errors.password && "border-destructive",
-                            )}
-                            bind:value={$formData.password}
-                        />
-                    {/snippet}
-                </Form.Control>
-                {#if $errors.password}
-                    <Form.FieldErrors class="text-destructive text-sm">
-                        {$errors.password}
-                    </Form.FieldErrors>
-                {/if}
-            </Form.Field>
-
-            <div class="flex items-center justify-between text-sm">
-                <!-- <label class="flex items-center gap-2">
-                    {@const checked = $formData.rememberMe}
-                    <Input type="checkbox" bind:checked={checked} class="w-4 h-4" />
-                    <span>Remember me</span>
-                </label> -->
-                <a href="/forgot-password" class="text-primary hover:underline">
-                    Forgot password?
-                </a>
-            </div>
-
             <Form.Button class="w-full" disabled={$delayed}>
                 {#if $delayed}
                     <div class="flex items-center justify-center gap-2">
@@ -114,12 +67,12 @@
                             class="h-5 w-5 animate-spin"
                             strokeWidth={2}
                         />
-                        <span>Signing in...</span>
+                        <span>Sending reset link...</span>
                     </div>
                 {:else}
-                    <span> Sign in</span>
+                    <span>Send reset link</span>
                 {/if}
             </Form.Button>
         </div>
     </form>
-</div>
+</div> 

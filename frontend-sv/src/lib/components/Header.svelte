@@ -1,5 +1,4 @@
 <script lang="ts">
-    //  not store should be state
     import { page } from "$app/state";
     import { Button } from "@/components/ui/button";
     import { cn } from "@/utils";
@@ -14,35 +13,36 @@
         SheetTrigger,
         SheetClose,
     } from "$lib/components/ui/sheet";
-    import { setMode } from "mode-watcher";
     import ModeToggle from "./ModeToggle.svelte";
     import UserDropdown from "./UserDropdown.svelte";
+
+    type UserData = {
+        user: {
+            id: string;
+            email: string;
+            full_name: string;
+        };
+    };
+
+    let { data }: { data: UserData } = $props();
 
     // App name - modify this to match your application name
     const appName = $state("StartupConnect");
 
-    // Mock user state - in a real app, you would get this from your auth store
-    let isLoggedIn = $state(false); // Set to true to show the user dropdown
-    let user = $state({
-        name: "John Doe",
-        email: "john@example.com",
-        avatarUrl: "",
-        initials: "JD",
-    });
+    // Derive login state from user data
+    let isLoggedIn = $derived(!!data.user);
 
     // Responsive state
     let menuOpen = $state(false);
-
-    // Toggle login state (for demo purposes only)
-    function toggleLoginState() {
-        isLoggedIn = !isLoggedIn;
-    }
 
     // Handle logout
     function handleLogout() {
         // In a real app, implement your logout logic here
         console.log("Logging out");
-        isLoggedIn = false;
+        // Clear the access token and redirect to login
+        document.cookie =
+            "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        window.location.href = "/login";
     }
 
     // Navigation items - customize these based on your app routes
@@ -51,6 +51,7 @@
         { href: "/features", label: "Features" },
         { href: "/pricing", label: "Pricing" },
         { href: "/about", label: "About" },
+        { href: "/startups", label: "Startup" },
     ];
 
     // Close mobile menu when page changes
@@ -107,15 +108,7 @@
 
             <div class="flex items-center gap-4">
                 <ModeToggle />
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onclick={toggleLoginState}
-                    class="mr-2"
-                >
-                    {isLoggedIn ? "Demo: Logged In" : "Demo: Logged Out"}
-                </Button>
-                <UserDropdown {isLoggedIn} {user} />
+                <UserDropdown {isLoggedIn} user={data.user} />
             </div>
         </nav>
 
@@ -160,21 +153,21 @@
                         {/each}
                     </nav>
                     <div class="mt-auto pt-4 border-t space-y-2">
-                        {#if isLoggedIn}
+                        {#if isLoggedIn && data.user}
                             <div class="flex items-center gap-2 px-4 py-2">
-                                <img
-                                    src={user.avatarUrl || ""}
+                                <!-- <img
+                                    src={data.user.avatarUrl || ""}
                                     alt=""
                                     class="h-10 w-10 rounded-full bg-muted"
                                 />
                                 <div class="flex flex-col">
                                     <span class="text-sm font-medium"
-                                        >{user.name}</span
+                                        >{data.user.name || "User"}</span
                                     >
                                     <span class="text-xs text-muted-foreground"
-                                        >{user.email}</span
+                                        >{data.user.email || ""}</span
                                     >
-                                </div>
+                                </div> -->
                             </div>
                             <Button
                                 variant="ghost"

@@ -1,4 +1,3 @@
-<!-- +page.svelte -->
 <script lang="ts">
     import RegisterForm from "@/components/RegisterForm.svelte";
     import type { PageData } from "./$types";
@@ -44,7 +43,7 @@
                 </p>
             </div>
             <RegisterForm {data} />
-            <div class="relative">
+            <div class="relative" >
                 <div class="absolute inset-0 flex items-center">
                     <span class="w-full border-t"></span>
                 </div>

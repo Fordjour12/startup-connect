@@ -28,7 +28,7 @@ build-backend = "hatchling.build"
 packages = ["app"]
 
 [tool.pyright]
-include = ["app"]
-exclude = [ "**/__pycache__"]
+include = ["."]
+exclude = ["**/__pycache__"]
 venvPath = "."
 venv = ".venv"
