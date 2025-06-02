@@ -48,6 +48,13 @@ export enum ApiEndpoint {
   UPDATE_SETTINGS = '/api/settings/update'
 }
 
+// User related endpoints
+// export const USER_ENDPOINTS = {
+//   GET_USER: '/users/me',
+//   UPDATE_USER: '/api/user/update',
+//   DELETE_USER: '/api/user/delete',
+// };
+
 // Usage example:
 // fetch(ApiEndpoint.GET_PRODUCTS)
 //   .then(response => response.json())
