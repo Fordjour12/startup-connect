@@ -7,7 +7,7 @@ from app.api.deps import get_current_user
 from app.core.upload import UploadResponse, upload_service
 from app.models.user import User
 
-router = APIRouter()
+router = APIRouter(prefix="/upload", tags=["Upload"])
 security = HTTPBearer()
 
 

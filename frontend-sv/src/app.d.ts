@@ -1,14 +1,14 @@
-// See https://svelte.dev/docs/kit/types#app.d.ts
+// See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare global {
   namespace App {
     // interface Error {}
     interface Locals {
-      user: {
+      user?: {
         id: string;
         email: string;
-        full_name: string;
         role: string;
+        name?: string;
       }
     }
     // interface PageData {}
