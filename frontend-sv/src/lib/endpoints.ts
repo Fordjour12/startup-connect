@@ -25,6 +25,14 @@ export enum ApiEndpoint {
   GET_STARTUP_DETAILS = '/startups/{startup_id}',
 
 
+  // Investor related endpoints
+  GET_INVESTORS = '/investors/',
+  GET_INVESTOR_DETAILS = '/investors/{investor_id}',
+
+  // Recommendation endpoints
+  GET_RECOMMENDATIONS = '/me/recommendations',
+  GET_RECOMMENDATION_EXPLANATION = '/me/recommendations/explain',
+
   // Product related endpoints
   GET_PRODUCTS = '/api/products',
   GET_PRODUCT_BY_ID = '/api/products/:id',
@@ -48,14 +56,3 @@ export enum ApiEndpoint {
   UPDATE_SETTINGS = '/api/settings/update'
 }
 
-// User related endpoints
-// export const USER_ENDPOINTS = {
-//   GET_USER: '/users/me',
-//   UPDATE_USER: '/api/user/update',
-//   DELETE_USER: '/api/user/delete',
-// };
-
-// Usage example:
-// fetch(ApiEndpoint.GET_PRODUCTS)
-//   .then(response => response.json())
-//   .then(data => console.log(data));

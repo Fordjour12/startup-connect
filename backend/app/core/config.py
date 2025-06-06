@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 300
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 300000
 
     # Database
     POSTGRES_USER: str | None = None

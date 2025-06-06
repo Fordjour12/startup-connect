@@ -1,7 +1,7 @@
 import enum
 import uuid
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -35,6 +35,18 @@ class User(UserBase, table=True):
 
     # Relationships
     startups: List["Startup"] = Relationship(back_populates="founder")  # type: ignore # noqa: F821
+    investor_profile: Optional["InvestorProfile"] = Relationship(back_populates="user")  # type: ignore # noqa: F821
+
+    # Pitch-related relationships
+    pitch_decks: List["PitchDeck"] = Relationship(back_populates="founder")  # type: ignore # noqa: F821
+    sent_pitches: List["PitchMessage"] = Relationship(
+        back_populates="sender",
+        sa_relationship_kwargs={"foreign_keys": "PitchMessage.founder_id"},
+    )  # type: ignore # noqa: F821
+    received_pitches: List["PitchMessage"] = Relationship(
+        back_populates="recipient",
+        sa_relationship_kwargs={"foreign_keys": "PitchMessage.investor_id"},
+    )  # type: ignore # noqa: F821
 
 
 class UserCreate(UserBase):
