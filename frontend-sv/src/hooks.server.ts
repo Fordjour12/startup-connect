@@ -98,4 +98,26 @@ export const roleBasedRouteProtection: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
-export const handle = sequence(getUserDetails, roleBasedRouteProtection);
+export const ssrOptimization: Handle = async ({ event, resolve }) => {
+  // Add security headers and optimize for SSR
+  const response = await resolve(event, {
+    transformPageChunk: ({ html }) => {
+      // Optimize HTML for SSR
+      return html;
+    }
+  });
+
+  // Add security headers
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // Ensure no CSR fallback for critical pages
+  if (event.url.pathname.startsWith('/dashboard')) {
+    response.headers.set('Cache-Control', 'private, no-cache');
+  }
+
+  return response;
+};
+
+export const handle = sequence(getUserDetails, roleBasedRouteProtection, ssrOptimization);

@@ -1,6 +1,14 @@
 from fastapi import APIRouter
 
-from app.api.endpoints import auth, startups, upload, user
+from app.api.endpoints import (
+    admin,
+    auth,
+    investor,
+    pitch,
+    recommendations,
+    upload,
+    user,
+)
 
 # Create the main API router
 api_router = APIRouter()
@@ -14,7 +22,10 @@ async def health_check():
 
 
 # Production-grade endpoints
-api_router.include_router(user.router)
 api_router.include_router(auth.router)
-api_router.include_router(startups.router)
-api_router.include_router(upload.router, prefix="/upload", tags=["uploads"])
+api_router.include_router(user.router)
+api_router.include_router(investor.router)
+api_router.include_router(recommendations.router)
+api_router.include_router(pitch.router)
+api_router.include_router(upload.router)
+api_router.include_router(admin.router)

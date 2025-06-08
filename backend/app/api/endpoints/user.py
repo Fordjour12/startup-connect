@@ -7,7 +7,7 @@ from app.api.deps import CurrentUser, SessionDep
 from app.crud import user as user_crud
 from app.models.user import UserPublic, UserUpdate
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=UserPublic)

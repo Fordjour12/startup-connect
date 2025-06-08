@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { Badge } from "$lib/components/ui/badge/index.js";
-    import { Button } from "$lib/components/ui/button/index.js";
-    import * as Card from "$lib/components/ui/card/index.js";
+    import RecommendedInvestors from "@/components/founder/RecommendedInvestors.svelte";
+    import { Badge } from "@/components/ui/badge";
+    import { Button } from "@/components/ui/button";
+    import * as Card from "@/components/ui/card";
     import {
         CalendarIcon,
         DollarSignIcon,
@@ -267,6 +268,11 @@
                     </Card.Footer>
                 </Card.Root>
             </div>
+        </div>
+
+        <!-- Recommended Investors -->
+        <div class="mb-8">
+            <RecommendedInvestors user={data.user} />
         </div>
 
         <!-- Recent Activity -->
