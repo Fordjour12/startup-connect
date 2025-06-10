@@ -36,8 +36,13 @@ def get_startups(
     industry: Optional[str] = None,
     location: Optional[str] = None,
     funding_stage: Optional[str] = None,
+    published_only: bool = True,
 ) -> Sequence[Startup]:
     statement = select(Startup)
+
+    # Filter by published status by default for public listings
+    if published_only:
+        statement = statement.where(Startup.is_published == True)
 
     if industry:
         statement = statement.where(Startup.industry == industry)
@@ -133,14 +138,91 @@ def get_startup_by_founder(db: Session, founder_id: uuid.UUID) -> Optional[Start
     Get all startups by founder id
     @param db: Session
     @param founder_id: uuid.UUID
+    @param include_drafts: bool
     @return Sequence[Startup]
 """
 
 
-def get_startups_by_founder(db: Session, founder_id: uuid.UUID) -> Sequence[Startup]:
+def get_startups_by_founder(
+    db: Session, founder_id: uuid.UUID, include_drafts: bool = True
+) -> Sequence[Startup]:
     statement = select(Startup).where(Startup.founder_id == founder_id)
+
+    # If not including drafts, only return published startups
+    if not include_drafts:
+        statement = statement.where(Startup.is_published == True)
+
     results = db.exec(statement).all()
     return results
+
+
+"""
+    Get only published startups
+    @param db: Session
+    @param skip: int
+    @param limit: int
+    @return Sequence[Startup]
+"""
+
+
+def get_published_startups(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    industry: Optional[str] = None,
+    location: Optional[str] = None,
+    funding_stage: Optional[str] = None,
+) -> Sequence[Startup]:
+    return get_startups(
+        db=db,
+        skip=skip,
+        limit=limit,
+        industry=industry,
+        location=location,
+        funding_stage=funding_stage,
+        published_only=True,
+    )
+
+
+"""
+    Get draft startups by founder
+    @param db: Session
+    @param founder_id: uuid.UUID
+    @return Sequence[Startup]
+"""
+
+
+def get_draft_startups_by_founder(
+    db: Session, founder_id: uuid.UUID
+) -> Sequence[Startup]:
+    statement = select(Startup).where(
+        Startup.founder_id == founder_id, Startup.is_published == False
+    )
+    results = db.exec(statement).all()
+    return results
+
+
+"""
+    Update startup publication status
+    @param db: Session
+    @param startup_id: uuid.UUID
+    @param is_published: bool
+    @return Optional[Startup]
+"""
+
+
+def update_startup_publication_status(
+    db: Session, startup_id: uuid.UUID, is_published: bool
+) -> Optional[Startup]:
+    db_startup = get_startup(db, startup_id)
+    if not db_startup:
+        return None
+
+    db_startup.is_published = is_published
+    db.add(db_startup)
+    db.commit()
+    db.refresh(db_startup)
+    return db_startup
 
 
 """

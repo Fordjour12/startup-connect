@@ -9,6 +9,11 @@ export interface UserPublic {
 	updated_at: string;
 }
 
+export interface Token {
+	access_token: string;
+	token_type: string;
+}
+
 export interface UserRegistrationResponse {
 	user: UserPublic;
 	access_token: string;
