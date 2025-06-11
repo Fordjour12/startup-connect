@@ -3,28 +3,31 @@ import { ApiEndpoint } from "@/endpoints";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ cookies }) => {
-		try {
-			const response = await fetch(`${env.DEPLOYMENT_API_URL}${ApiEndpoint.GET_RECOMMENDATIONS}`, {
+	try {
+		const response = await fetch(
+			`${env.DEPLOYMENT_API_URL}${ApiEndpoint.GET_RECOMMENDATION_EXPLANATION}`,
+			{
 				method: "GET",
 				credentials: "include",
 				headers: {
 					"Content-Type": "application/json",
 					"Authorization": `bearer ${cookies.get("access_token")}`,
 				},
-			});
+			},
+		);
 
-
-			if (!response.ok) {
-				throw new Error(
-					`Failed to fetch recommendations: ${response.statusText}`,
-				);
-			}
-
+		if (response.ok) {
 			const data = await response.json();
 			console.log(data);
 			return new Response(JSON.stringify(data), { status: 200 });
-		} catch (err) {
-			console.error("Error fetching recommendations:", err);
-			return new Response(JSON.stringify({ error: "Failed to fetch recommendations" }), { status: 500 });
 		}
-	};
+		return new Response(JSON.stringify({ error: "Failed to fetch algorithm explanation" }), { status: 500 });
+	} catch (err) {
+		console.error("Error fetching algorithm explanation:", err);
+		return new Response(JSON.stringify({
+			error: "Failed to fetch algorithm explanation",
+		}), {
+			status: 500,
+		});
+	}
+};
