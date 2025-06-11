@@ -209,7 +209,7 @@
           <span class="text-xs text-muted-foreground">Founded</span>
           <div class="flex items-center gap-1 mt-1">
             <Calendar class="h-3 w-3 text-primary" />
-            <span class="font-semibold">{formatDate(startup.foundedDate)}</span>
+            <!-- <span class="font-semibold">{formatDate(startup.foundedDate)}</span> -->
           </div>
         </div>
         
@@ -234,7 +234,7 @@
             <span class="text-xs text-muted-foreground">Industry</span>
             <div class="flex items-center gap-1 mt-1">
               <Rocket class="h-3 w-3 text-primary" />
-              <span class="font-semibold capitalize">{startup.industry}</span>
+              <span class="font-semibold text-xs capitalize">{startup.industry}</span>
             </div>
           </div>
         {/if}

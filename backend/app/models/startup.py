@@ -1,8 +1,8 @@
 import enum
 import uuid
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
-from sqlalchemy import Column, JSON
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -126,6 +126,7 @@ class StartupBase(SQLModel):
 class Startup(StartupBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     founder_id: uuid.UUID = Field(foreign_key="user.id")
+    is_published: bool = Field(default=False, index=True)
 
     # JSON fields stored with SQLAlchemy JSON type
     team_members: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
@@ -142,6 +143,7 @@ class Startup(StartupBase, table=True):
 
 
 class StartupCreate(StartupBase):
+    is_published: bool = Field(default=False)
     team_members: Optional[Dict[str, Any]] = None
     funding: Optional[Dict[str, Any]] = None
     metrics: Optional[Dict[str, Any]] = None
@@ -155,6 +157,7 @@ class StartupCreate(StartupBase):
 class StartupRead(StartupBase):
     id: uuid.UUID
     founder_id: uuid.UUID
+    is_published: bool
     team_members: Optional[Dict[str, Any]] = None
     funding: Optional[Dict[str, Any]] = None
     metrics: Optional[Dict[str, Any]] = None
@@ -180,6 +183,7 @@ class StartupUpdate(SQLModel):
     business_model: Optional[str] = None
     target_market: Optional[str] = None
     competitors: Optional[str] = None
+    is_published: Optional[bool] = None
     team_members: Optional[Dict[str, Any]] = None
     funding: Optional[Dict[str, Any]] = None
     metrics: Optional[Dict[str, Any]] = None

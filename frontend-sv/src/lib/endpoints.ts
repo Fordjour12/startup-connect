@@ -21,8 +21,10 @@ export enum ApiEndpoint {
   GET_FOUNDER_STARTUPS = '/startups/founder/{founder_id}',
   CREATE_STARTUP = '/startups/create',
   UPDATE_STARTUP = '/startups/update',
-  DELETE_STARTUP = '/startups/delete',
+  DELETE_STARTUP = '/startups/{startup_id}',
   GET_STARTUP_DETAILS = '/startups/{startup_id}',
+  PUBLISH_STARTUP = '/startups/{startup_id}/publish',
+  UNPUBLISH_STARTUP = '/startups/{startup_id}/unpublish',
 
 
   // Investor related endpoints

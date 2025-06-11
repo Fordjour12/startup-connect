@@ -9,6 +9,7 @@ export const startupSchema = z.object({
   foundedYear: z.number().min(1900, "Please enter a valid year"),
   teamSize: z.number().min(1, "Please enter team size"),
   website: z.string().url("Please enter a valid website URL"),
+  isPublished: z.boolean().default(false),
   teamMembers: z.array(z.object({
     name: z.string().min(1, "Name is required"),
     role: z.string().min(1, "Role is required"),

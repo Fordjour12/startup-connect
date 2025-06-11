@@ -1,18 +1,16 @@
-<!-- LoginForm.svelte -->
 <script lang="ts">
-    import {
-        superForm,
-        type SuperValidated,
-        type Infer,
-    } from "sveltekit-superforms";
-    import { type LoginSchema, loginSchema } from "@/schemas/login-schema";
     import * as Form from "@/components/ui/form";
     import { Input } from "@/components/ui/input";
+    import { type LoginSchema, loginSchema } from "@/schemas/login-schema";
     import { cn } from "@/utils";
-    import { zodClient } from "sveltekit-superforms/adapters";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
-    import CheckCircle from "@lucide/svelte/icons/check-circle";
-    import { page } from "$app/stores";
+    import {
+        type Infer,
+        superForm,
+        type SuperValidated,
+    } from "sveltekit-superforms";
+    import { zodClient } from "sveltekit-superforms/adapters";
+    // import { page } from "$app/state";
 
     let { data }: { data: { form: SuperValidated<Infer<LoginSchema>> } } =
         $props();
@@ -24,19 +22,19 @@
     const { form: formData, errors, enhance, delayed, message } = form;
 
     // Get success message from URL parameters
-    let successMessage = $derived($page.url.searchParams.get("message"));
+    // let successMessage = $derived($page.url.searchParams.get("message"));
 </script>
 
 <div class="grid gap-6">
     <form method="POST" use:enhance>
-        {#if successMessage}
+        <!-- {#if successMessage}
             <div
                 class="mb-4 p-3 rounded-md border border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2"
             >
                 <CheckCircle class="h-4 w-4" />
                 {successMessage}
             </div>
-        {/if}
+        {/if} -->
         {#if $message}
             <div
                 class="mb-4 p-3 rounded-md border border-destructive bg-destructive/10 text-destructive text-sm"
@@ -107,7 +105,7 @@
                 </a>
             </div>
 
-            <Form.Button class="w-full" disabled={$delayed}>
+            <Form.Button class="w-full">
                 {#if $delayed}
                     <div class="flex items-center justify-center gap-2">
                         <LoaderCircle

@@ -10,6 +10,7 @@
     } from "$lib/components/ui/card";
     import * as Form from "$lib/components/ui/form";
     import { Input } from "$lib/components/ui/input";
+    import { Label } from "$lib/components/ui/label";
     import {
         Select,
         SelectContent,
@@ -17,7 +18,6 @@
         SelectTrigger,
     } from "$lib/components/ui/select";
     import { Textarea } from "$lib/components/ui/textarea";
-    import { Label } from "$lib/components/ui/label";
     import {
         type StartupSchema,
         startupSchema,
@@ -31,7 +31,8 @@
     } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
 
-    let { data }: { data: { form: SuperValidated<Infer<StartupSchema>> } } = $props();
+    let { data }: { data: { form: SuperValidated<Infer<StartupSchema>> } } =
+        $props();
 
     // Use superForm to manage the form state
     const form = superForm(data.form, {
@@ -214,7 +215,7 @@
         </CardHeader>
         <CardContent class="space-y-4">
             <!-- Logo Upload -->
-             <div>
+            <div>
                 <Label>Startup Logo</Label>
                 <div class="flex items-start gap-4">
                     <div class="flex-1">
@@ -227,7 +228,7 @@
                         />
                         <p class="text-sm text-muted-foreground mt-2">
                             Upload your startup logo (max 2MB, recommended size:
-                  nt           400x400px)
+                            nt 400x400px)
                         </p>
                     </div>
                 </div>
@@ -1464,6 +1465,54 @@
         </CardContent>
     </Card>
 
+    <!-- Publication Settings -->
+    <Card>
+        <CardHeader>
+            <CardTitle>Publication Settings</CardTitle>
+            <CardDescription
+                >Choose whether to publish your startup immediately or save as
+                draft</CardDescription
+            >
+        </CardHeader>
+        <CardContent>
+            <Form.Field {form} name="isPublished">
+                <Form.Control>
+                    {#snippet children({ props })}
+                        <div class="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="isPublished"
+                                bind:checked={$formData.isPublished}
+                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                {...props}
+                            />
+                            <Label
+                                for="isPublished"
+                                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Publish startup immediately
+                            </Label>
+                        </div>
+                        <p class="text-sm text-muted-foreground mt-2">
+                            {#if $formData.isPublished}
+                                Your startup will be visible to investors
+                                immediately after creation.
+                            {:else}
+                                Your startup will be saved as a draft and only
+                                visible to you until published.
+                            {/if}
+                        </p>
+                    {/snippet}
+                </Form.Control>
+                {#if $errors.isPublished}
+                    <Form.FieldErrors class="text-destructive text-sm">
+                        {$errors.isPublished}
+                    </Form.FieldErrors>
+                {/if}
+            </Form.Field>
+        </CardContent>
+    </Card>
+
     <!-- Submit Button -->
     <div class="flex justify-end">
         <Form.Button class="w-full" disabled={$delayed || $submitting}>
@@ -1476,7 +1525,11 @@
                     <span>Creating Startup...</span>
                 </div>
             {:else}
-                <span>Create Startup</span>
+                <span
+                    >{$formData.isPublished
+                        ? "Create & Publish Startup"
+                        : "Save as Draft"}</span
+                >
             {/if}
         </Form.Button>
     </div>

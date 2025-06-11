@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
     import { onMount } from 'svelte';
     import { Button } from "$lib/components/ui/button";
     import { Badge } from "$lib/components/ui/badge";
@@ -211,17 +211,17 @@
                             </Badge>
                         </div>
                     </CardHeader>
-                    <CardContent class="space-y-4">
+                    <CardContent class="space-y-4"> -->
                         <!-- Message Content -->
-                        <div>
+                        <!-- <div>
                             <h4 class="text-sm font-medium mb-2">Message</h4>
                             <p class="text-sm text-muted-foreground leading-relaxed">
                                 {pitch.message_content}
                             </p>
-                        </div>
+                        </div> -->
 
                         <!-- Pitch Deck Info -->
-                        <div>
+                        <!-- <div>
                             <h4 class="text-sm font-medium mb-2">Pitch Deck</h4>
                             <div class="flex items-center gap-3 p-3 bg-muted rounded-lg">
                                 <div class="p-2 bg-primary/10 rounded">
@@ -270,4 +270,4 @@
             {/each}
         </div>
     {/if}
-</div> 
+</div>  -->
