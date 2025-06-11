@@ -42,8 +42,7 @@ def get_startups(
 
     # Filter by published status by default for public listings
     if published_only:
-        statement = statement.where(Startup.is_published == True)
-
+        statement = statement.where(Startup.is_published.is_(True))
     if industry:
         statement = statement.where(Startup.industry == industry)
     if location:
