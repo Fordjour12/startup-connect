@@ -1,355 +1,566 @@
 <script lang="ts">
     import { Badge } from "@/components/ui/badge";
-    import {
-        Card,
-        CardContent,
-        CardDescription,
-        CardHeader,
-        CardTitle,
-    } from "@/components/ui/card";
+    import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
     let { showPreview, formData, logoPreview } = $props();
+
+    // Create a safe reactive reference to formData
+    let safeFormData = $derived(formData ? $formData : {});
 </script>
 
-{#if showPreview}
-    <div class="space-y-8">
-        <Card>
-            <CardHeader>
-                <div class="flex items-center gap-4">
+{#if showPreview && safeFormData}
+    <div class="space-y-6">
+        <!-- Header Card -->
+        <Card class="border-2">
+            <CardHeader class="pb-4">
+                <div class="flex items-start gap-6">
                     <div
-                        class="w-16 h-16 rounded-lg bg-muted flex items-center justify-center"
+                        class="w-20 h-20 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/20 flex items-center justify-center flex-shrink-0"
                     >
                         {#if logoPreview}
-                            <img src={logoPreview} alt="Logo" class="w-16 h-16 rounded-lg" />
+                            <img
+                                src={logoPreview}
+                                alt="Logo"
+                                class="w-18 h-18 rounded-lg object-cover"
+                            />
                         {:else}
-                            <span class="text-2xl">🚀</span>
+                            <span class="text-3xl">🚀</span>
                         {/if}
                     </div>
-                    <div>
-                        <CardTitle
-                            >{$formData.name || "Your Startup Name"}</CardTitle
+                    <div class="flex-1 ">
+                        <h1
+                            class="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mb-3"
                         >
-                        <CardDescription
-                            >{$formData.industry || "Industry"}</CardDescription
-                        >
+                            {safeFormData.name || "Your Startup Name"}
+                        </h1>
+                        <div class="flex items-center gap-3 mb-4">
+                            <Badge variant="secondary" class="text-sm">
+                                {safeFormData.industry || "Industry"}
+                            </Badge>
+                            <Badge
+                                variant={safeFormData.isPublished
+                                    ? "default"
+                                    : "outline"}
+                                class="text-sm"
+                            >
+                                {safeFormData.isPublished
+                                    ? "Published"
+                                    : "Draft"}
+                            </Badge>
+                        </div>
+                        <p class="text-xl text-muted-foreground leading-7">
+                            {safeFormData.description ||
+                                "Startup description will appear here"}
+                        </p>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent class="space-y-6">
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">About</h3>
-                    <p class="text-muted-foreground">
-                        {$formData.description ||
-                            "Startup description will appear here"}
-                    </p>
-                </div>
+        </Card>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4">
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Left Column -->
+            <div class="space-y-6">
+                <!-- Company Details -->
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Company Details
+                        </h3>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                >
+                                    Founded
+                                </small>
+                                <div class="text-lg font-semibold mt-1">
+                                    {safeFormData.foundedYear || "—"}
+                                </div>
+                            </div>
+                            <div>
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                >
+                                    Team Size
+                                </small>
+                                <div class="text-lg font-semibold mt-1">
+                                    {safeFormData.teamSize || "—"}
+                                </div>
+                            </div>
+                        </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-2">
-                                Company Details
+                            <small
+                                class="text-sm font-medium leading-none text-muted-foreground"
+                            >
+                                Location
+                            </small>
+                            <p class="leading-7 mt-1">
+                                {safeFormData.location || "Not specified"}
+                            </p>
+                        </div>
+                        <div>
+                            <small
+                                class="text-sm font-medium leading-none text-muted-foreground"
+                            >
+                                Website
+                            </small>
+                            {#if safeFormData.website}
+                                <p class="leading-7 mt-1">
+                                    <a
+                                        href={safeFormData.website}
+                                        target="_blank"
+                                        class="font-medium text-primary underline underline-offset-4 break-all"
+                                    >
+                                        {safeFormData.website}
+                                    </a>
+                                </p>
+                            {:else}
+                                <p class="text-sm text-muted-foreground mt-1">
+                                    Not specified
+                                </p>
+                            {/if}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Funding -->
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Funding
+                        </h3>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                >
+                                    Stage
+                                </small>
+                                <div class="mt-1">
+                                    <Badge variant="outline" class="text-sm">
+                                        {safeFormData.fundingStage ||
+                                            "Not specified"}
+                                    </Badge>
+                                </div>
+                            </div>
+                            <div>
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                >
+                                    Total Raised
+                                </small>
+                                <div class="text-lg font-semibold mt-1">
+                                    {safeFormData.funding?.total || "—"}
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <small
+                                class="text-sm font-medium leading-none text-muted-foreground"
+                            >
+                                Last Round
+                            </small>
+                            <p class="leading-7 mt-1">
+                                {safeFormData.funding?.lastRound ||
+                                    "Not specified"}
+                            </p>
+                        </div>
+                        <div>
+                            <small
+                                class="text-sm font-medium leading-none text-muted-foreground"
+                            >
+                                Investors
+                            </small>
+                            <p class="leading-7 mt-1">
+                                {safeFormData.funding?.investors ||
+                                    "Not specified"}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Contact -->
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Contact
+                        </h3>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        <div>
+                            <small
+                                class="text-sm font-medium leading-none text-muted-foreground"
+                            >
+                                Email
+                            </small>
+                            <p class="leading-7 mt-1">
+                                {safeFormData.contact?.email || "Not specified"}
+                            </p>
+                        </div>
+                        {#if safeFormData.contact?.phone}
+                            <div>
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                >
+                                    Phone
+                                </small>
+                                <p class="leading-7 mt-1">
+                                    {safeFormData.contact.phone}
+                                </p>
+                            </div>
+                        {/if}
+                        {#if safeFormData.contact?.address}
+                            <div>
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                >
+                                    Address
+                                </small>
+                                <p class="leading-7 mt-1">
+                                    {safeFormData.contact.address}
+                                </p>
+                            </div>
+                        {/if}
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Key Metrics -->
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Key Metrics
+                        </h3>
+                    </CardHeader>
+                    <CardContent class="space-y-3">
+                        <div class="grid grid-cols-1 gap-3">
+                            <div class="flex justify-between items-center">
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                    >Revenue</small
+                                >
+                                <div class="text-lg font-semibold">
+                                    {safeFormData.metrics?.revenue || "—"}
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                    >Growth</small
+                                >
+                                <div class="text-lg font-semibold">
+                                    {safeFormData.metrics?.growth || "—"}
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <small
+                                    class="text-sm font-medium leading-none text-muted-foreground"
+                                    >Customers</small
+                                >
+                                <div class="text-lg font-semibold">
+                                    {safeFormData.metrics?.customers || "—"}
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Traction -->
+                {#if safeFormData.traction && (safeFormData.traction.users || safeFormData.traction.revenue || safeFormData.traction.growth || safeFormData.traction.partnerships)}
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <h3
+                                class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                            >
+                                Traction
                             </h3>
-                            <div class="space-y-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Founded:</span
+                        </CardHeader>
+                        <CardContent class="space-y-3">
+                            {#if safeFormData.traction.users}
+                                <div class="flex justify-between items-center">
+                                    <small
+                                        class="text-sm font-medium leading-none text-muted-foreground"
+                                        >Users</small
                                     >
-                                    <span
-                                        >{$formData.foundedYear ||
-                                            "Not specified"}</span
-                                    >
+                                    <div class="text-lg font-semibold">
+                                        {safeFormData.traction.users}
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Location:</span
+                            {/if}
+                            {#if safeFormData.traction.revenue}
+                                <div class="flex justify-between items-center">
+                                    <small
+                                        class="text-sm font-medium leading-none text-muted-foreground"
+                                        >Revenue</small
                                     >
-                                    <span
-                                        >{$formData.location ||
-                                            "Not specified"}</span
-                                    >
+                                    <div class="text-lg font-semibold">
+                                        {safeFormData.traction.revenue}
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Team Size:</span
+                            {/if}
+                            {#if safeFormData.traction.growth}
+                                <div class="flex justify-between items-center">
+                                    <small
+                                        class="text-sm font-medium leading-none text-muted-foreground"
+                                        >Growth</small
                                     >
-                                    <span
-                                        >{$formData.teamSize ||
-                                            "Not specified"}</span
-                                    >
+                                    <div class="text-lg font-semibold">
+                                        {safeFormData.traction.growth}
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Website:</span
+                            {/if}
+                            {#if safeFormData.traction.partnerships}
+                                <div class="flex justify-between items-center">
+                                    <small
+                                        class="text-sm font-medium leading-none text-muted-foreground"
+                                        >Partnerships</small
                                     >
-                                    {#if $formData.website}
-                                        <a
-                                            href={$formData.website}
-                                            target="_blank"
-                                            class="text-primary hover:underline"
-                                        >
-                                            {$formData.website}
-                                        </a>
-                                    {:else}
-                                        <span>Not specified</span>
-                                    {/if}
+                                    <div class="text-lg font-semibold">
+                                        {safeFormData.traction.partnerships}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            {/if}
+                        </CardContent>
+                    </Card>
+                {/if}
 
-                        <div>
-                            <h3 class="text-lg font-semibold mb-2">Funding</h3>
-                            <div class="space-y-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Stage:</span
-                                    >
-                                    <Badge variant="outline"
-                                        >{$formData.fundingStage ||
-                                            "Not specified"}</Badge
-                                    >
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Total:</span
-                                    >
-                                    <span
-                                        >{$formData.funding?.total ||
-                                            "Not specified"}</span
-                                    >
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Last Round:</span
-                                    >
-                                    <span
-                                        >{$formData.funding?.lastRound ||
-                                            "Not specified"}</span
-                                    >
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Investors:</span
-                                    >
-                                    <span
-                                        >{$formData.funding?.investors ||
-                                            "Not specified"}</span
-                                    >
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <h3 class="text-lg font-semibold mb-2">
-                                Key Metrics
+                <!-- Social Media -->
+                {#if safeFormData.socialMedia && (safeFormData.socialMedia.twitter || safeFormData.socialMedia.linkedin || safeFormData.socialMedia.facebook || safeFormData.socialMedia.instagram)}
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <h3
+                                class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                            >
+                                Social Media
                             </h3>
-                            <div class="space-y-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Revenue:</span
+                        </CardHeader>
+                        <CardContent>
+                            <div class="flex flex-wrap gap-2">
+                                {#if safeFormData.socialMedia.twitter}
+                                    <a
+                                        href={safeFormData.socialMedia.twitter}
+                                        target="_blank"
+                                        class="inline-block"
                                     >
-                                    <span
-                                        >{$formData.metrics?.revenue ||
-                                            "Not specified"}</span
-                                    >
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Growth:</span
-                                    >
-                                    <span
-                                        >{$formData.metrics?.growth ||
-                                            "Not specified"}</span
-                                    >
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Customers:</span
-                                    >
-                                    <span
-                                        >{$formData.metrics?.customers ||
-                                            "Not specified"}</span
-                                    >
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold mb-2">Contact</h3>
-                            <div class="space-y-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Email:</span
-                                    >
-                                    <span
-                                        >{$formData.contact?.email ||
-                                            "Not specified"}</span
-                                    >
-                                </div>
-                                {#if $formData.contact?.phone}
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-muted-foreground"
-                                            >Phone:</span
+                                        <Badge
+                                            variant="outline"
+                                            class="hover:bg-primary/10"
+                                            >Twitter</Badge
                                         >
-                                        <span>{$formData.contact.phone}</span>
-                                    </div>
+                                    </a>
                                 {/if}
-                                {#if $formData.contact?.address}
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-muted-foreground"
-                                            >Address:</span
+                                {#if safeFormData.socialMedia.linkedin}
+                                    <a
+                                        href={safeFormData.socialMedia.linkedin}
+                                        target="_blank"
+                                        class="inline-block"
+                                    >
+                                        <Badge
+                                            variant="outline"
+                                            class="hover:bg-primary/10"
+                                            >LinkedIn</Badge
                                         >
-                                        <span>{$formData.contact.address}</span>
-                                    </div>
+                                    </a>
+                                {/if}
+                                {#if safeFormData.socialMedia.facebook}
+                                    <a
+                                        href={safeFormData.socialMedia.facebook}
+                                        target="_blank"
+                                        class="inline-block"
+                                    >
+                                        <Badge
+                                            variant="outline"
+                                            class="hover:bg-primary/10"
+                                            >Facebook</Badge
+                                        >
+                                    </a>
+                                {/if}
+                                {#if safeFormData.socialMedia.instagram}
+                                    <a
+                                        href={safeFormData.socialMedia
+                                            .instagram}
+                                        target="_blank"
+                                        class="inline-block"
+                                    >
+                                        <Badge
+                                            variant="outline"
+                                            class="hover:bg-primary/10"
+                                            >Instagram</Badge
+                                        >
+                                    </a>
                                 {/if}
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        </CardContent>
+                    </Card>
+                {/if}
+            </div>
+        </div>
 
-                {#if $formData.businessModel}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">
+        <!-- Full Width Sections -->
+        <div class="space-y-6">
+            <!-- Business Model -->
+            {#if safeFormData.businessModel}
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
                             Business Model
                         </h3>
-                        <p class="text-muted-foreground">
-                            {$formData.businessModel}
+                    </CardHeader>
+                    <CardContent>
+                        <p class="leading-7">
+                            {safeFormData.businessModel}
                         </p>
-                    </div>
-                {/if}
+                    </CardContent>
+                </Card>
+            {/if}
 
-                {#if $formData.targetMarket}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">
+            <!-- Target Market -->
+            {#if safeFormData.targetMarket}
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
                             Target Market
                         </h3>
-                        <p class="text-muted-foreground">
-                            {$formData.targetMarket}
+                    </CardHeader>
+                    <CardContent>
+                        <p class="leading-7">
+                            {safeFormData.targetMarket}
                         </p>
-                    </div>
-                {/if}
+                    </CardContent>
+                </Card>
+            {/if}
 
-                {#if $formData.competitors}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Competitors</h3>
-                        <p class="text-muted-foreground">
-                            {$formData.competitors}
+            <!-- Competitors -->
+            {#if safeFormData.competitors}
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Competitive Landscape
+                        </h3>
+                    </CardHeader>
+                    <CardContent>
+                        <p class="leading-7">
+                            {safeFormData.competitors}
                         </p>
-                    </div>
-                {/if}
+                    </CardContent>
+                </Card>
+            {/if}
 
-                {#if $formData.traction && ($formData.traction.users || $formData.traction.revenue || $formData.traction.growth || $formData.traction.partnerships)}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Traction</h3>
+            <!-- Team -->
+            {#if safeFormData.teamMembers && safeFormData.teamMembers.length > 0}
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Team
+                        </h3>
+                    </CardHeader>
+                    <CardContent>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {#if $formData.traction.users}
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Users:</span
+                            {#each safeFormData.teamMembers as member}
+                                <div class="p-4 border rounded-lg bg-muted/30">
+                                    <h4
+                                        class="scroll-m-20 text-xl font-semibold tracking-tight mb-1"
                                     >
-                                    <span>{$formData.traction.users}</span>
-                                </div>
-                            {/if}
-                            {#if $formData.traction.revenue}
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Revenue:</span
+                                        {member.name || "Team Member"}
+                                    </h4>
+                                    <p
+                                        class="text-sm font-medium text-primary mb-2"
                                     >
-                                    <span>{$formData.traction.revenue}</span>
-                                </div>
-                            {/if}
-                            {#if $formData.traction.growth}
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Growth:</span
-                                    >
-                                    <span>{$formData.traction.growth}</span>
-                                </div>
-                            {/if}
-                            {#if $formData.traction.partnerships}
-                                <div class="flex items-center gap-2">
-                                    <span class="text-muted-foreground"
-                                        >Partnerships:</span
-                                    >
-                                    <span
-                                        >{$formData.traction.partnerships}</span
-                                    >
-                                </div>
-                            {/if}
-                        </div>
-                    </div>
-                {/if}
-
-                {#if $formData.teamMembers && $formData.teamMembers.length > 0}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Team</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {#each $formData.teamMembers as member}
-                                <Card>
-                                    <CardContent class="p-4">
-                                        <h4 class="font-medium">
-                                            {member.name || "Team Member"}
-                                        </h4>
+                                        {member.role || "Role"}
+                                    </p>
+                                    {#if member.bio}
                                         <p
-                                            class="text-sm text-muted-foreground"
+                                            class="text-sm text-muted-foreground leading-7 mb-3"
                                         >
-                                            {member.role || "Role"}
+                                            {member.bio}
                                         </p>
-                                        {#if member.bio}
-                                            <p class="text-sm mt-2">
-                                                {member.bio}
-                                            </p>
-                                        {/if}
-                                        {#if member.linkedin}
-                                            <a
-                                                href={member.linkedin}
-                                                target="_blank"
-                                                class="text-sm text-primary hover:underline"
-                                            >
-                                                LinkedIn Profile
-                                            </a>
-                                        {/if}
-                                    </CardContent>
-                                </Card>
+                                    {/if}
+                                    {#if member.linkedin}
+                                        <a
+                                            href={member.linkedin}
+                                            target="_blank"
+                                            class="text-sm font-medium text-primary underline underline-offset-4"
+                                        >
+                                            LinkedIn Profile →
+                                        </a>
+                                    {/if}
+                                </div>
                             {/each}
                         </div>
-                    </div>
-                {/if}
+                    </CardContent>
+                </Card>
+            {/if}
 
-                {#if $formData.timeline && ($formData.timeline.past?.length || $formData.timeline.future?.length)}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Timeline</h3>
-
-                        {#if $formData.timeline.past && $formData.timeline.past.length > 0}
-                            <div class="mb-4">
-                                <h4 class="font-medium mb-2">
+            <!-- Timeline -->
+            {#if safeFormData.timeline && (safeFormData.timeline.past?.length || safeFormData.timeline.future?.length)}
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Timeline
+                        </h3>
+                    </CardHeader>
+                    <CardContent class="space-y-6">
+                        {#if safeFormData.timeline.past && safeFormData.timeline.past.length > 0}
+                            <div>
+                                <h4
+                                    class="scroll-m-20 text-xl font-semibold tracking-tight text-primary mb-4"
+                                >
                                     Past Milestones
                                 </h4>
-                                <div class="space-y-2">
-                                    {#each $formData.timeline.past as milestone}
+                                <div class="space-y-4">
+                                    {#each safeFormData.timeline.past as milestone}
                                         <div
-                                            class="border-l-2 border-primary pl-4"
+                                            class="relative pl-6 border-l-2 border-primary"
                                         >
                                             <div
-                                                class="flex items-center gap-2"
+                                                class="absolute -left-2 top-0 w-4 h-4 bg-primary rounded-full"
+                                            ></div>
+                                            <div
+                                                class="flex items-center gap-3 mb-2"
                                             >
                                                 <Badge
-                                                    variant="outline"
+                                                    variant="default"
                                                     class="text-xs"
                                                     >{milestone.type}</Badge
                                                 >
-                                                <span
-                                                    class="text-sm text-muted-foreground"
-                                                    >{milestone.date}</span
+                                                <small
+                                                    class="text-sm font-medium leading-none text-muted-foreground"
                                                 >
+                                                    {milestone.date}
+                                                </small>
                                             </div>
-                                            <h5 class="font-medium">
+                                            <h5
+                                                class="scroll-m-20 text-xl font-semibold tracking-tight mb-1"
+                                            >
                                                 {milestone.title}
                                             </h5>
                                             <p
-                                                class="text-sm text-muted-foreground"
+                                                class="text-sm text-muted-foreground leading-7"
                                             >
                                                 {milestone.description}
                                             </p>
@@ -359,34 +570,42 @@
                             </div>
                         {/if}
 
-                        {#if $formData.timeline.future && $formData.timeline.future.length > 0}
+                        {#if safeFormData.timeline.future && safeFormData.timeline.future.length > 0}
                             <div>
-                                <h4 class="font-medium mb-2">
+                                <h4
+                                    class="scroll-m-20 text-xl font-semibold tracking-tight text-muted-foreground mb-4"
+                                >
                                     Future Milestones
                                 </h4>
-                                <div class="space-y-2">
-                                    {#each $formData.timeline.future as milestone}
+                                <div class="space-y-4">
+                                    {#each safeFormData.timeline.future as milestone}
                                         <div
-                                            class="border-l-2 border-dashed border-muted-foreground pl-4"
+                                            class="relative pl-6 border-l-2 border-dashed border-muted-foreground"
                                         >
                                             <div
-                                                class="flex items-center gap-2"
+                                                class="absolute -left-2 top-0 w-4 h-4 bg-muted-foreground rounded-full"
+                                            ></div>
+                                            <div
+                                                class="flex items-center gap-3 mb-2"
                                             >
                                                 <Badge
                                                     variant="secondary"
                                                     class="text-xs"
                                                     >{milestone.type}</Badge
                                                 >
-                                                <span
-                                                    class="text-sm text-muted-foreground"
-                                                    >{milestone.date}</span
+                                                <small
+                                                    class="text-sm font-medium leading-none text-muted-foreground"
                                                 >
+                                                    {milestone.date}
+                                                </small>
                                             </div>
-                                            <h5 class="font-medium">
+                                            <h5
+                                                class="scroll-m-20 text-xl font-semibold tracking-tight mb-1"
+                                            >
                                                 {milestone.title}
                                             </h5>
                                             <p
-                                                class="text-sm text-muted-foreground"
+                                                class="text-sm text-muted-foreground leading-7"
                                             >
                                                 {milestone.description}
                                             </p>
@@ -395,116 +614,94 @@
                                 </div>
                             </div>
                         {/if}
-                    </div>
-                {/if}
+                    </CardContent>
+                </Card>
+            {/if}
 
-                {#if $formData.useOfFunds}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Use of Funds</h3>
-                        <div class="space-y-3">
-                            {#if $formData.useOfFunds.product}
-                                <div>
-                                    <h4 class="font-medium">
-                                        Product Development
-                                    </h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        {$formData.useOfFunds.product}
-                                    </p>
-                                </div>
-                            {/if}
-                            {#if $formData.useOfFunds.marketing}
-                                <div>
-                                    <h4 class="font-medium">
-                                        Marketing & Sales
-                                    </h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        {$formData.useOfFunds.marketing}
-                                    </p>
-                                </div>
-                            {/if}
-                            {#if $formData.useOfFunds.operations}
-                                <div>
-                                    <h4 class="font-medium">Operations</h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        {$formData.useOfFunds.operations}
-                                    </p>
-                                </div>
-                            {/if}
-                            {#if $formData.useOfFunds.team}
-                                <div>
-                                    <h4 class="font-medium">Team Expansion</h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        {$formData.useOfFunds.team}
-                                    </p>
-                                </div>
-                            {/if}
-                            {#if $formData.useOfFunds.other}
-                                <div>
-                                    <h4 class="font-medium">Other</h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        {$formData.useOfFunds.other}
-                                    </p>
-                                </div>
-                            {/if}
-                        </div>
-                    </div>
-                {/if}
-
-                {#if $formData.socialMedia && ($formData.socialMedia.twitter || $formData.socialMedia.linkedin || $formData.socialMedia.facebook || $formData.socialMedia.instagram)}
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Social Media</h3>
-                        <div class="flex flex-wrap gap-2">
-                            {#if $formData.socialMedia.twitter}
-                                <a
-                                    href={$formData.socialMedia.twitter}
-                                    target="_blank"
-                                    class="text-primary hover:underline"
+            <!-- Use of Funds -->
+            {#if safeFormData.useOfFunds}
+                <Card>
+                    <CardHeader class="pb-3">
+                        <h3
+                            class="scroll-m-20 text-2xl font-semibold tracking-tight"
+                        >
+                            Use of Funds
+                        </h3>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                        {#if safeFormData.useOfFunds.product}
+                            <div>
+                                <h4
+                                    class="scroll-m-20 text-xl font-semibold tracking-tight text-primary mb-2"
                                 >
-                                    <Badge variant="outline">Twitter</Badge>
-                                </a>
-                            {/if}
-                            {#if $formData.socialMedia.linkedin}
-                                <a
-                                    href={$formData.socialMedia.linkedin}
-                                    target="_blank"
-                                    class="text-primary hover:underline"
+                                    Product Development
+                                </h4>
+                                <p
+                                    class="text-sm text-muted-foreground leading-7"
                                 >
-                                    <Badge variant="outline">LinkedIn</Badge>
-                                </a>
-                            {/if}
-                            {#if $formData.socialMedia.facebook}
-                                <a
-                                    href={$formData.socialMedia.facebook}
-                                    target="_blank"
-                                    class="text-primary hover:underline"
+                                    {safeFormData.useOfFunds.product}
+                                </p>
+                            </div>
+                        {/if}
+                        {#if safeFormData.useOfFunds.marketing}
+                            <div>
+                                <h4
+                                    class="scroll-m-20 text-xl font-semibold tracking-tight text-primary mb-2"
                                 >
-                                    <Badge variant="outline">Facebook</Badge>
-                                </a>
-                            {/if}
-                            {#if $formData.socialMedia.instagram}
-                                <a
-                                    href={$formData.socialMedia.instagram}
-                                    target="_blank"
-                                    class="text-primary hover:underline"
+                                    Marketing & Sales
+                                </h4>
+                                <p
+                                    class="text-sm text-muted-foreground leading-7"
                                 >
-                                    <Badge variant="outline">Instagram</Badge>
-                                </a>
-                            {/if}
-                        </div>
-                    </div>
-                {/if}
-
-                <div class="flex items-center gap-2">
-                    <span class="text-muted-foreground">Status:</span>
-                    <Badge
-                        variant={$formData.isPublished
-                            ? "default"
-                            : "secondary"}
-                    >
-                        {$formData.isPublished ? "Published" : "Draft"}
-                    </Badge>
-                </div>
-            </CardContent>
-        </Card>
+                                    {safeFormData.useOfFunds.marketing}
+                                </p>
+                            </div>
+                        {/if}
+                        {#if safeFormData.useOfFunds.operations}
+                            <div>
+                                <h4
+                                    class="scroll-m-20 text-xl font-semibold tracking-tight text-primary mb-2"
+                                >
+                                    Operations
+                                </h4>
+                                <p
+                                    class="text-sm text-muted-foreground leading-7"
+                                >
+                                    {safeFormData.useOfFunds.operations}
+                                </p>
+                            </div>
+                        {/if}
+                        {#if safeFormData.useOfFunds.team}
+                            <div>
+                                <h4
+                                    class="scroll-m-20 text-xl font-semibold tracking-tight text-primary mb-2"
+                                >
+                                    Team Expansion
+                                </h4>
+                                <p
+                                    class="text-sm text-muted-foreground leading-7"
+                                >
+                                    {safeFormData.useOfFunds.team}
+                                </p>
+                            </div>
+                        {/if}
+                        {#if safeFormData.useOfFunds.other}
+                            <div>
+                                <h4
+                                    class="scroll-m-20 text-xl font-semibold tracking-tight text-primary mb-2"
+                                >
+                                    Other
+                                </h4>
+                                <p
+                                    class="text-sm text-muted-foreground leading-7"
+                                >
+                                    {safeFormData.useOfFunds.other}
+                                </p>
+                            </div>
+                        {/if}
+                    </CardContent>
+                </Card>
+            {/if}
+        </div>
     </div>
 {/if}
