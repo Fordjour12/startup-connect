@@ -1,14 +1,39 @@
 <script lang="ts">
+    import { startupSchema } from "$lib/schemas/startup-schema";
     import NewStartupForm from "@/components/founder/NewStartupForm.svelte";
+    import Playground from "@/components/founder/Playground.svelte";
     import { Button } from "@/components/ui/button";
+    import { zod } from "sveltekit-superforms/adapters";
+    import { superValidate } from "sveltekit-superforms/client";
     import type { PageData } from "./$types";
 
     let { data }: { data: PageData } = $props();
 
     let showPreview = $state(true);
+    let showPlayground = $state(false);
+    let formData = $state(data);
 
     function togglePreview() {
         showPreview = !showPreview;
+    }
+
+    function togglePlayground() {
+        showPlayground = !showPlayground;
+    }
+
+    async function handlePopulate(playgroundData: any) {
+        try {
+            // Create a new SuperValidated form with the playground data
+            const populatedForm = await superValidate(
+                playgroundData,
+                zod(startupSchema),
+            );
+            // Preserve the original data structure, only update the form
+            formData = { ...data, form: populatedForm };
+            console.log("Form populated with:", playgroundData);
+        } catch (error) {
+            console.error("Error populating form:", error);
+        }
     }
 </script>
 
@@ -22,11 +47,24 @@
                         Fill in your startup details to create your profile
                     </p>
                 </div>
-                <Button variant="outline" onclick={() => togglePreview()}>
-                    {showPreview ? "Hide Preview" : "Show Preview"}
-                </Button>
+                <div class="flex gap-2">
+                    <Button
+                        variant="outline"
+                        onclick={() => togglePlayground()}
+                    >
+                        {showPlayground ? "Hide Playground" : "Show Playground"}
+                    </Button>
+                    <Button variant="outline" onclick={() => togglePreview()}>
+                        {showPreview ? "Hide Preview" : "Show Preview"}
+                    </Button>
+                </div>
             </div>
-                <NewStartupForm {data} {showPreview} />
+
+            {#if showPlayground}
+                <Playground onPopulate={handlePopulate} />
+            {/if}
+
+            <NewStartupForm data={formData} {showPreview} />
         </div>
     </div>
 </div>

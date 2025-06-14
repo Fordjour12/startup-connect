@@ -1,0 +1,109 @@
+{
+    "name": "TechFlow AI",
+    "description": "TechFlow AI is a revolutionary platform that leverages artificial intelligence to streamline business workflows and automate repetitive tasks. Our solution helps companies increase productivity by 40% while reducing operational costs through intelligent automation and predictive analytics.",
+    "industry": "Technology",
+    "location": "San Francisco, CA",
+    "fundingStage": "Series A",
+    "foundedYear": 2022,
+    "teamSize": 15,
+    "website": "https://techflow-ai.com",
+    "isPublished": true,
+    "teamMembers": [
+        {
+            "name": "Sarah Chen",
+            "role": "CEO & Co-founder",
+            "bio": "Former VP of Engineering at Google with 10+ years in AI/ML. Led teams of 50+ engineers and launched products used by millions.",
+            "linkedin": "https://linkedin.com/in/sarahchen"
+        },
+        {
+            "name": "Marcus Rodriguez",
+            "role": "CTO & Co-founder",
+            "bio": "Ex-Principal Engineer at Tesla. PhD in Computer Science from Stanford. Expert in distributed systems and machine learning infrastructure.",
+            "linkedin": "https://linkedin.com/in/marcusrodriguez"
+        }
+    ],
+    "funding": {
+        "total": "$5.2M",
+        "lastRound": "Series A",
+        "investors": "Andreessen Horowitz, Sequoia Capital, Y Combinator"
+    },
+    "metrics": {
+        "revenue": "$800K ARR",
+        "growth": "25% MoM",
+        "customers": "150+ Enterprise Clients"
+    },
+    "socialMedia": {
+        "twitter": "https://twitter.com/techflowai",
+        "linkedin": "https://linkedin.com/company/techflow-ai",
+        "facebook": "https://facebook.com/techflowai"
+    },
+    "contact": {
+        "email": "hello@techflow-ai.com",
+        "phone": "+1 (555) 123-4567",
+        "address": "123 Innovation Drive, San Francisco, CA 94105"
+    },
+    "businessModel": "TechFlow AI operates on a SaaS subscription model with three tiers: Starter ($99/month), Professional ($299/month), and Enterprise (custom pricing). We also offer implementation services and custom AI model development. Our revenue streams include monthly subscriptions (80%), professional services (15%), and API usage fees (5%).",
+    "targetMarket": "Our primary target market consists of mid-to-large enterprises (500+ employees) in manufacturing, finance, and healthcare sectors. The total addressable market is estimated at $50B globally, with a serviceable addressable market of $8B. We focus on companies struggling with manual processes and seeking digital transformation.",
+    "competitors": "Main competitors include UiPath, Automation Anywhere, and Blue Prism in the RPA space. However, our AI-first approach and industry-specific solutions differentiate us. Unlike traditional RPA tools, we offer predictive automation and natural language processing capabilities that adapt to changing business needs.",
+    "traction": {
+        "users": "15,000+ active users across 150+ companies",
+        "revenue": "$800K ARR with 25% month-over-month growth",
+        "growth": "300% year-over-year revenue growth, 95% customer retention rate",
+        "partnerships": "Strategic partnerships with Microsoft Azure, AWS, and Salesforce"
+    },
+    "useOfFunds": {
+        "product": "40% - Expand AI capabilities, develop industry-specific modules, enhance platform scalability and security features",
+        "marketing": "30% - Scale sales team, increase brand awareness, attend major industry conferences, digital marketing campaigns",
+        "operations": "20% - Improve infrastructure, compliance certifications (SOC2, HIPAA), customer success team expansion",
+        "team": "10% - Hire senior engineers, data scientists, and customer success managers to support growth",
+        "other": "Equipment, legal, and administrative expenses"
+    },
+    "timeline": {
+        "past": [
+            {
+                "date": "January 2022",
+                "title": "Company Founded",
+                "description": "TechFlow AI was founded by Sarah Chen and Marcus Rodriguez with initial seed funding",
+                "type": "achievement"
+            },
+            {
+                "date": "June 2022",
+                "title": "Seed Funding Round",
+                "description": "Raised $1.5M seed round led by Y Combinator",
+                "type": "funding"
+            },
+            {
+                "date": "December 2022",
+                "title": "Product Launch",
+                "description": "Launched MVP with first 10 enterprise customers",
+                "type": "product"
+            },
+            {
+                "date": "August 2023",
+                "title": "Series A Funding",
+                "description": "Closed $5.2M Series A led by Andreessen Horowitz",
+                "type": "funding"
+            }
+        ],
+        "future": [
+            {
+                "date": "Q2 2024",
+                "title": "International Expansion",
+                "description": "Launch operations in Europe and establish partnerships with local system integrators",
+                "type": "launch"
+            },
+            {
+                "date": "Q3 2024",
+                "title": "Series B Funding",
+                "description": "Raise $15M Series B to accelerate growth and product development",
+                "type": "funding"
+            },
+            {
+                "date": "Q4 2024",
+                "title": "AI Platform 2.0",
+                "description": "Launch next-generation platform with advanced natural language processing and computer vision capabilities",
+                "type": "product"
+            }
+        ]
+    }
+}

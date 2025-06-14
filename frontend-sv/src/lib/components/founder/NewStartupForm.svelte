@@ -31,10 +31,15 @@
         type SuperValidated,
     } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
-    import NewStartupPreview from "@/components/founder/NewStartupPreview.svelte";
+    import NewStartupPreview from "./NewStartupPreview.svelte";
 
-    let { data, showPreview }: { data: { form: SuperValidated<Infer<StartupSchema>> }, showPreview: boolean } =
-        $props();
+    let {
+        data,
+        showPreview,
+    }: {
+        data: { form: SuperValidated<Infer<StartupSchema>> };
+        showPreview: boolean;
+    } = $props();
 
     // Use superForm to manage the form state
     const form = superForm(data.form, {
@@ -59,7 +64,28 @@
         delayed,
         message,
         submitting,
+        reset,
     } = form;
+
+    // Simple effect to update form when playground data changes
+    // Only runs when data.form.id changes (indicating new form data)
+    $effect(() => {
+        if (data.form.id && data.form.data) {
+            const hasPlaygroundData = Object.keys(data.form.data).some(
+                (key) =>
+                    (data.form.data as any)[key] !== undefined &&
+                    (data.form.data as any)[key] !== "",
+            );
+
+            if (hasPlaygroundData) {
+                console.log(
+                    "Populating form with playground data:",
+                    data.form.data,
+                );
+                reset({ data: data.form.data });
+            }
+        }
+    });
 
     let showTeamSection = $state(false);
 
@@ -203,7 +229,6 @@
     $effect(() => {
         console.log(logoPreview);
     });
-
 </script>
 
 <div
@@ -289,7 +314,8 @@
                                 >
                                     <SelectTrigger>
                                         <div class="placeholder">
-                                          {$formData.industry || "Select industry"} 
+                                            {$formData.industry ||
+                                                "Select industry"}
                                         </div>
                                     </SelectTrigger>
                                     <SelectContent>
@@ -429,7 +455,8 @@
                             >
                                 <SelectTrigger>
                                     <div class="placeholder">
-                                        {$formData.fundingStage || "Select funding stage"}
+                                        {$formData.fundingStage ||
+                                            "Select funding stage"}
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent>
@@ -741,7 +768,7 @@
             </CardHeader>
             <CardContent>
                 <FileUpload
-                    accept=".pdf,.ppt,.pptx"
+                    accept=".pdf,.ppt,.pptx,.doc,.docx"
                     maxSize={10}
                     multiple={false}
                     onUpload={handleFileUpload}
@@ -1087,7 +1114,7 @@
                             <Textarea
                                 {...props}
                                 placeholder="Describe how funds will be used for product development"
-                                value={$formData.useOfFunds?.product}
+                                bind:value={$formData.useOfFunds.product}
                             />
                         {/snippet}
                     </Form.Control>
@@ -1105,7 +1132,7 @@
                             <Textarea
                                 {...props}
                                 placeholder="Describe your marketing and sales plans"
-                                value={$formData.useOfFunds?.marketing}
+                                bind:value={$formData.useOfFunds.marketing}
                             />
                         {/snippet}
                     </Form.Control>
@@ -1123,7 +1150,7 @@
                             <Textarea
                                 {...props}
                                 placeholder="Describe operational expenses and infrastructure plans"
-                                value={$formData.useOfFunds?.operations}
+                                bind:value={$formData.useOfFunds.operations}
                             />
                         {/snippet}
                     </Form.Control>
@@ -1141,7 +1168,7 @@
                             <Textarea
                                 {...props}
                                 placeholder="Describe hiring plans and team growth strategy"
-                                value={$formData.useOfFunds?.team}
+                                bind:value={$formData.useOfFunds.team}
                             />
                         {/snippet}
                     </Form.Control>
@@ -1159,7 +1186,7 @@
                             <Textarea
                                 {...props}
                                 placeholder="Describe any other use of funds not covered above"
-                                value={$formData.useOfFunds?.other}
+                                bind:value={$formData.useOfFunds.other}
                             />
                         {/snippet}
                     </Form.Control>
@@ -1186,7 +1213,7 @@
                     <h3 class="text-lg font-medium mb-4">Past Milestones</h3>
 
                     {#if $formData.timeline?.past && $formData.timeline.past.length > 0}
-                        {#each $formData.timeline.past as _, index}
+                        {#each $formData.timeline.past as milestone, index}
                             <div class="p-4 border rounded-lg space-y-4 mb-4">
                                 <div class="flex justify-between items-center">
                                     <h4 class="font-medium">
@@ -1214,16 +1241,17 @@
                                                 <Input
                                                     {...props}
                                                     placeholder="e.g., January 2023"
+                                                    bind:value={milestone.date}
                                                 />
                                             {/snippet}
                                         </Form.Control>
-                                        <!-- {#if $errors.timeline?.past?.[index]?.date} -->
                                         <Form.FieldErrors
                                             class="text-destructive text-sm"
                                         >
-                                            <!-- {$errors.timeline.past[index].date} -->
+                                            {($errors.timeline?.past as any)?.[
+                                                index
+                                            ]?.date}
                                         </Form.FieldErrors>
-                                        <!-- {/if} -->
                                     </Form.Field>
 
                                     <Form.Field
@@ -1235,14 +1263,15 @@
                                                 <Form.Label>Type</Form.Label>
                                                 <Select
                                                     type="single"
+                                                    bind:value={milestone.type}
                                                     {...props}
                                                 >
                                                     <SelectTrigger>
                                                         <div
                                                             class="placeholder"
                                                         >
-                                                            Select milestone
-                                                            type
+                                                            {milestone.type ||
+                                                                "Select milestone type"}
                                                         </div>
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -1270,13 +1299,13 @@
                                                 </Select>
                                             {/snippet}
                                         </Form.Control>
-                                        <!-- {#if $errors.timeline?.past?.[index]?.type} -->
                                         <Form.FieldErrors
                                             class="text-destructive text-sm"
                                         >
-                                            <!-- {$errors.timeline.past[index].type} -->
+                                            {($errors.timeline?.past as any)?.[
+                                                index
+                                            ]?.type}
                                         </Form.FieldErrors>
-                                        <!-- {/if} -->
                                     </Form.Field>
                                 </div>
 
@@ -1290,16 +1319,17 @@
                                             <Input
                                                 {...props}
                                                 placeholder="e.g., Secured seed funding"
+                                                bind:value={milestone.title}
                                             />
                                         {/snippet}
                                     </Form.Control>
-                                    <!-- {#if $errors.timeline?.past?.[index]?.title} -->
                                     <Form.FieldErrors
                                         class="text-destructive text-sm"
                                     >
-                                        <!-- {$errors.timeline.past[index].title} -->
+                                        {($errors.timeline?.past as any)?.[
+                                            index
+                                        ]?.title}
                                     </Form.FieldErrors>
-                                    <!-- {/if} -->
                                 </Form.Field>
 
                                 <Form.Field
@@ -1312,17 +1342,19 @@
                                             <Textarea
                                                 {...props}
                                                 placeholder="Describe the milestone"
+                                                bind:value={
+                                                    milestone.description
+                                                }
                                             />
                                         {/snippet}
                                     </Form.Control>
-                                    <!-- {#if $errors.timeline?.past?.[index]?.description} -->
                                     <Form.FieldErrors
                                         class="text-destructive text-sm"
                                     >
-                                        <!-- {$errors.timeline.past[index]
-                                            .description} -->
+                                        {($errors.timeline?.past as any)?.[
+                                            index
+                                        ]?.description}
                                     </Form.FieldErrors>
-                                    <!-- {/if} -->
                                 </Form.Field>
                             </div>
                         {/each}
@@ -1343,7 +1375,7 @@
                     <h3 class="text-lg font-medium mb-4">Future Milestones</h3>
 
                     {#if $formData.timeline?.future && $formData.timeline.future.length > 0}
-                        {#each $formData.timeline.future as _, index}
+                        {#each $formData.timeline.future as milestone, index}
                             <div class="p-4 border rounded-lg space-y-4 mb-4">
                                 <div class="flex justify-between items-center">
                                     <h4 class="font-medium">
@@ -1371,17 +1403,17 @@
                                                 <Input
                                                     {...props}
                                                     placeholder="e.g., Q3 2024"
+                                                    bind:value={milestone.date}
                                                 />
                                             {/snippet}
                                         </Form.Control>
-                                        <!-- {#if $errors.timeline?.future?.[index]?.date} -->
                                         <Form.FieldErrors
                                             class="text-destructive text-sm"
                                         >
-                                            <!-- {$errors.timeline.future[index]
-                                                .date} -->
+                                            {(
+                                                $errors.timeline?.future as any
+                                            )?.[index]?.date}
                                         </Form.FieldErrors>
-                                        <!-- {/if} -->
                                     </Form.Field>
 
                                     <Form.Field
@@ -1393,14 +1425,15 @@
                                                 <Form.Label>Type</Form.Label>
                                                 <Select
                                                     type="single"
+                                                    bind:value={milestone.type}
                                                     {...props}
                                                 >
                                                     <SelectTrigger>
                                                         <div
                                                             class="placeholder"
                                                         >
-                                                            Select milestone
-                                                            type
+                                                            {milestone.type ||
+                                                                "Select milestone type"}
                                                         </div>
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -1428,14 +1461,13 @@
                                                 </Select>
                                             {/snippet}
                                         </Form.Control>
-                                        <!-- {#if $errors.timeline?.future?.[index]?.type} -->
                                         <Form.FieldErrors
                                             class="text-destructive text-sm"
                                         >
-                                            <!-- {$errors.timeline.future[index]
-                                                .type} -->
+                                            {(
+                                                $errors.timeline?.future as any
+                                            )?.[index]?.type}
                                         </Form.FieldErrors>
-                                        <!-- {/if} -->
                                     </Form.Field>
                                 </div>
 
@@ -1449,16 +1481,17 @@
                                             <Input
                                                 {...props}
                                                 placeholder="e.g., Product Launch"
+                                                bind:value={milestone.title}
                                             />
                                         {/snippet}
                                     </Form.Control>
-                                    <!-- {#if $errors.timeline?.future?.[index]?.title} -->
                                     <Form.FieldErrors
                                         class="text-destructive text-sm"
                                     >
-                                        <!-- {$errors.timeline.future[index].title} -->
+                                        {($errors.timeline?.future as any)?.[
+                                            index
+                                        ]?.title}
                                     </Form.FieldErrors>
-                                    <!-- {/if} -->
                                 </Form.Field>
 
                                 <Form.Field
@@ -1471,17 +1504,19 @@
                                             <Textarea
                                                 {...props}
                                                 placeholder="Describe the planned milestone"
+                                                bind:value={
+                                                    milestone.description
+                                                }
                                             />
                                         {/snippet}
                                     </Form.Control>
-                                    <!-- {#if $errors.timeline?.future?.[index]?.description} -->
                                     <Form.FieldErrors
                                         class="text-destructive text-sm"
                                     >
-                                        <!-- {$errors.timeline.future[index]
-                                            .description} -->
+                                        {($errors.timeline?.future as any)?.[
+                                            index
+                                        ]?.description}
                                     </Form.FieldErrors>
-                                    <!-- {/if} -->
                                 </Form.Field>
                             </div>
                         {/each}
@@ -1567,5 +1602,5 @@
             </Form.Button>
         </div>
     </form>
-    <NewStartupPreview {showPreview} {formData} {logoPreview}/>
+    <NewStartupPreview {showPreview} {formData} {logoPreview} />
 </div>
