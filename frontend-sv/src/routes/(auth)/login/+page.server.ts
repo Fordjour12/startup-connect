@@ -1,16 +1,21 @@
 import { env } from "$env/dynamic/private";
 import { ApiEndpoint } from "@/endpoints";
 import { loginSchema } from "@/schemas/login-schema";
-import type { ApiError } from "@/types/auth";
+import type { ApiError, Token } from "@/types/auth";
 import { fail, redirect } from "@sveltejs/kit";
 import { superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async () => {
-  return {
-    form: await superValidate(zod(loginSchema)),
-  };
+export const load: PageServerLoad = async ({ cookies }) => {
+  // Redirect if already logged in
+  const token = cookies.get('access_token');
+  if (token) {
+    throw redirect(302, '/dashboard');
+  }
+
+  const form = await superValidate(zod(loginSchema));
+  return { form };
 };
 
 export const actions: Actions = {
@@ -21,126 +26,69 @@ export const actions: Actions = {
       return fail(400, { form });
     }
 
-    const { email, password } = form.data;
-
-    let redirectPath = "/dashboard";
-
     try {
-      // Create form data for OAuth2PasswordRequestForm
-      const response = await fetch(`${env.API_BASE_URL}${ApiEndpoint.LOGIN}`, {
-        method: "POST",
+      const { email, password } = form.data;
+      // Create URL-encoded form data for OAuth2PasswordRequestForm
+      const response = await fetch(`${env.BACKEND_URL}${ApiEndpoint.LOGIN}`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
           username: email,
-          password,
+          password
         }).toString(),
       });
 
       if (!response.ok) {
-        let errorData: ApiError;
+        const errorData: ApiError = await response.json();
 
-        try {
-          const responseText = await response.text();
-          errorData = responseText ? JSON.parse(responseText) : { detail: "Unknown error" };
-        } catch (parseError) {
-          errorData = { detail: "Invalid response from server" };
-        }
-
-        // Handle specific error cases
         if (response.status === 401) {
           return fail(401, {
             form,
-            message: "Incorrect email or password. Please try again.",
+            error: 'Invalid email or password'
           });
         }
 
-        if (
-          response.status === 403 &&
-          errorData.detail.includes("deactivated")
-        ) {
+        if (response.status === 403) {
           return fail(403, {
             form,
-            message: "Account is deactivated. Please contact support.",
+            error: 'Account is deactivated. Please contact support.'
           });
         }
 
         return fail(response.status, {
           form,
-          message: errorData.detail || "Login failed. Please try again.",
+          error: errorData.detail || 'Login failed. Please try again.'
         });
       }
 
-      let data;
-      try {
-        const responseText = await response.text();
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch (parseError) {
-        return fail(500, {
-          form,
-          message: "Invalid response from server. Please try again.",
-        });
-      }
+      const tokenData: Token = await response.json();
 
-      // Store the access token in a secure cookie
-      cookies.set("access_token", data.access_token, {
-        path: "/",
+      // Set secure HTTP-only cookie
+      cookies.set('access_token', tokenData.access_token, {
+        path: '/',
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        secure: env.NODE_ENV === 'production',
+        sameSite: 'strict',
         maxAge: 60 * 60 * 24 * 7, // 7 days
       });
 
-      // Get user info after successful login
-      const userResponse = await fetch(
-        `${env.DEPLOYMENT_API_URL}${ApiEndpoint.GET_USER}`,
-        {
-          headers: {
-            Authorization: `bearer ${data.access_token}`,
-          },
-        },
-      );
-
-      if (userResponse.ok) {
-        let userData;
-        try {
-          const userResponseText = await userResponse.text();
-          userData = userResponseText ? JSON.parse(userResponseText) : {};
-        } catch (parseError) {
-          userData = {};
-        }
-
-        // Store user info in a separate cookie for client-side access
-        cookies.set("user", JSON.stringify(userData), {
-          path: "/",
-          httpOnly: false,
-          secure: true,
-          sameSite: "strict",
-          maxAge: 60 * 60 * 24 * 7, // 7 days
-        });
-
-        // Redirect to dashboard based on user role
-        redirectPath =
-          userData.role === "founder"
-            ? "/dashboard/founder"
-            : userData.role === "investor"
-              ? "/dashboard/investor"
-              : "/dashboard/supporter";
-      }
     } catch (error) {
       // Handle network errors or other unexpected errors
-      if (error instanceof Response && error.status === 302) {
-        // Re-throw redirect
+      if (error instanceof Response && error.status >= 300) {
+        // This is a redirect, re-throw it
         throw error;
       }
 
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       return fail(500, {
         form,
-        message: "Network error. Please check your connection and try again.",
+        error: 'Network error. Please check your connection and try again.'
       });
     }
-    redirect(302, redirectPath);
+
+    // Redirect to dashboard on successful login
+    redirect(302, '/dashboard');
   },
 };

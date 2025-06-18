@@ -40,10 +40,11 @@
 	let showExplanationDialog = $state(false);
 	let algorithmExplanation = $state<string>("");
 
+		const URL_RECOMMENDATIONS = `http://localhost:8000/api/v1`;
 	// Fetch recommendations from API
 	async function fetchRecommendations() {
 		try {
-			const response = await fetch(ApiEndpoint.GET_RECOMMENDATIONS, {
+			const response = await fetch(`${URL_RECOMMENDATIONS}${ApiEndpoint.GET_RECOMMENDATIONS}`, {
 				method: "GET",
 				credentials: "include",
 				headers: {
@@ -77,7 +78,7 @@
 	async function fetchAlgorithmExplanation() {
 		try {
 			const response = await fetch(
-				ApiEndpoint.GET_RECOMMENDATION_EXPLANATION,
+				`${URL_RECOMMENDATIONS}${ApiEndpoint.GET_RECOMMENDATION_EXPLANATION}`,
 				{
 					method: "GET",
 					credentials: "include",

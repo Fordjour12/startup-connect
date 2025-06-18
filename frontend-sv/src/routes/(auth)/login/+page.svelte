@@ -1,20 +1,19 @@
-<!-- +page.svelte -->
-<script lang="ts">
-    import { page } from "$app/stores";
+ <script lang="ts">
+    import { page } from "$app/state";
     import LoginForm from "$lib/components/LoginForm.svelte";
     import { CheckCircle } from "@lucide/svelte";
-    import type { PageProps } from "./$types";
+   import type { PageProps } from "./$types";
 
     let { data }: { data: PageProps } = $props();
     // Get success message from URL params (e.g., from password reset)
-    let successMessage = $derived($page.url.searchParams.get("message"));
-</script>
+    // let successMessage = $derived($page.url.searchParams.get("message"));
+</script> 
 
 <div
     class="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0"
 >
     <div
-        class="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r"
+        class="relative hidden h-full flex-col bg-muted p-10  lg:flex dark:border-r"
     >
         <div class="absolute inset-0 bg-primary"></div>
         <div class="relative z-20 flex items-center text-lg font-medium">
@@ -46,15 +45,14 @@
                     Enter your email below to login to your account
                 </p>
             </div>
-
-            {#if successMessage}
+            <!-- {#if successMessage}
                 <div
                     class="p-3 rounded-md border border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2"
                 >
                     <CheckCircle class="h-4 w-4" />
                     {successMessage}
                 </div>
-            {/if}
+            {/if} -->
 
             <LoginForm {data} />
 
@@ -69,4 +67,4 @@
             </p>
         </div>
     </div>
-</div>
+</div> 
