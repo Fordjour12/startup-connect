@@ -1,6 +1,4 @@
 <script lang="ts">
-    import FileUpload from "@/components/file-upload.svelte";
-    import DocumentUpload from "@/components/document-upload.svelte";
     import { Button } from "@/components/ui/button";
     import {
         Card,
@@ -30,6 +28,8 @@
         type Infer,
         superForm,
         type SuperValidated,
+        fileProxy,
+        filesProxy,
     } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
     import NewStartupPreview from "./NewStartupPreview.svelte";
@@ -44,25 +44,7 @@
 
     // Use superForm to manage the form state
     const form = superForm(data.form, {
-        dataType: "json",
         validators: zodClient(startupSchema),
-        onSubmit({ formData, cancel }) {
-            // Add files to form data before submission
-            if (logoFile) {
-                formData.append("logo", logoFile);
-            }
-            if (pitchDeckFile) {
-                formData.append("pitchDeck", pitchDeckFile);
-            }
-            if (productScreenshots.length > 0) {
-                productScreenshots.forEach((file) => {
-                    formData.append("productScreenshots", file);
-                });
-            }
-            if (demoVideo) {
-                formData.append("demoVideo", demoVideo);
-            }
-        },
         onUpdate({ form }) {
             if (form.valid) {
                 toast.success("Startup profile saved");
@@ -85,6 +67,12 @@
         reset,
     } = form;
 
+    // File proxies for Superforms file handling
+    const logoFile = fileProxy(form, "logo");
+    const pitchDeckFile = fileProxy(form, "pitchDeck");
+    const productScreenshots = filesProxy(form, "productScreenshots");
+    const demoVideoFile = fileProxy(form, "demoVideo");
+
     // Simple effect to update form when playground data changes
     // Only runs when data.form.id changes (indicating new form data)
     $effect(() => {
@@ -106,62 +94,8 @@
     });
 
     let showTeamSection = $state(false);
-
-    let pitchDeckFile = $state<File>();
-    let logoFile = $state<File | null>(null);
     let logoPreview = $state<string | null>(null);
-    let productScreenshots = $state<File[]>([]);
-    let demoVideo = $state<File | null>(null);
     let screenshotPreviews = $state<string[]>([]);
-
-    // Handlers for file uploads
-    function handleFileUpload(files: File[]) {
-        if (files.length > 0) {
-            pitchDeckFile = files[0];
-        }
-    }
-
-    function handleFileRemove() {
-        pitchDeckFile = undefined;
-    }
-
-    function handleLogoUpload(files: File[]) {
-        if (files.length > 0) {
-            logoFile = files[0];
-            logoPreview = URL.createObjectURL(files[0]);
-        }
-    }
-
-    function handleLogoRemove() {
-        logoFile = null;
-        if (logoPreview) {
-            URL.revokeObjectURL(logoPreview);
-            logoPreview = null;
-        }
-    }
-
-    function handleScreenshotUpload(event: { detail: { files: File[] } }) {
-        productScreenshots = event.detail.files;
-        screenshotPreviews = event.detail.files.map((file) =>
-            URL.createObjectURL(file),
-        );
-    }
-
-    function handleScreenshotRemove(index: number) {
-        URL.revokeObjectURL(screenshotPreviews[index]);
-        productScreenshots = productScreenshots.filter((_, i) => i !== index);
-        screenshotPreviews = screenshotPreviews.filter((_, i) => i !== index);
-    }
-
-    function handleDemoVideoUpload(event: { detail: { files: File[] } }) {
-        if (event.detail.files.length > 0) {
-            demoVideo = event.detail.files[0];
-        }
-    }
-
-    function handleDemoVideoRemove() {
-        demoVideo = null;
-    }
 
     // Team members
     function addTeamMember() {
@@ -255,7 +189,12 @@
         !showPreview && "!grid-cols-1",
     )}
 >
-    <form method="POST" use:enhance enctype="multipart/form-data"  class="space-y-8">
+    <form
+        method="POST"
+        use:enhance
+        enctype="multipart/form-data"
+        class="space-y-8"
+    >
         <!-- Basic Information -->
         <Card>
             <CardHeader>
@@ -268,17 +207,21 @@
                     <Label>Startup Logo</Label>
                     <div class="flex items-start gap-4">
                         <div class="flex-1">
-                            <FileUpload
+                            <input
+                                type="file"
+                                name="logo"
                                 accept=".jpg,.png,.jpeg,.webp,.svg,.gif"
-                                accept=".jpg,.png,.jpeg,webp,svg,gif"
-                                maxSize={2}
-                                multiple={false}
-                                onUpload={handleLogoUpload}
-                                onRemove={handleLogoRemove}
+                                bind:files={$logoFile}
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             />
+                            {#if $errors.logo}
+                                <p class="text-sm text-destructive mt-1">
+                                    {$errors.logo}
+                                </p>
+                            {/if}
                             <p class="text-sm text-muted-foreground mt-2">
                                 Upload your startup logo (max 2MB, recommended
-                                size: nt 400x400px)
+                                size: 400x400px)
                             </p>
                         </div>
                     </div>
@@ -787,12 +730,22 @@
                 >
             </CardHeader>
             <CardContent>
-                <DocumentUpload
-                    maxSize={10}
-                    multiple={false}
-                    onUpload={handleFileUpload}
-                    onRemove={handleFileRemove}
+                <input
+                    type="file"
+                    name="pitchDeck"
+                    accept=".pdf,.ppt,.pptx,.doc,.docx"
+                    bind:files={$pitchDeckFile}
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
+                {#if $errors.pitchDeck}
+                    <p class="text-sm text-destructive mt-2">
+                        {$errors.pitchDeck}
+                    </p>
+                {/if}
+                <p class="text-sm text-muted-foreground mt-2">
+                    Upload your startup's pitch deck (max 10MB). Supported
+                    formats: PDF, PPT, PPTX, DOC, DOCX
+                </p>
             </CardContent>
         </Card>
 
