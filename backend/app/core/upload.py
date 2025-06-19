@@ -19,15 +19,15 @@ from app.core.config import settings
 
 
 class UploadResponse(BaseModel):
-   """Response model for file uploads"""
+    """Response model for file uploads"""
 
-   file_id: str
-   filename: str
-   content_type: str
-   size: int
-   url: str
-   thumbnail_url: str | None = None
-   metadata: dict[str, Any] = {}
+    file_id: str
+    filename: str
+    content_type: str
+    size: int
+    url: str
+    thumbnail_url: str | None = None
+    metadata: dict[str, Any] = {}
 
 
 class FileValidator:
@@ -191,8 +191,14 @@ class MinIOClient:
                 ExtraArgs=extra_args,
             )
 
-            # Generate URL
-            url = f"http{'s' if settings.MINIO_SECURE else ''}://{settings.MINIO_ENDPOINT}/{self.bucket_name}/{key}"
+            # Generate URL - use public endpoint if available, otherwise use main endpoint
+            endpoint = settings.MINIO_ENDPOINT
+            if not endpoint:
+                raise HTTPException(
+                    status_code=500, detail="MinIO endpoint not configured"
+                )
+            url = f"http{'s' if settings.MINIO_SECURE else ''}://{endpoint}/{self.bucket_name}/{key}"
+
             return url
 
         except ClientError as e:

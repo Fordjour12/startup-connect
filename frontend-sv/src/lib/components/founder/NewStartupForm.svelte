@@ -1,5 +1,6 @@
 <script lang="ts">
     import FileUpload from "@/components/file-upload.svelte";
+    import DocumentUpload from "@/components/document-upload.svelte";
     import { Button } from "@/components/ui/button";
     import {
         Card,
@@ -45,6 +46,23 @@
     const form = superForm(data.form, {
         dataType: "json",
         validators: zodClient(startupSchema),
+        onSubmit({ formData, cancel }) {
+            // Add files to form data before submission
+            if (logoFile) {
+                formData.append("logo", logoFile);
+            }
+            if (pitchDeckFile) {
+                formData.append("pitchDeck", pitchDeckFile);
+            }
+            if (productScreenshots.length > 0) {
+                productScreenshots.forEach((file) => {
+                    formData.append("productScreenshots", file);
+                });
+            }
+            if (demoVideo) {
+                formData.append("demoVideo", demoVideo);
+            }
+        },
         onUpdate({ form }) {
             if (form.valid) {
                 toast.success("Startup profile saved");
@@ -89,7 +107,7 @@
 
     let showTeamSection = $state(false);
 
-    let pitchDeckFile = $state<File | null>(null);
+    let pitchDeckFile = $state<File>();
     let logoFile = $state<File | null>(null);
     let logoPreview = $state<string | null>(null);
     let productScreenshots = $state<File[]>([]);
@@ -104,7 +122,7 @@
     }
 
     function handleFileRemove() {
-        pitchDeckFile = null;
+        pitchDeckFile = undefined;
     }
 
     function handleLogoUpload(files: File[]) {
@@ -237,7 +255,7 @@
         !showPreview && "!grid-cols-1",
     )}
 >
-    <form method="POST" use:enhance class="space-y-8">
+    <form method="POST" use:enhance enctype="multipart/form-data"  class="space-y-8">
         <!-- Basic Information -->
         <Card>
             <CardHeader>
@@ -251,7 +269,8 @@
                     <div class="flex items-start gap-4">
                         <div class="flex-1">
                             <FileUpload
-                                accept="image/*"
+                                accept=".jpg,.png,.jpeg,.webp,.svg,.gif"
+                                accept=".jpg,.png,.jpeg,webp,svg,gif"
                                 maxSize={2}
                                 multiple={false}
                                 onUpload={handleLogoUpload}
@@ -763,12 +782,12 @@
             <CardHeader>
                 <CardTitle>Pitch Deck</CardTitle>
                 <CardDescription
-                    >Upload your startup's pitch deck (PDF, PPT, or PPTX)</CardDescription
+                    >Upload your startup's pitch deck (PDF, PPT, PPTX, DOC,
+                    DOCX)</CardDescription
                 >
             </CardHeader>
             <CardContent>
-                <FileUpload
-                    accept=".pdf,.ppt,.pptx,.doc,.docx"
+                <DocumentUpload
                     maxSize={10}
                     multiple={false}
                     onUpload={handleFileUpload}
