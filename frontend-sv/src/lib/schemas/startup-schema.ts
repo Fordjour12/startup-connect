@@ -3,6 +3,39 @@ import { z } from "zod/v3";
 export const startupSchema = z.object({
   name: z.string().min(2, "Startup name must be at least 2 characters"),
   description: z.string().min(50, "Description must be at least 50 characters"),
+  logo: z
+    .instanceof(File, { message: 'Please upload a logo file.' })
+    .refine((f) => f.size < 2_000_000, 'Max 2MB upload size.')
+    .refine(
+      (f) => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif'].includes(f.type),
+      'Only JPEG, PNG, WebP, SVG and GIF files are allowed.'
+    )
+    .optional(),
+  pitchDeck: z
+    .instanceof(File, { message: 'Please upload a pitch deck file.' })
+    .refine((f) => f.size < 10_000_000, 'Max 10MB upload size.')
+    .refine(
+      (f) => ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(f.type),
+      'Only PDF, PPT, PPTX, DOC and DOCX files are allowed.'
+    )
+    .optional(),
+  productScreenshots: z
+    .instanceof(File, { message: 'Please upload valid screenshot files.' })
+    .refine((f) => f.size < 5_000_000, 'Max 5MB per screenshot.')
+    .refine(
+      (f) => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(f.type),
+      'Only JPEG, PNG and WebP files are allowed for screenshots.'
+    )
+    .array()
+    .optional(),
+  demoVideo: z
+    .instanceof(File, { message: 'Please upload a demo video file.' })
+    .refine((f) => f.size < 50_000_000, 'Max 50MB upload size.')
+    .refine(
+      (f) => ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/webm'].includes(f.type),
+      'Only MP4, MPEG, MOV and WebM video files are allowed.'
+    )
+    .optional(),
   industry: z.string().min(1, "Please select an industry"),
   location: z.string().min(1, "Please enter a location"),
   fundingStage: z.string().min(1, "Please select a funding stage"),
