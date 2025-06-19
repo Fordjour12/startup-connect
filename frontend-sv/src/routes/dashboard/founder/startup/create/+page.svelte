@@ -30,7 +30,7 @@
             );
             // Preserve the original data structure, only update the form
             formData = { ...data, form: populatedForm };
-            console.log("Form populated with:", playgroundData);
+            // $inspect("Form populated with:", playgroundData);
         } catch (error) {
             console.error("Error populating form:", error);
         }

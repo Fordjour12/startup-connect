@@ -1,5 +1,8 @@
 <script lang="ts">
-	import FileUpload from "$lib/components/file-upload.svelte";
+	import AIFeedbackSection from "$lib/components/founder/AIFeedbackSection.svelte";
+	import AnalyticsSection from "$lib/components/founder/AnalyticsSection.svelte";
+	import DeckCard from "$lib/components/founder/DeckCard.svelte";
+	import FileUploadSection from "$lib/components/founder/FileUploadSection.svelte";
 	import { Alert, AlertDescription } from "$lib/components/ui/alert";
 	import { Badge } from "$lib/components/ui/badge";
 	import { Button } from "$lib/components/ui/button";
@@ -17,6 +20,13 @@
 		TabsList,
 		TabsTrigger,
 	} from "$lib/components/ui/tabs";
+	import AnalyticsIcon from "@tabler/icons-svelte/icons/chart-line";
+	import EyeIcon from "@tabler/icons-svelte/icons/eye";
+	import FileIcon from "@tabler/icons-svelte/icons/file";
+	import ShareIcon from "@tabler/icons-svelte/icons/share";
+	import StarIcon from "@tabler/icons-svelte/icons/star";
+	import TrendingUpIcon from "@tabler/icons-svelte/icons/trending-up";
+	import UploadIcon from "@tabler/icons-svelte/icons/upload";
 
 	import type { PageData } from "./$types";
 
@@ -71,14 +81,14 @@
 				if (response.ok) {
 					const result = await response.json();
 
-					// Add to pitch decks list
-					const newDeck = {
+					// Add to pitch decks list - Fixed type error by using proper status type
+					const newDeck: PitchDeck = {
 						id: Date.now().toString(),
 						name: file.name.replace(/\.[^/.]+$/, ""),
 						version: "1.0",
 						uploadDate: new Date().toISOString().split("T")[0],
 						size: (file.size / (1024 * 1024)).toFixed(1) + " MB",
-						status: "active",
+						status: "active" as const,
 						views: 0,
 						shares: 0,
 						url: result.url,
@@ -96,6 +106,8 @@
 							avgTimeSpent: "0:00",
 							dropOffSlide: 0,
 							mostViewedSlide: 1,
+							completionRate: 0,
+							viewsBySlide: [],
 						},
 					};
 
@@ -156,7 +168,9 @@
 
 	function archiveDeck(deckId: string) {
 		pitchDecks = pitchDecks.map((deck) =>
-			deck.id === deckId ? { ...deck, status: "archived" } : deck,
+			deck.id === deckId
+				? { ...deck, status: "archived" as const }
+				: deck,
 		);
 	}
 
@@ -188,607 +202,315 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto p-6 space-y-6">
-	<!-- Header Section -->
-	<div
-		class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-	>
-		<div>
-			<h1 class="text-3xl font-bold tracking-tight">
-				Pitch Deck Manager
-			</h1>
-			<p class="text-muted-foreground">
-				Upload, analyze, and share your pitch decks with investors
-			</p>
+<div
+	class="@container/main min-h-screen bg-gradient-to-br from-background to-muted/20"
+>
+	<div class="container mx-auto p-4 lg:p-6 space-y-6">
+		<!-- Header Section -->
+		<div
+			class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8"
+		>
+			<div>
+				<h1
+					class="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
+				>
+					Pitch Deck Manager
+				</h1>
+				<p class="text-muted-foreground text-lg">
+					Upload, analyze, and share your pitch decks with investors
+				</p>
+			</div>
+			<div class="flex gap-3">
+				<Button
+					variant="outline"
+					class="gap-2"
+					onclick={() => (showTemplates = !showTemplates)}
+				>
+					<FileIcon class="h-4 w-4" />
+					Templates
+				</Button>
+				<Button class="gap-2">
+					<UploadIcon class="h-4 w-4" />
+					New Deck
+				</Button>
+			</div>
 		</div>
-		<div class="flex gap-2">
-			<Button
-				variant="outline"
-				onclick={() => (showTemplates = !showTemplates)}
-			>
-				📊 Templates
-			</Button>
-			<Button>➕ New Deck</Button>
+
+		<!-- Quick Stats -->
+		<div
+			class="@xl/main:grid-cols-2 @5xl/main:grid-cols-4 grid grid-cols-1 gap-4 *:from-primary/5 *:to-card dark:*:bg-card *:shadow-sm *:bg-gradient-to-t"
+		>
+			<Card class="@container/card border-0">
+				<CardHeader class="pb-3">
+					<CardDescription class="text-sm font-medium"
+						>Total Decks</CardDescription
+					>
+					<CardTitle
+						class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums flex items-center gap-3"
+					>
+						<div
+							class="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg"
+						>
+							<FileIcon
+								class="h-5 w-5 text-blue-600 dark:text-blue-400"
+							/>
+						</div>
+						{pitchDecks.length}
+					</CardTitle>
+				</CardHeader>
+				<CardContent class="pt-0">
+					<div class="flex items-center gap-2 text-sm font-medium">
+						<TrendingUpIcon class="h-4 w-4 text-green-600" />
+						<span class="text-muted-foreground"
+							>Active presentations</span
+						>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card class="@container/card border-0">
+				<CardHeader class="pb-3">
+					<CardDescription class="text-sm font-medium"
+						>Total Views</CardDescription
+					>
+					<CardTitle
+						class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums flex items-center gap-3"
+					>
+						<div
+							class="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg"
+						>
+							<EyeIcon
+								class="h-5 w-5 text-green-600 dark:text-green-400"
+							/>
+						</div>
+						{performanceAnalytics.totalViews}
+					</CardTitle>
+				</CardHeader>
+				<CardContent class="pt-0">
+					<div class="flex items-center gap-2 text-sm">
+						<Badge variant="outline" class="gap-1">
+							<TrendingUpIcon class="h-3 w-3" />
+							+12.5%
+						</Badge>
+						<span class="text-muted-foreground">vs last month</span>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card class="@container/card border-0">
+				<CardHeader class="pb-3">
+					<CardDescription class="text-sm font-medium"
+						>Total Shares</CardDescription
+					>
+					<CardTitle
+						class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums flex items-center gap-3"
+					>
+						<div
+							class="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg"
+						>
+							<ShareIcon
+								class="h-5 w-5 text-purple-600 dark:text-purple-400"
+							/>
+						</div>
+						{performanceAnalytics.totalShares}
+					</CardTitle>
+				</CardHeader>
+				<CardContent class="pt-0">
+					<div class="flex items-center gap-2 text-sm font-medium">
+						<TrendingUpIcon class="h-4 w-4 text-green-600" />
+						<span class="text-muted-foreground"
+							>Investor engagement</span
+						>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card class="@container/card border-0">
+				<CardHeader class="pb-3">
+					<CardDescription class="text-sm font-medium"
+						>Average Score</CardDescription
+					>
+					<CardTitle
+						class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums flex items-center gap-3"
+					>
+						<div
+							class="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg"
+						>
+							<StarIcon
+								class="h-5 w-5 text-yellow-600 dark:text-yellow-400"
+							/>
+						</div>
+						{performanceAnalytics.avgScore}
+					</CardTitle>
+				</CardHeader>
+				<CardContent class="pt-0">
+					<div class="flex items-center gap-2 text-sm">
+						<Badge variant="outline" class="gap-1">
+							<TrendingUpIcon class="h-3 w-3" />
+							Above avg
+						</Badge>
+						<span class="text-muted-foreground"
+							>Industry benchmark</span
+						>
+					</div>
+				</CardContent>
+			</Card>
 		</div>
-	</div>
 
-	<!-- Quick Stats -->
-	<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-		<Card>
-			<CardContent class="p-4">
-				<div class="flex items-center gap-2">
-					<div class="p-2 bg-blue-100 rounded-lg">📁</div>
-					<div>
-						<p class="text-sm text-muted-foreground">Total Decks</p>
-						<p class="text-2xl font-bold">{pitchDecks.length}</p>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
+		<Tabs value="decks" class="w-full">
+			<TabsList>
+				<TabsTrigger value="decks" class="gap-2">
+					<FileIcon class="h-4 w-4" />
+					My Decks
+				</TabsTrigger>
+				<TabsTrigger value="upload" class="gap-2">
+					<UploadIcon class="h-4 w-4" />
+					Upload New
+				</TabsTrigger>
+				<TabsTrigger value="analytics" class="gap-2">
+					<AnalyticsIcon class="h-4 w-4" />
+					Analytics
+				</TabsTrigger>
+				<TabsTrigger value="feedback" class="gap-2">
+					<StarIcon class="h-4 w-4" />
+					AI Feedback
+				</TabsTrigger>
+			</TabsList>
 
-		<Card>
-			<CardContent class="p-4">
-				<div class="flex items-center gap-2">
-					<div class="p-2 bg-green-100 rounded-lg">👁️</div>
-					<div>
-						<p class="text-sm text-muted-foreground">Total Views</p>
-						<p class="text-2xl font-bold">
-							{performanceAnalytics.totalViews}
-						</p>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardContent class="p-4">
-				<div class="flex items-center gap-2">
-					<div class="p-2 bg-purple-100 rounded-lg">📤</div>
-					<div>
-						<p class="text-sm text-muted-foreground">Shares</p>
-						<p class="text-2xl font-bold">
-							{performanceAnalytics.totalShares}
-						</p>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardContent class="p-4">
-				<div class="flex items-center gap-2">
-					<div class="p-2 bg-yellow-100 rounded-lg">⭐</div>
-					<div>
-						<p class="text-sm text-muted-foreground">Avg Score</p>
-						<p class="text-2xl font-bold">
-							{performanceAnalytics.avgScore}
-						</p>
-					</div>
-				</div>
-			</CardContent>
-		</Card>
-	</div>
-
-	<Tabs value="decks" class="w-full">
-		<TabsList>
-			<TabsTrigger value="decks">My Decks</TabsTrigger>
-			<TabsTrigger value="upload">Upload New</TabsTrigger>
-			<TabsTrigger value="analytics">Analytics</TabsTrigger>
-			<TabsTrigger value="feedback">AI Feedback</TabsTrigger>
-		</TabsList>
-
-		<!-- My Decks Tab -->
-		<TabsContent value="decks" class="space-y-4">
-			{#if pitchDecks.length === 0}
-				<Card>
-					<CardContent class="p-8 text-center">
-						<div class="mb-4">
+			<!-- My Decks Tab -->
+			<TabsContent value="decks" class="space-y-6 mt-6">
+				{#if pitchDecks.length === 0}
+					<Card
+						class="border-0 from-primary/5 to-card bg-gradient-to-t shadow-sm"
+					>
+						<CardContent class="p-12 text-center">
 							<div
-								class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4"
+								class="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6"
 							>
-								📊
+								<FileIcon
+									class="h-10 w-10 text-muted-foreground"
+								/>
 							</div>
-							<h3 class="text-lg font-semibold mb-2">
+							<h3 class="text-xl font-semibold mb-3">
 								No pitch decks yet
 							</h3>
-							<p class="text-muted-foreground mb-4">
+							<p
+								class="text-muted-foreground mb-6 max-w-md mx-auto"
+							>
 								Upload your first pitch deck to get started with
 								analytics and sharing
 							</p>
-							<Button>Upload Your First Deck</Button>
-						</div>
-					</CardContent>
-				</Card>
-			{:else}
-				<div
-					class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"
-				>
-					{#each pitchDecks as deck}
-						<Card class="hover:shadow-lg transition-shadow">
-							<CardHeader class="pb-3">
-								<div class="flex items-start justify-between">
-									<div class="flex-1">
-										<CardTitle class="text-lg line-clamp-1"
-											>{deck.name}</CardTitle
-										>
-										<CardDescription
-											class="flex items-center gap-2 mt-1"
-										>
-											<Badge variant="secondary"
-												>v{deck.version}</Badge
-											>
-											<span
-												class="w-2 h-2 rounded-full {getStatusColor(
-													deck.status,
-												)}"
-											></span>
-											<span class="text-xs"
-												>{deck.status}</span
-											>
-										</CardDescription>
-									</div>
-									<div class="flex items-center gap-1">
-										<Button
-											variant="ghost"
-											size="icon"
-											onclick={() =>
-												(selectedDeck = deck)}
-										>
-											👁️
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
-											onclick={() => shareDeck(deck)}
-										>
-											📤
-										</Button>
-									</div>
-								</div>
-							</CardHeader>
-
-							<CardContent class="space-y-4">
-								<!-- Thumbnail Preview -->
-								{#if deck.thumbnailUrl}
-									<div
-										class="aspect-video bg-muted rounded-lg overflow-hidden"
-									>
-										<img
-											src={deck.thumbnailUrl}
-											alt="{deck.name} preview"
-											class="w-full h-full object-cover"
-										/>
-									</div>
-								{/if}
-
-								<!-- Metrics -->
-								<div class="grid grid-cols-3 gap-4 text-center">
-									<div>
-										<p class="text-lg font-semibold">
-											{deck.views}
-										</p>
-										<p
-											class="text-xs text-muted-foreground"
-										>
-											Views
-										</p>
-									</div>
-									<div>
-										<p class="text-lg font-semibold">
-											{deck.shares}
-										</p>
-										<p
-											class="text-xs text-muted-foreground"
-										>
-											Shares
-										</p>
-									</div>
-									<div>
-										<p
-											class="text-lg font-semibold {getFeedbackColor(
-												deck.feedback.score,
-											)}"
-										>
-											{deck.feedback.score}
-										</p>
-										<p
-											class="text-xs text-muted-foreground"
-										>
-											Score
-										</p>
-									</div>
-								</div>
-
-								<!-- Feedback Preview -->
-								<div class="p-3 bg-muted rounded-lg">
-									<p class="text-sm font-medium mb-1">
-										Quick Feedback
-									</p>
-									<p
-										class="text-xs text-muted-foreground mb-2"
-									>
-										{deck.feedback.suggestions} suggestions for
-										improvement
-									</p>
-									<div class="flex flex-wrap gap-1">
-										{#each deck.feedback.strengths.slice(0, 2) as strength}
-											<Badge
-												variant="outline"
-												class="text-xs"
-												>✅ {strength}</Badge
-											>
-										{/each}
-									</div>
-								</div>
-
-								<!-- Actions -->
-								<div class="flex gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										class="flex-1"
-									>
-										📊 Analytics
-									</Button>
-									<Button
-										variant="outline"
-										size="sm"
-										class="flex-1"
-										onclick={() => shareDeck(deck)}
-									>
-										📤 Share
-									</Button>
-								</div>
-
-								<div class="text-xs text-muted-foreground">
-									Uploaded {deck.uploadDate} • {deck.size}
-								</div>
-							</CardContent>
-						</Card>
-					{/each}
-				</div>
-			{/if}
-		</TabsContent>
-
-		<!-- Upload Tab -->
-		<TabsContent value="upload" class="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>Upload New Pitch Deck</CardTitle>
-					<CardDescription>
-						Upload your pitch deck files. Supported formats: PDF,
-						PowerPoint (PPTX, PPT)
-					</CardDescription>
-				</CardHeader>
-				<CardContent class="space-y-4">
-					<FileUpload
-						accept=".pdf,.ppt,.pptx"
-						maxSize={50}
-						multiple={true}
-						bind:files={selectedFiles}
-						onUpload={handleUpload}
-					/>
-
-					{#if uploading}
-						<div class="space-y-2">
-							<div
-								class="flex items-center justify-between text-sm"
-							>
-								<span>Uploading and analyzing...</span>
-								<span>{Math.round(uploadProgress)}%</span>
-							</div>
-							<Progress value={uploadProgress} />
-						</div>
-					{/if}
-
-					<Alert>
-						<AlertDescription>
-							💡 <strong>Pro tip:</strong> Our AI will automatically
-							analyze your pitch deck and provide feedback on structure,
-							content, and effectiveness compared to successful decks
-							in your industry.
-						</AlertDescription>
-					</Alert>
-				</CardContent>
-			</Card>
-
-			<!-- Templates Section -->
-			{#if showTemplates}
-				<Card>
-					<CardHeader>
-						<CardTitle>Pitch Deck Templates</CardTitle>
-						<CardDescription>
-							Start with proven templates used by successful
-							startups
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-							{#each templates as template}
-								<Card class="hover:shadow-md transition-shadow">
-									<CardContent class="p-4">
-										<div
-											class="aspect-video bg-muted rounded-lg mb-3 overflow-hidden"
-										>
-											<img
-												src={template.preview}
-												alt="{template.name} preview"
-												class="w-full h-full object-cover"
-											/>
-										</div>
-										<h4 class="font-semibold mb-1">
-											{template.name}
-										</h4>
-										<p
-											class="text-sm text-muted-foreground mb-2"
-										>
-											{template.slides} slides • {template.category}
-										</p>
-										<div
-											class="flex items-center justify-between mb-3"
-										>
-											<div
-												class="flex items-center gap-1"
-											>
-												<span class="text-yellow-500"
-													>⭐</span
-												>
-												<span class="text-sm"
-													>{template.rating}</span
-												>
-											</div>
-											<span
-												class="text-xs text-muted-foreground"
-											>
-												{template.downloads} downloads
-											</span>
-										</div>
-										<Button
-											size="sm"
-											class="w-full"
-											onclick={() =>
-												downloadTemplate(template)}
-										>
-											Download Template
-										</Button>
-									</CardContent>
-								</Card>
-							{/each}
-						</div>
-					</CardContent>
-				</Card>
-			{/if}
-		</TabsContent>
-
-		<!-- Analytics Tab -->
-		<TabsContent value="analytics" class="space-y-6">
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<Card>
-					<CardHeader>
-						<CardTitle>Performance Overview</CardTitle>
-					</CardHeader>
-					<CardContent class="space-y-4">
-						<div class="grid grid-cols-2 gap-4">
-							<div class="text-center p-4 bg-muted rounded-lg">
-								<p class="text-2xl font-bold">
-									{industryBenchmarks.avgViewTime}
-								</p>
-								<p class="text-sm text-muted-foreground">
-									Avg. View Time
-								</p>
-							</div>
-							<div class="text-center p-4 bg-muted rounded-lg">
-								<p class="text-2xl font-bold">
-									{industryBenchmarks.completionRate}%
-								</p>
-								<p class="text-sm text-muted-foreground">
-									Completion Rate
-								</p>
-							</div>
-						</div>
-
-						<div class="space-y-2">
-							<h4 class="font-medium">Most Engaging Slides</h4>
-							<div class="space-y-1">
-								{#each performanceAnalytics.mostEngagingSlides.slice(0, 3) as slide}
-									<div class="flex justify-between">
-										<span class="text-sm">{slide.name}</span
-										>
-										<span class="text-sm font-medium"
-											>{slide.avgTime} avg</span
-										>
-									</div>
-								{/each}
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>Industry Benchmarks</CardTitle>
-					</CardHeader>
-					<CardContent class="space-y-4">
-						<div class="text-center p-4 bg-blue-50 rounded-lg">
-							<p class="text-lg font-semibold text-blue-600">
-								Above Average
-							</p>
-							<p class="text-sm text-muted-foreground">
-								Your decks perform 23% better than industry
-								average
-							</p>
-						</div>
-
-						<div class="space-y-3">
-							<div>
-								<div class="flex justify-between mb-1">
-									<span class="text-sm">Slide Count</span>
-									<span class="text-sm"
-										>12 vs {industryBenchmarks.avgSlides} avg</span
-									>
-								</div>
-								<Progress value={85} class="h-2" />
-							</div>
-							<div>
-								<div class="flex justify-between mb-1">
-									<span class="text-sm">View Time</span>
-									<span class="text-sm"
-										>4:32 vs {industryBenchmarks.avgViewTime}
-										avg</span
-									>
-								</div>
-								<Progress value={92} class="h-2" />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		</TabsContent>
-
-		<!-- AI Feedback Tab -->
-		<TabsContent value="feedback" class="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle>AI-Powered Pitch Analysis</CardTitle>
-					<CardDescription>
-						Get intelligent feedback on your pitch deck structure
-						and content
-					</CardDescription>
-				</CardHeader>
-				<CardContent class="space-y-6">
-					{#if pitchDecks.length > 0}
-						{#each pitchDecks.filter((deck) => deck.status === "active") as deck}
-							<div class="border rounded-lg p-4 space-y-4">
-								<div class="flex items-center justify-between">
-									<h4 class="font-semibold">{deck.name}</h4>
-									<Badge
-										variant="outline"
-										class={getFeedbackColor(
-											deck.feedback.score,
-										)}
-									>
-										Score: {deck.feedback.score}/100
-									</Badge>
-								</div>
-
-								<div
-									class="grid grid-cols-1 md:grid-cols-2 gap-4"
-								>
-									<div>
-										<h5
-											class="font-medium text-green-600 mb-2"
-										>
-											✅ Strengths
-										</h5>
-										<ul class="space-y-1">
-											{#each deck.feedback.strengths as strength}
-												<li
-													class="text-sm flex items-center gap-2"
-												>
-													<span
-														class="w-1 h-1 bg-green-500 rounded-full"
-													></span>
-													{strength}
-												</li>
-											{/each}
-										</ul>
-									</div>
-
-									<div>
-										<h5
-											class="font-medium text-yellow-600 mb-2"
-										>
-											💡 Improvements
-										</h5>
-										<ul class="space-y-1">
-											{#each deck.feedback.improvements as improvement}
-												<li
-													class="text-sm flex items-center gap-2"
-												>
-													<span
-														class="w-1 h-1 bg-yellow-500 rounded-full"
-													></span>
-													{improvement}
-												</li>
-											{/each}
-										</ul>
-									</div>
-								</div>
-
-								<div class="flex gap-2">
-									<Button variant="outline" size="sm">
-										📊 Detailed Analysis
-									</Button>
-									<Button variant="outline" size="sm">
-										🤖 AI Suggestions
-									</Button>
-								</div>
-							</div>
+							<Button size="lg" class="gap-2">
+								<UploadIcon class="h-4 w-4" />
+								Upload Your First Deck
+							</Button>
+						</CardContent>
+					</Card>
+				{:else}
+					<div
+						class="@xl/main:grid-cols-2 @5xl/main:grid-cols-3 grid grid-cols-1 gap-6"
+					>
+						{#each pitchDecks as deck}
+							<DeckCard
+								{deck}
+								onView={(deck) => (selectedDeck = deck)}
+								onShare={shareDeck}
+							/>
 						{/each}
-					{:else}
-						<div class="text-center py-8">
-							<div
-								class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4"
-							>
-								🤖
-							</div>
-							<h3 class="font-semibold mb-2">
-								No decks to analyze
-							</h3>
-							<p class="text-muted-foreground mb-4">
-								Upload a pitch deck to get AI-powered feedback
-								and insights
-							</p>
-						</div>
-					{/if}
-				</CardContent>
-			</Card>
-		</TabsContent>
-	</Tabs>
+					</div>
+				{/if}
+			</TabsContent>
+
+			<!-- Upload Tab -->
+			<TabsContent value="upload" class="space-y-6 mt-6">
+				<FileUploadSection
+					{selectedFiles}
+					{uploading}
+					{uploadProgress}
+					{showTemplates}
+					{templates}
+					onUpload={handleUpload}
+					onFilesChange={(files) => (selectedFiles = files)}
+					onDownloadTemplate={downloadTemplate}
+				/>
+			</TabsContent>
+
+			<!-- Analytics Tab -->
+			<TabsContent value="analytics" class="space-y-6 mt-6">
+				<AnalyticsSection {industryBenchmarks} {performanceAnalytics} />
+			</TabsContent>
+
+			<!-- AI Feedback Tab -->
+			<TabsContent value="feedback" class="space-y-6 mt-6">
+				<AIFeedbackSection {pitchDecks} />
+			</TabsContent>
+		</Tabs>
+	</div>
 </div>
 
 <!-- Deck Detail Modal (when selectedDeck is set) -->
 {#if selectedDeck}
 	<div
-		class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+		class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
 	>
-		<Card class="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-			<CardHeader class="flex flex-row items-center justify-between">
+		<Card
+			class="w-full max-w-4xl max-h-[90vh] overflow-y-auto border-0 shadow-2xl"
+		>
+			<CardHeader
+				class="flex flex-row items-center justify-between border-b"
+			>
 				<div>
-					<CardTitle>{selectedDeck.name}</CardTitle>
-					<CardDescription
+					<CardTitle class="text-xl">{selectedDeck.name}</CardTitle>
+					<CardDescription class="text-base"
 						>Version {selectedDeck.version}</CardDescription
 					>
 				</div>
-				<Button variant="ghost" onclick={() => (selectedDeck = null)}>
-					✕
+				<Button
+					variant="ghost"
+					size="icon"
+					onclick={() => (selectedDeck = null)}
+				>
+					<span class="text-xl">✕</span>
 				</Button>
 			</CardHeader>
-			<CardContent class="space-y-4">
+			<CardContent class="space-y-6 p-6">
 				<!-- Deck preview/iframe would go here -->
 				<div
-					class="aspect-video bg-muted rounded-lg flex items-center justify-center"
+					class="aspect-video bg-muted rounded-lg flex items-center justify-center border"
 				>
-					<p class="text-muted-foreground">
-						Deck preview would appear here
-					</p>
+					<div class="text-center">
+						<FileIcon
+							class="h-16 w-16 text-muted-foreground mx-auto mb-2"
+						/>
+						<p class="text-muted-foreground">
+							Deck preview would appear here
+						</p>
+					</div>
 				</div>
 
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div class="text-center">
-						<p class="text-2xl font-bold">{selectedDeck.views}</p>
+				<div class="@lg/main:grid-cols-3 grid grid-cols-1 gap-6">
+					<div
+						class="text-center p-4 bg-background/50 rounded-lg border"
+					>
+						<p class="text-3xl font-bold tabular-nums">
+							{selectedDeck.views}
+						</p>
 						<p class="text-sm text-muted-foreground">Total Views</p>
 					</div>
-					<div class="text-center">
-						<p class="text-2xl font-bold">
+					<div
+						class="text-center p-4 bg-background/50 rounded-lg border"
+					>
+						<p class="text-3xl font-bold tabular-nums">
 							{selectedDeck.analytics.avgTimeSpent}
 						</p>
 						<p class="text-sm text-muted-foreground">
 							Avg. Time Spent
 						</p>
 					</div>
-					<div class="text-center">
-						<p class="text-2xl font-bold">
+					<div
+						class="text-center p-4 bg-background/50 rounded-lg border"
+					>
+						<p class="text-3xl font-bold tabular-nums">
 							{selectedDeck.analytics.mostViewedSlide}
 						</p>
 						<p class="text-sm text-muted-foreground">
@@ -797,16 +519,22 @@
 					</div>
 				</div>
 
-				<div class="flex gap-2">
-					<Button class="flex-1">📤 Share with Investors</Button>
-					<Button variant="outline" class="flex-1">
-						📥 Download
+				<div class="flex gap-3">
+					<Button class="flex-1 gap-2">
+						<ShareIcon class="h-4 w-4" />
+						Share with Investors
+					</Button>
+					<Button variant="outline" class="flex-1 gap-2">
+						<span class="text-sm">📥</span>
+						Download
 					</Button>
 					<Button
 						variant="outline"
 						onclick={() => archiveDeck(selectedDeck.id)}
+						class="gap-2"
 					>
-						📁 Archive
+						<span class="text-sm">📁</span>
+						Archive
 					</Button>
 				</div>
 			</CardContent>

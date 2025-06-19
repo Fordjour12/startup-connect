@@ -1,23 +1,176 @@
 <script lang="ts">
-    import { Button } from "$lib/components/ui/button";
+    import { Button } from "@/components/ui/button";
+    import { cn } from "@/utils";
+    import { Upload, X, File as FileIcon, Image } from "@lucide/svelte";
+    import { browser } from "$app/environment";
+    import { untrack } from "svelte";
 
     interface Props {
         accept?: string;
         maxSize?: number; // In MB
         multiple?: boolean;
-        files?: File[];
+        files?: FileList;
+        placeholder?: string;
+        class?: string;
+        disabled?: boolean;
+        showPreview?: boolean;
         onUpload?: (files: File[]) => void;
         onRemove?: (index: number) => void;
+        persistFiles?: boolean; // New prop to persist files even if external binding is reset
+        [key: string]: any; // Allow any additional props
     }
 
     let {
         accept = "*",
-        maxSize = 5,
+        maxSize = 50,
         multiple = false,
-        files = $bindable([]),
+        files = $bindable(),
+        placeholder = "Upload files",
+        class: className = "",
+        disabled = false,
+        showPreview = true,
         onUpload,
         onRemove,
+        persistFiles = false,
+        ...restProps
     }: Props = $props();
+
+    let dragOver = $state(false);
+    let inputElement: HTMLInputElement;
+
+    // Internal file state with preview URLs
+    interface FileWithPreview {
+        file: File;
+        previewUrl?: string;
+        id: string;
+    }
+
+    let internalFiles = $state<FileWithPreview[]>([]);
+
+    // Track files length and last modified to avoid unnecessary updates
+    let previousFilesLength = $state(0);
+    let previousFilesSignature = $state("");
+
+    // Sync internal files with external files binding
+    $effect(() => {
+        if (!browser) return;
+
+        // Only clear internal files if files is explicitly set to an empty FileList
+        // Don't clear if files is just undefined/null (which might happen during form navigation)
+        // Also don't clear if persistFiles is enabled
+        if (
+            files !== undefined &&
+            files !== null &&
+            files.length === 0 &&
+            !persistFiles
+        ) {
+            // Only clear if we previously had files
+            if (internalFiles.length > 0 && previousFilesLength > 0) {
+                // Clean up preview URLs before clearing
+                internalFiles.forEach((fileWithPreview) => {
+                    if (fileWithPreview.previewUrl) {
+                        try {
+                            URL.revokeObjectURL(fileWithPreview.previewUrl);
+                        } catch (error) {
+                            // Ignore cleanup errors
+                        }
+                    }
+                });
+                internalFiles = [];
+                previousFilesLength = 0;
+                previousFilesSignature = "";
+            }
+            return;
+        }
+
+        // If files is undefined/null, preserve existing internal files
+        if (!files) {
+            return;
+        }
+
+        const currentFiles = Array.from(files);
+
+        // Create a signature to detect actual changes
+        const currentSignature = currentFiles
+            .map((f) => `${f.name}-${f.size}-${f.lastModified}`)
+            .join("|");
+
+        // Skip if files haven't actually changed
+        if (
+            currentFiles.length === previousFilesLength &&
+            currentSignature === previousFilesSignature
+        ) {
+            return;
+        }
+
+        const newInternalFiles: FileWithPreview[] = [];
+        const urlsToCleanup: string[] = [];
+
+        currentFiles.forEach((file) => {
+            // Check if this file already exists in our internal state
+            const existing = internalFiles.find(
+                (f) =>
+                    f.file.name === file.name &&
+                    f.file.size === file.size &&
+                    f.file.lastModified === file.lastModified,
+            );
+
+            if (existing) {
+                // Keep existing file with its preview
+                newInternalFiles.push(existing);
+            } else {
+                // Create new file entry
+                const id = `${file.name}-${file.size}-${file.lastModified}-${Date.now()}`;
+                const fileWithPreview: FileWithPreview = {
+                    file,
+                    id,
+                    previewUrl: isImageFile(file)
+                        ? createPreviewUrl(file)
+                        : undefined,
+                };
+                newInternalFiles.push(fileWithPreview);
+            }
+        });
+
+        // Clean up old preview URLs
+        internalFiles.forEach((oldFile) => {
+            if (
+                !newInternalFiles.find((f) => f.id === oldFile.id) &&
+                oldFile.previewUrl
+            ) {
+                urlsToCleanup.push(oldFile.previewUrl);
+            }
+        });
+
+        // Update state
+        internalFiles = newInternalFiles;
+        previousFilesLength = currentFiles.length;
+        previousFilesSignature = currentSignature;
+
+        // Clean up URLs after state update to avoid timing issues
+        if (urlsToCleanup.length > 0) {
+            // Use setTimeout to avoid blocking the render
+            setTimeout(() => {
+                urlsToCleanup.forEach((url) => {
+                    try {
+                        URL.revokeObjectURL(url);
+                    } catch (error) {
+                        // Ignore cleanup errors
+                    }
+                });
+            }, 0);
+        }
+    });
+
+    function createPreviewUrl(file: File): string {
+        if (!browser) return "";
+        try {
+            return URL.createObjectURL(file);
+        } catch (error) {
+            console.warn("Failed to create image preview:", error);
+            return "";
+        }
+    }
 
     function formatFileSize(bytes: number): string {
         if (bytes === 0) return "0 B";
@@ -27,152 +180,327 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     }
 
-    function handleFileChange(event: Event) {
+    function validateFile(file: File): string | null {
+        // Check file type
+        if (accept !== "*") {
+            const allowedTypes = accept.split(",").map((t) => t.trim());
+            const fileExtension =
+                "." + file.name.split(".").pop()?.toLowerCase();
+
+            if (
+                !allowedTypes.includes(fileExtension) &&
+                !allowedTypes.includes(file.type)
+            ) {
+                return `Invalid file type. Accepted types: ${accept}`;
+            }
+        }
+
+        // Check file size
+        if (file.size > maxSize * 1024 * 1024) {
+            return `File size exceeds ${maxSize}MB limit`;
+        }
+
+        return null;
+    }
+
+    function processFiles(newFiles: FileList | File[]) {
+        if (!browser) return;
+
+        const fileList = Array.isArray(newFiles)
+            ? newFiles
+            : Array.from(newFiles);
+        const validFiles: File[] = [];
+        const errorMessages: string[] = [];
+
+        for (const file of fileList) {
+            const error = validateFile(file);
+            if (error) {
+                errorMessages.push(`${file.name}: ${error}`);
+            } else {
+                validFiles.push(file);
+            }
+        }
+
+        if (errorMessages.length > 0) {
+            console.error(errorMessages.join("\n"));
+        }
+
+        if (validFiles.length > 0) {
+            let finalFiles: File[];
+
+            if (multiple) {
+                const currentFiles = untrack(() =>
+                    files ? Array.from(files) : [],
+                );
+                finalFiles = [...currentFiles, ...validFiles];
+            } else {
+                finalFiles = [validFiles[0]]; // Only take the first file for single upload
+            }
+
+            // Create new FileList for form compatibility - only in browser
+            if (typeof DataTransfer !== "undefined") {
+                const dt = new DataTransfer();
+                finalFiles.forEach((file) => dt.items.add(file));
+                files = dt.files;
+            }
+
+            onUpload?.(finalFiles);
+        }
+    }
+
+    function handleFileSelect(event: Event) {
+        if (!browser) return;
+
         const input = event.target as HTMLInputElement;
         if (!input.files?.length) return;
 
-        const selectedFiles: File[] = [];
-        let hasInvalidSize = false;
+        processFiles(input.files);
 
-        for (let i = 0; i < input.files.length; i++) {
-            const file = input.files[i];
-            // Check file size
-            if (file.size > maxSize * 1024 * 1024) {
-                hasInvalidSize = true;
-                continue;
-            }
-            selectedFiles.push(file);
+        // Don't reset input immediately if persistFiles is enabled
+        if (!persistFiles) {
+            // Reset input
+            input.value = "";
         }
+    }
 
-        if (hasInvalidSize) {
-            alert(`One or more files exceed the maximum size of ${maxSize}MB.`);
+    function handleDrop(event: DragEvent) {
+        if (!browser) return;
+
+        event.preventDefault();
+        dragOver = false;
+
+        if (disabled) return;
+
+        const droppedFiles = event.dataTransfer?.files;
+        if (droppedFiles?.length) {
+            processFiles(droppedFiles);
         }
+    }
 
-        if (selectedFiles.length) {
-            files = selectedFiles;
-            onUpload?.(selectedFiles);
+    function handleDragOver(event: DragEvent) {
+        if (!browser) return;
+
+        event.preventDefault();
+        if (!disabled) {
+            dragOver = true;
         }
+    }
 
-        // Reset input so the same file can be selected again if needed
-        input.value = "";
+    function handleDragLeave(event: DragEvent) {
+        if (!browser) return;
+
+        event.preventDefault();
+        dragOver = false;
     }
 
     function removeFile(index: number) {
-        files = files.filter((_, i) => i !== index);
+        if (!browser) return;
+
+        const currentFiles = untrack(() => (files ? Array.from(files) : []));
+        const newFiles = currentFiles.filter((_, i) => i !== index);
+
+        // Create new FileList - only in browser
+        if (typeof DataTransfer !== "undefined") {
+            const dt = new DataTransfer();
+            newFiles.forEach((file) => dt.items.add(file));
+            files = dt.files;
+        }
+
         onRemove?.(index);
     }
 
-    function removeAllFiles() {
-        files = [];
+    function clearAllFiles() {
+        if (!browser) return;
+
+        if (typeof DataTransfer !== "undefined") {
+            const dt = new DataTransfer();
+            files = dt.files;
+        }
         onRemove?.(-1);
     }
+
+    function openFileDialog() {
+        if (!browser || disabled) return;
+        inputElement?.click();
+    }
+
+    function isImageFile(file: File): boolean {
+        return file.type.startsWith("image/");
+    }
+
+    // Cleanup all preview URLs when component is destroyed
+    $effect(() => {
+        // Capture current files for cleanup
+        const currentInternalFiles = [...internalFiles];
+
+        return () => {
+            if (browser && currentInternalFiles.length > 0) {
+                currentInternalFiles.forEach((fileWithPreview) => {
+                    if (fileWithPreview.previewUrl) {
+                        try {
+                            URL.revokeObjectURL(fileWithPreview.previewUrl);
+                        } catch (error) {
+                            // Ignore cleanup errors
+                        }
+                    }
+                });
+            }
+        };
+    });
 </script>
 
-<div class="flex flex-col gap-2">
+<div class={cn("w-full", className)}>
+    <!-- Hidden file input -->
+    <input
+        bind:this={inputElement}
+        type="file"
+        bind:files
+        {accept}
+        {multiple}
+        {disabled}
+        class="hidden"
+        onchange={handleFileSelect}
+        {...restProps}
+    />
+
+    <!-- Drop zone -->
     <div
-        class="border-2 border-dashed border-primary/20 rounded-lg p-6 text-center hover:border-primary/50 transition-colors"
+        class={cn(
+            "relative border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer",
+            dragOver
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50",
+            disabled && "opacity-50 cursor-not-allowed",
+            internalFiles.length > 0 ? "p-4" : "p-8",
+        )}
+        ondrop={handleDrop}
+        ondragover={handleDragOver}
+        ondragleave={handleDragLeave}
+        onclick={openFileDialog}
+        role="button"
+        tabindex={disabled ? -1 : 0}
+        onkeydown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && !disabled) {
+                e.preventDefault();
+                openFileDialog();
+            }
+        }}
     >
-        <input
-            type="file"
-            {accept}
-            {multiple}
-            class="hidden"
-            id="file-upload"
-            onchange={handleFileChange}
-        />
-        <label for="file-upload" class="cursor-pointer">
-            <div class="flex flex-col items-center gap-2">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-8 w-8 text-muted-foreground"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                </svg>
-                <span class="text-sm font-medium">
-                    {#if files.length}
-                        Replace files
-                    {:else}
-                        Click to upload or drag and drop
-                    {/if}
-                </span>
-                <span class="text-xs text-muted-foreground">
-                    {accept.replace(/\*/g, "All")} (Max: {maxSize}MB)
-                </span>
-            </div>
-        </label>
-    </div>
-
-    {#if files.length > 0}
-        <div class="mt-2 space-y-2">
-            {#each files as file, index}
+        {#if internalFiles.length === 0}
+            <!-- Empty state -->
+            <div class="text-center">
                 <div
-                    class="flex items-center justify-between p-2 bg-muted rounded-md"
+                    class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-muted"
                 >
-                    <div class="flex items-center gap-2 truncate">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 text-muted-foreground"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                        </svg>
-                        <div class="truncate">
-                            <p class="text-sm truncate">{file.name}</p>
-                            <p class="text-xs text-muted-foreground">
-                                {formatFileSize(file.size)}
-                            </p>
-                        </div>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onclick={() => removeFile(index)}
-                        class="h-8 w-8"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"
-                            />
-                        </svg>
-                        <span class="sr-only">Remove</span>
-                    </Button>
+                    <Upload class="h-6 w-6 text-muted-foreground" />
                 </div>
-            {/each}
+                <div class="mb-2">
+                    <p class="text-sm font-medium">
+                        {placeholder}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        Drop your files here, or browse
+                    </p>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                    {accept !== "*"
+                        ? `${accept.replace(/\*/g, "All")} files`
+                        : "All files"}
+                    (Max: {maxSize}MB{multiple ? " each" : ""})
+                </p>
+            </div>
+        {:else}
+            <!-- Files preview -->
+            <div class="space-y-3">
+                {#if showPreview}
+                    {#each internalFiles as fileWithPreview, index (fileWithPreview.id)}
+                        <div
+                            class="flex items-center gap-3 rounded-lg border bg-card p-3"
+                        >
+                            <!-- File icon/preview -->
+                            <div class="flex-shrink-0">
+                                {#if fileWithPreview.previewUrl}
+                                    <img
+                                        src={fileWithPreview.previewUrl}
+                                        alt={fileWithPreview.file.name}
+                                        class="h-10 w-10 rounded object-cover"
+                                    />
+                                {:else}
+                                    <div
+                                        class="flex h-10 w-10 items-center justify-center rounded bg-muted"
+                                    >
+                                        <FileIcon
+                                            class="h-5 w-5 text-muted-foreground"
+                                        />
+                                    </div>
+                                {/if}
+                            </div>
 
-            {#if files.length > 1}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onclick={removeAllFiles}
-                    class="w-full mt-2"
-                >
-                    Remove All Files
-                </Button>
-            {/if}
-        </div>
-    {/if}
+                            <!-- File info -->
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium truncate">
+                                    {fileWithPreview.file.name}
+                                </p>
+                                <p class="text-xs text-muted-foreground">
+                                    {formatFileSize(fileWithPreview.file.size)}
+                                </p>
+                            </div>
+
+                            <!-- Remove button -->
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onclick={(e) => {
+                                    e.stopPropagation();
+                                    removeFile(index);
+                                }}
+                                {disabled}
+                            >
+                                <X class="h-4 w-4" />
+                                <span class="sr-only"
+                                    >Remove {fileWithPreview.file.name}</span
+                                >
+                            </Button>
+                        </div>
+                    {/each}
+                {/if}
+
+                <!-- Actions -->
+                <div class="flex items-center justify-between pt-2 border-t">
+                    <p class="text-xs text-muted-foreground">
+                        {internalFiles.length} file{internalFiles.length !== 1
+                            ? "s"
+                            : ""} selected
+                    </p>
+                    <div class="flex gap-2">
+                        {#if multiple && internalFiles.length > 1}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onclick={(e) => {
+                                    e.stopPropagation();
+                                    clearAllFiles();
+                                }}
+                                {disabled}
+                            >
+                                Clear all
+                            </Button>
+                        {/if}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onclick={(e) => {
+                                e.stopPropagation();
+                                openFileDialog();
+                            }}
+                            {disabled}
+                        >
+                            {multiple ? "Add more" : "Replace"}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        {/if}
+    </div>
 </div>
