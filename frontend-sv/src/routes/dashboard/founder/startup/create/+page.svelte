@@ -5,13 +5,15 @@
     import { Button } from "@/components/ui/button";
     import { zod } from "sveltekit-superforms/adapters";
     import { superValidate } from "sveltekit-superforms/client";
-    import type { PageData } from "./$types";
+    import type { PageProps } from "./$types";
 
-    let { data }: { data: PageData } = $props();
+    let { data }: PageProps = $props();
 
     let showPreview = $state(true);
     let showPlayground = $state(false);
     let formData = $state(data);
+    let industry = $state(data.industry);
+    let funding = $state(data.funding);
 
     function togglePreview() {
         showPreview = !showPreview;
@@ -64,7 +66,7 @@
                 <Playground onPopulate={handlePopulate} />
             {/if}
 
-            <NewStartupForm data={formData} {showPreview} />
+            <NewStartupForm data={formData} {showPreview} {industry} {funding} />
         </div>
     </div>
 </div>
