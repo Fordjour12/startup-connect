@@ -20,7 +20,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
-    backend_pre_start()
+    await backend_pre_start()
     yield
     # Shutdown (add cleanup code here if needed)
 

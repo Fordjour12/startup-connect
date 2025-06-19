@@ -33,15 +33,37 @@
 
         const selectedFiles: File[] = [];
         let hasInvalidSize = false;
+        let hasInvalidType = false;
+
+        const allowedTypes = accept.split(",").map((t) => t.trim());
 
         for (let i = 0; i < input.files.length; i++) {
             const file = input.files[i];
+
+            // Check file type
+            const fileExtension =
+                "." + file.name.split(".").pop()?.toLowerCase();
+            if (
+                accept !== "*" &&
+                !allowedTypes.includes(fileExtension) &&
+                !allowedTypes.includes(file.type)
+            ) {
+                hasInvalidType = true;
+                continue;
+            }
+
             // Check file size
             if (file.size > maxSize * 1024 * 1024) {
                 hasInvalidSize = true;
                 continue;
             }
             selectedFiles.push(file);
+        }
+
+        if (hasInvalidType) {
+            alert(
+                `One or more files have an invalid type. Accepted types are: ${accept}`,
+            );
         }
 
         if (hasInvalidSize) {
