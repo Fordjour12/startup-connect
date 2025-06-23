@@ -18,6 +18,7 @@
         SelectTrigger,
     } from "@/components/ui/select";
     import { Textarea } from "@/components/ui/textarea";
+    import { Checkbox } from "@/components/ui/checkbox";
     import {
         type StartupSchema,
         startupSchema,
@@ -237,7 +238,12 @@
         !showPreview && "!grid-cols-1",
     )}
 >
-    <form method="POST" use:enhance class="space-y-8">
+    <form
+        method="POST"
+        use:enhance
+        enctype="multipart/form-data"
+        class="space-y-8"
+    >
         <!-- Basic Information -->
         <Card>
             <CardHeader>
@@ -246,24 +252,33 @@
             </CardHeader>
             <CardContent class="space-y-4">
                 <!-- Logo Upload -->
-                <div>
-                    <Label>Startup Logo</Label>
-                    <div class="flex items-start gap-4">
-                        <div class="flex-1">
+                <Form.Field {form} name="logo">
+                    <Form.Control>
+                        {#snippet children({ props })}
+                            <Form.Label>Startup Logo</Form.Label>
+
+                            <!-- oninput={handleScreenshotsUpload} -->
                             <FileUpload
-                                accept="image/*"
-                                maxSize={2}
+                                accept=".jpeg,.jpg,.png,.webp,.svg+xml,.svg"
+                                placeholder="Upload startup logo"
                                 multiple={false}
-                                onUpload={handleLogoUpload}
-                                onRemove={handleLogoRemove}
+                                oninput={(e: any) =>
+                                    ($formData.logo =
+                                        e.currentTarget.files?.item(0) as File)}
+                                {...props}
                             />
                             <p class="text-sm text-muted-foreground mt-2">
-                                Upload your startup logo (max 2MB, recommended
-                                size: nt 400x400px)
+                                Upload startup logo (max 5MB each, JPEG, PNG,
+                                WebP, SVG)
                             </p>
-                        </div>
-                    </div>
-                </div>
+                        {/snippet}
+                    </Form.Control>
+                    {#if $errors.productScreenshots}
+                        <Form.FieldErrors class="text-destructive text-sm">
+                            {$errors.productScreenshots}
+                        </Form.FieldErrors>
+                    {/if}
+                </Form.Field>
 
                 <Form.Field {form} name="name">
                     <Form.Control>
@@ -766,14 +781,35 @@
                     >Upload your startup's pitch deck (PDF, PPT, or PPTX)</CardDescription
                 >
             </CardHeader>
+
+            <!-- onUpload={handleFileUpload}
+                                onRemove={handleFileRemove} -->
             <CardContent>
-                <FileUpload
-                    accept=".pdf,.ppt,.pptx,.doc,.docx"
-                    maxSize={10}
-                    multiple={false}
-                    onUpload={handleFileUpload}
-                    onRemove={handleFileRemove}
-                />
+                <Form.Field {form} name="pitchDeck">
+                    <Form.Control>
+                        {#snippet children({ props })}
+                            <Form.Label>Startup Logo</Form.Label>
+                            <FileUpload
+                                accept=".pdf,.ppt,.pptx,.doc,.docx"
+                                placeholder="Add your pitch deck"
+                                multiple={false}
+                                oninput={(e: any) =>
+                                    ($formData.pitchDeck =
+                                        e.currentTarget.files?.item(0) as File)}
+                                {...props}
+                            />
+                            <p class="text-sm text-muted-foreground mt-2">
+                                Add your pitch deck (max 5MB each ,PDF, PPT, or
+                                PPTX))
+                            </p>
+                        {/snippet}
+                    </Form.Control>
+                    {#if $errors.productScreenshots}
+                        <Form.FieldErrors class="text-destructive text-sm">
+                            {$errors.productScreenshots}
+                        </Form.FieldErrors>
+                    {/if}
+                </Form.Field>
             </CardContent>
         </Card>
 
@@ -1534,6 +1570,77 @@
             </CardContent>
         </Card>
 
+        <!-- Media Uploads -->
+        <Card>
+            <CardHeader>
+                <CardTitle>Media</CardTitle>
+                <CardDescription
+                    >Upload product screenshots and demo video</CardDescription
+                >
+            </CardHeader>
+            <CardContent class="space-y-6">
+                <!-- Product Screenshots -->
+                <Form.Field {form} name="productScreenshots">
+                    <Form.Control>
+                        {#snippet children({ props })}
+                            <Form.Label
+                                >Product Screenshots (Optional)</Form.Label
+                            >
+
+                            <!-- oninput={handleScreenshotsUpload} -->
+                            <FileUpload
+                                accept=".jpeg,.jpg,.png,.webp,.svg+xml"
+                                placeholder="Upload product screenshots"
+                                multiple={true}
+                                oninput={(e: any) =>
+                                    ($formData.productScreenshots = Array.from(
+                                        e.currentTarget.files ?? [],
+                                    ))}
+                                {...props}
+                            />
+                            <p class="text-sm text-muted-foreground mt-2">
+                                Upload product screenshots (max 5MB each, JPEG,
+                                PNG, WebP, SVG)
+                            </p>
+                        {/snippet}
+                    </Form.Control>
+                    {#if $errors.productScreenshots}
+                        <Form.FieldErrors class="text-destructive text-sm">
+                            {$errors.productScreenshots}
+                        </Form.FieldErrors>
+                    {/if}
+                </Form.Field>
+
+                <!-- Demo Video -->
+                <Form.Field {form} name="demoVideo">
+                    <Form.Control>
+                        {#snippet children({ props })}
+                            <Form.Label>Demo Video (Optional)</Form.Label>
+                            <!-- oninput={handleDemoVideoUpload} -->
+                            <FileUpload
+                                accept=".mp4,.mpeg,.mov,.webm"
+                                placeholder="Upload demo video"
+                                multiple={false}
+                                oninput={(e: any) =>
+                                    ($formData.demoVideo =
+                                        e.currentTarget.files?.item(0) as File)}
+                                {...props}
+                            />
+                            <p class="text-sm text-muted-foreground mt-2">
+                                Upload demo video (max 200MB, MP4, MPEG, MOV,
+                                WebM)
+                            </p>
+                        {/snippet}
+                    </Form.Control>
+                    {#if $errors.demoVideo}
+                        <Form.FieldErrors class="text-destructive text-sm">
+                            {$errors.demoVideo}
+                        </Form.FieldErrors>
+                    {/if}
+                </Form.Field>
+            </CardContent>
+        </Card>
+
         <!-- Publication Settings -->
         <Card>
             <CardHeader>
@@ -1548,18 +1655,16 @@
                     <Form.Control>
                         {#snippet children({ props })}
                             <div class="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={$formData.isPublished}
-                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                <Checkbox
                                     {...props}
+                                    bind:checked={$formData.isPublished}
                                 />
-                                <Label
+                                <Form.Label
                                     for="isPublished"
                                     class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
                                     Publish startup immediately
-                                </Label>
+                                </Form.Label>
                             </div>
                             <p class="text-sm text-muted-foreground mt-2">
                                 {#if $formData.isPublished}

@@ -15,7 +15,6 @@ export enum ApiEndpoint {
   FORGOT_PASSWORD = '/auth/forgot-password',
   RESET_PASSWORD = '/auth/reset-password',
 
-
   // Startup related endpoints
   GET_STARTUPS = '/startups/',
   GET_FOUNDER_STARTUPS = '/startups/founder/{founder_id}',
@@ -26,7 +25,6 @@ export enum ApiEndpoint {
   PUBLISH_STARTUP = '/startups/{startup_id}/publish',
   UNPUBLISH_STARTUP = '/startups/{startup_id}/unpublish',
 
-
   // Investor related endpoints
   GET_INVESTORS = '/investors/',
   GET_INVESTOR_DETAILS = '/investors/{investor_id}',
@@ -34,6 +32,14 @@ export enum ApiEndpoint {
   // Recommendation endpoints
   GET_RECOMMENDATIONS = '/me/recommendations',
   GET_RECOMMENDATION_EXPLANATION = '/me/recommendations/explain',
+
+
+  // Upload endpoints
+  UPLOAD_IMAGE = '/upload/image',
+  UPLOAD_DOCUMENT = '/upload/document',
+  UPLOAD_PROFILE_IMAGE = '/upload/profile-image',
+  DELETE_FILE = '/upload/{file_key}',
+
 
   // Product related endpoints
   GET_PRODUCTS = '/api/products',

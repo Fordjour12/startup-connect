@@ -1,8 +1,10 @@
-import { startupSchema } from '$lib/schemas/startup-schema';
-import { fail } from '@sveltejs/kit';
+import { startupSchema } from '@/schemas/startup-schema';
+import { ApiEndpoint } from '@/endpoints';
+import { redirect } from '@sveltejs/kit';
 import { zod } from 'sveltekit-superforms/adapters';
-import { superValidate } from 'sveltekit-superforms/server';
+import { superValidate, withFiles, fail } from 'sveltekit-superforms';
 import type { Actions, PageServerLoad } from './$types';
+// import { env } from '$env/dynamic/private';
 
 export const load: PageServerLoad = async () => {
   return {
@@ -13,45 +15,15 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
   default: async (event) => {
     const form = await superValidate(event, zod(startupSchema));
-    
+
     if (!form.valid) {
-      return fail(400, { form });
+      return fail(400, withFiles({ form }));
     }
-    
-    try {
-      // Here you would process form data and handle file uploads
-      // This would connect to your backend API or database
-      
-      // Example API call (replace with your actual endpoint)
-      /*
-      const response = await fetch('/api/create-new-startup', {
-        method: 'POST',
-        body: JSON.stringify(form.data),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create startup');
-      }
-      */
-      
-      // Return the form with a success message
-      return {
-        form,
-        success: true,
-        message: 'Startup created successfully'
-      };
-    } catch (error) {
-      console.error('Error creating startup:', error);
-      
-      // Return the form with error message
-      return fail(500, {
-        form,
-        success: false,
-        message: error instanceof Error ? error.message : 'An unexpected error occurred'
-      });
-    }
+
+    console.log("form_data", form)
+
+    return withFiles({
+      form
+    })
   }
-};
+}
