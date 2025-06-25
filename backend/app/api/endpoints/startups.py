@@ -12,7 +12,7 @@ from app.crud.startup import (
     get_startups_by_founder,
     update_startup_publication_status,
 )
-from app.models.startup import Startup, StartupCreate, StartupRead
+from app.models.startup import Startup, StartupCreate, StartupRead, StartupUpdate
 
 router = APIRouter(prefix="/startups", tags=["Startups"])
 
@@ -130,6 +130,45 @@ async def unpublish_startup(
 @router.put("/update")
 async def update_startup():
     return {"message": "Startup updated"}
+
+
+@router.put("/{startup_id}/demo-video", response_model=StartupRead)
+async def update_startup_demo_video(
+    session: SessionDep,
+    startup_id: uuid.UUID,
+    current_user: CurrentUser,
+    demo_video_url: str,
+) -> Any:
+    """Update a startup's demo video URL (requires authentication and ownership)"""
+    # Import the update function
+    from app.crud.startup import update_startup
+
+    # First check if startup exists and user owns it
+    startup = get_startup(db=session, startup_id=startup_id)
+    if not startup:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Startup not found"
+        )
+
+    if startup.founder_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to modify this startup",
+        )
+
+    # Update the demo video URL
+    startup_update = StartupUpdate(demo_video_url=demo_video_url)
+    updated_startup = update_startup(
+        db=session, startup_id=startup_id, startup=startup_update
+    )
+
+    if not updated_startup:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to update startup demo video",
+        )
+
+    return updated_startup
 
 
 @router.delete("/{startup_id}")

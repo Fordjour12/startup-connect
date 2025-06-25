@@ -46,24 +46,26 @@ class Settings(BaseSettings):
     SMTP_USE_SSL: bool = False
 
     # MinIO/S3 Configuration
-    MINIO_ENDPOINT: str |None = None  # Default for local development
-    MINIO_ACCESS_KEY: str |None = None  # Maps to MINIO_ROOT_USER
-    MINIO_SECRET_KEY: str |None = None  # Maps to MINIO_ROOT_PASSWORD
+    MINIO_ENDPOINT: str | None = None  # Default for local development
+    MINIO_ACCESS_KEY: str | None = None  # Maps to MINIO_ROOT_USER
+    MINIO_SECRET_KEY: str | None = None  # Maps to MINIO_ROOT_PASSWORD
     MINIO_SECURE: bool = False  # Set to True in production with SSL
     MINIO_BUCKET_NAME: str = "startup-connect-files"
 
     # Public URL configuration for file access
     # MINIO_PUBLIC_ENDPOINT: str | None = None  # Use for CDN or public URL if different from MINIO_ENDPOINT
 
-
     # File Upload Configuration
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     MAX_IMAGE_SIZE: int = 10 * 1024 * 1024  # 10MB
+    MAX_VIDEO_SIZE: int = 100 * 1024 * 1024  # 100MB
     ALLOWED_IMAGE_TYPES: list[str] = [
         "image/jpeg",
         "image/png",
         "image/webp",
         "image/gif",
+        "image/svg+xml",
+        "image/svg",
     ]
     ALLOWED_DOCUMENT_TYPES: list[str] = [
         "application/pdf",
@@ -74,6 +76,13 @@ class Settings(BaseSettings):
         "text/plain",
         "text/csv",
         "application/json",
+    ]
+    ALLOWED_VIDEO_TYPES: list[str] = [
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+        "video/quicktime",
+        "video/x-msvideo",
     ]
 
     # Image Processing

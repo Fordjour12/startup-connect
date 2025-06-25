@@ -83,6 +83,109 @@ async def upload_document(
 
 
 @router.post(
+    "/video",
+    response_model=UploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload Video",
+    description="Upload a video file. Supports MP4, WebM, OGG, QuickTime, and AVI formats.",
+)
+async def upload_video(
+    file: Annotated[UploadFile, File(description="Video file to upload")],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> UploadResponse:
+    """
+    Upload a video file:
+
+    - **Validates file type and size**
+    - **Checks file integrity**
+    - **Stores securely in MinIO**
+    - **Generates metadata**
+
+    Supported formats:
+    - MP4 videos
+    - WebM videos
+    - OGG videos
+    - QuickTime (.mov)
+    - AVI videos
+
+    Note: Large video files may take some time to upload.
+    """
+    try:
+        return await upload_service.upload_video(file)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Video upload failed: {str(e)}",
+        )
+
+
+@router.post(
+    "/startup-demo-video",
+    response_model=UploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload Startup Demo Video",
+    description="Upload a demo video for a startup. Supports common video formats with optimized settings.",
+)
+async def upload_startup_demo_video(
+    file: Annotated[UploadFile, File(description="Demo video file to upload")],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> UploadResponse:
+    """
+    Upload a demo video specifically for startup presentations:
+
+    - **Validates video file type and size (up to 100MB)**
+    - **Optimized for startup demo videos**
+    - **Stores securely with startup-specific metadata**
+    - **Returns URL for frontend integration**
+
+    Supported formats:
+    - MP4 (recommended)
+    - WebM
+    - OGG
+    - QuickTime (.mov)
+
+    This endpoint is specifically designed for startup demo videos
+    that will be displayed on startup profiles.
+    """
+    # Additional validation for demo videos
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is required for demo videos",
+        )
+
+    # Check if user is a founder
+    if current_user.role != "founder":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only founders can upload startup demo videos",
+        )
+
+    try:
+        result = await upload_service.upload_video(file)
+
+        # Add startup-specific metadata
+        result.metadata.update(
+            {
+                "video_type": "startup_demo",
+                "founder_id": str(current_user.id),
+                "usage": "startup_profile",
+            }
+        )
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Demo video upload failed: {str(e)}",
+        )
+
+
+@router.post(
     "/profile-image",
     response_model=UploadResponse,
     status_code=status.HTTP_201_CREATED,
