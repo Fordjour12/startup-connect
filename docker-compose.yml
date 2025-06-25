@@ -38,8 +38,28 @@ services:
       timeout: 5s
       retries: 5
 
+  mc:
+    image: alpine:latest
+    container_name: startup_connect_mc
+    depends_on:
+      - minio
+    environment:
+      MC_HOST_local: http://minioadmin:minioadmin123@minio:9000
+    volumes:
+      - mc_config:/root/.mc
+    restart: unless-stopped
+    command: >
+      sh -c "
+        wget -O /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc &&
+        chmod +x /usr/local/bin/mc &&
+        mc alias set local http://minio:9000 minioadmin minioadmin123 &&
+        tail -f /dev/null
+      "
+
 volumes:
   postgres_data:
     name: startup_connect_postgres_data
   minio_data:
-    name: startup_connect_minio_data 
+    name: startup_connect_minio_data
+  mc_config:
+    name: startup_connect_mc_config 
