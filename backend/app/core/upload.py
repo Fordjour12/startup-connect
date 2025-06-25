@@ -15,6 +15,7 @@ from PIL import Image, ImageOps
 from pydantic import BaseModel
 
 from app.core.config import settings
+
 # from app.models import UploadResponse
 
 
@@ -94,19 +95,6 @@ class ImageProcessor:
         image: Image.Image, max_width: int, max_height: int
     ) -> Image.Image:
         """Resize image while maintaining aspect ratio"""
-        # Convert to RGB if necessary
-        if image.mode in ("RGBA", "LA", "P"):
-            background = Image.new("RGB", image.size, (255, 255, 255))
-            if image.mode == "P":
-                image = image.convert("RGBA")
-            background.paste(
-                image, mask=image.split()[-1] if image.mode == "RGBA" else None
-            )
-            image = background
-
-        # Auto-orient based on EXIF data
-        image = ImageOps.exif_transpose(image)
-
         # Calculate new size maintaining aspect ratio
         ratio = min(max_width / image.width, max_height / image.height)
         if ratio < 1:
@@ -231,6 +219,8 @@ class FileUploadService:
         # Organize by file type
         if file_type.startswith("image/"):
             folder = "images"
+        elif file_type.startswith("video/"):
+            folder = "videos"
         elif file_type == "application/pdf":
             folder = "documents"
         else:
@@ -257,6 +247,19 @@ class FileUploadService:
         # Process image
         try:
             image = Image.open(BytesIO(content))
+
+            # Convert RGBA to RGB for JPEG compatibility
+            if image.mode in ("RGBA", "LA", "P"):
+                background = Image.new("RGB", image.size, (255, 255, 255))
+                if image.mode == "P":
+                    image = image.convert("RGBA")
+                background.paste(
+                    image, mask=image.split()[-1] if image.mode == "RGBA" else None
+                )
+                image = background
+
+            # Auto-orient based on EXIF data
+            image = ImageOps.exif_transpose(image)
 
             # Resize if necessary
             if (
@@ -349,6 +352,45 @@ class FileUploadService:
         return UploadResponse(
             file_id=file_key.split("/")[-1].split("_")[0],
             filename=file.filename or "document",
+            content_type=detected_type,
+            size=len(content),
+            url=url,
+            metadata={"hash": file_hash, "original_size": len(content)},
+        )
+
+    async def upload_video(self, file: UploadFile) -> UploadResponse:
+        """Upload video file"""
+        # Validate file
+        self.validator.validate_file_size(file, settings.MAX_VIDEO_SIZE)
+        detected_type = await self.validator.validate_file_type(
+            file, settings.ALLOWED_VIDEO_TYPES
+        )
+
+        # Read file content
+        content = await file.read()
+        file_hash = self._calculate_file_hash(content)
+
+        # Generate file key
+        file_key = self._generate_file_key(file.filename or "video", detected_type)
+
+        # Ensure bucket exists
+        await self.minio_client.ensure_bucket_exists()
+
+        # Upload file
+        metadata = {
+            "original-filename": file.filename or "",
+            "file-hash": file_hash,
+            "upload-timestamp": datetime.utcnow().isoformat(),
+            "file-type": "video",
+        }
+
+        url = await self.minio_client.upload_file(
+            BytesIO(content), file_key, detected_type, metadata
+        )
+
+        return UploadResponse(
+            file_id=file_key.split("/")[-1].split("_")[0],
+            filename=file.filename or "video",
             content_type=detected_type,
             size=len(content),
             url=url,
