@@ -10,12 +10,12 @@
     } from "@/components/ui/card";
     import * as Form from "@/components/ui/form";
     import { Input } from "@/components/ui/input";
-    import { Label } from "@/components/ui/label";
     import {
         Select,
         SelectContent,
         SelectItem,
         SelectTrigger,
+        SelectLabel,
     } from "@/components/ui/select";
     import { Textarea } from "@/components/ui/textarea";
     import { Checkbox } from "@/components/ui/checkbox";
@@ -37,9 +37,19 @@
     let {
         data,
         showPreview,
+        industry,
+        funding,
     }: {
         data: { form: SuperValidated<Infer<StartupSchema>> };
         showPreview: boolean;
+        industry: {
+            label: string;
+            value: string;
+        }[];
+        funding: {
+            label: string;
+            value: string;
+        }[];
     } = $props();
 
     // Use superForm to manage the form state
@@ -322,33 +332,28 @@
                         <Form.Control>
                             {#snippet children({ props })}
                                 <Form.Label>Industry</Form.Label>
+
                                 <Select
                                     type="single"
                                     bind:value={$formData.industry}
                                     {...props}
                                 >
-                                    <SelectTrigger>
-                                        <div class="placeholder">
-                                            {$formData.industry ||
-                                                "Select industry"}
-                                        </div>
+                                    <SelectTrigger {...props}>
+                                        {industry.find(
+                                            (f) =>
+                                                f.value === $formData.industry,
+                                        )?.label ?? "Select an industry"}
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Technology"
-                                            >Technology</SelectItem
-                                        >
-                                        <SelectItem value="Healthcare"
-                                            >Healthcare</SelectItem
-                                        >
-                                        <SelectItem value="Fintech"
-                                            >Fintech</SelectItem
-                                        >
-                                        <SelectItem value="Clean Energy"
-                                            >Clean Energy</SelectItem
-                                        >
-                                        <SelectItem value="E-commerce"
-                                            >E-commerce</SelectItem
-                                        >
+                                        <SelectLabel>Industries</SelectLabel>
+                                        {#each industry as option}
+                                            <SelectItem
+                                                value={option.value}
+                                                label={option.label}
+                                            >
+                                                {option.label}
+                                            </SelectItem>
+                                        {/each}
                                     </SelectContent>
                                 </Select>
                             {/snippet}
@@ -468,26 +473,25 @@
                                 bind:value={$formData.fundingStage}
                                 {...props}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger {...props}>
                                     <div class="placeholder">
-                                        {$formData.fundingStage ||
-                                            "Select funding stage"}
+                                        {funding.find(
+                                            (f) =>
+                                                f.value ===
+                                                $formData.fundingStage,
+                                        )?.label ?? "Select Funding Stage"}
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Pre-seed"
-                                        >Pre-seed</SelectItem
-                                    >
-                                    <SelectItem value="Seed">Seed</SelectItem>
-                                    <SelectItem value="Series A"
-                                        >Series A</SelectItem
-                                    >
-                                    <SelectItem value="Series B"
-                                        >Series B</SelectItem
-                                    >
-                                    <SelectItem value="Series C+"
-                                        >Series C+</SelectItem
-                                    >
+                                    <SelectLabel>Stage</SelectLabel>
+                                    {#each funding as stage}
+                                        <SelectItem
+                                            value={stage.value}
+                                            label={stage.label}
+                                        >
+                                            {stage.label}
+                                        </SelectItem>
+                                    {/each}
                                 </SelectContent>
                             </Select>
                         {/snippet}

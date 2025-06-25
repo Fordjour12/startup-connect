@@ -5,7 +5,7 @@ export const startupSchema = z.object({
   description: z.string().min(50, "Description must be at least 50 characters"),
   logo: z
     .instanceof(File, { message: "Please upload a logo file." })
-    .refine((f) => f.size < 2_000_000, "Max 2MB upload size.")
+    .refine((f) => f.size < 5_000_000, "Max 2MB upload size.")
     .refine(
       (f) =>
         [
@@ -14,6 +14,7 @@ export const startupSchema = z.object({
           "image/png",
           "image/webp",
           "image/svg+xml",
+          "image/svg",
           "image/gif",
         ].includes(f.type),
       "Only JPEG, PNG, WebP, SVG and GIF files are allowed.",

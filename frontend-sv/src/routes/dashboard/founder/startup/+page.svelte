@@ -69,7 +69,7 @@
     // Function to get filtered startups
     function getFilteredStartups() {
         return startups
-            .filter((startup) => {
+            .filter((startup: any) => {
                 // Filter by search term
                 if (
                     filterOptions.search &&
@@ -101,7 +101,7 @@
 
                 return true;
             })
-            .sort((a, b) => {
+            .sort((a: any, b: any) => {
                 // Sort based on selected option
                 switch (filterOptions.sortBy) {
                     case "newest":
@@ -128,7 +128,6 @@
 
     // Get filtered startups (reactive)
     let filteredStartups = $derived(getFilteredStartups());
-
 </script>
 
 <div class="@container/main">
@@ -165,7 +164,7 @@
                                 filterOptions.stage !== "all" ||
                                 filterOptions.search
                                     ? `${filteredStartups.length} matching filters`
-                                    : `Across ${new Set(startups.map((s) => s.industry)).size} industries`}
+                                    : `Across ${new Set(startups.map((s: any) => s.industry)).size} industries`}
                             </div>
                         </Card.Footer>
                     </Card.Root>
@@ -178,7 +177,8 @@
                             >
                                 {formatCurrency(
                                     startups.reduce(
-                                        (total, s) => total + s.fundingRaised,
+                                        (total: any, s: any) =>
+                                            total + s.fundingRaised,
                                         0,
                                     ),
                                 )}
@@ -188,7 +188,7 @@
                                     <TrendingUp />
                                     +{Math.round(
                                         startups.reduce(
-                                            (acc, s) =>
+                                            (acc: any, s: any) =>
                                                 acc + (s.fundingProgress || 0),
                                             0,
                                         ) / startups.length,
@@ -207,7 +207,7 @@
                             <div class="text-muted-foreground">
                                 {Math.round(
                                     startups.reduce(
-                                        (acc, s) =>
+                                        (acc: any, s: any) =>
                                             acc + (s.fundingProgress || 0),
                                         0,
                                     ) / startups.length,
@@ -223,7 +223,7 @@
                                 class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums"
                             >
                                 {startups.reduce(
-                                    (total, s) => total + s.team,
+                                    (total: number, s: any) => total + s.team,
                                     0,
                                 )}
                             </Card.Title>
@@ -232,7 +232,8 @@
                                     <Users class="size-4" />
                                     Avg. {Math.round(
                                         startups.reduce(
-                                            (acc, s) => acc + s.team,
+                                            (acc: number, s: any) =>
+                                                acc + s.team,
                                             0,
                                         ) / startups.length,
                                     )}
@@ -248,7 +249,7 @@
                             <div class="text-muted-foreground">
                                 Average {Math.round(
                                     startups.reduce(
-                                        (acc, s) => acc + s.team,
+                                        (acc:any, s:any) => acc + s.team,
                                         0,
                                     ) / startups.length,
                                 )} members per startup
@@ -263,9 +264,9 @@
                                 class="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums"
                             >
                                 {startups.some(
-                                    (s) => s.metrics?.growth !== undefined,
+                                    (s:any) => s.metrics?.growth !== undefined,
                                 )
-                                    ? `+${Math.round(startups.reduce((acc, s) => acc + (s.metrics?.growth || 0), 0) / startups.filter((s) => s.metrics?.growth !== undefined).length)}%`
+                                    ? `+${Math.round(startups.reduce((acc:any, s:any) => acc + (s.metrics?.growth || 0), 0) / startups.filter((s:any) => s.metrics?.growth !== undefined).length)}%`
                                     : "N/A"}
                             </Card.Title>
                             <Card.Action>
@@ -293,7 +294,7 @@
                 <!-- Actions & Insights Section -->
                 <div class="flex flex-col lg:flex-row gap-4 fade-in">
                     <!-- Pending Tasks Alert -->
-                    {#if startups.some( (s) => s.tasks?.some((t: { completed: boolean }) => !t.completed), )}
+                    {#if startups.some( (s:any) => s.tasks?.some((t: { completed: boolean }) => !t.completed), )}
                         <div
                             class="bg-muted/50 border rounded-lg p-4 flex-1 flex items-start gap-3"
                         >
@@ -306,7 +307,7 @@
                                 </h3>
                                 <p class="text-sm text-muted-foreground mt-0.5">
                                     You have {startups.reduce(
-                                        (acc, s) =>
+                                        (acc:any, s:any) =>
                                             acc +
                                             (s.tasks?.filter(
                                                 (t: { completed: boolean }) =>
@@ -361,7 +362,7 @@
                             </h3>
                         </div>
                         <div class="space-y-2">
-                            {#if startups.some((s) => s.fundingProgress && s.fundingProgress < 30)}
+                            {#if startups.some((s:any) => s.fundingProgress && s.fundingProgress < 30)}
                                 <p class="text-sm text-muted-foreground">
                                     <span class="font-medium text-foreground"
                                         >Funding Alert:</span
@@ -370,14 +371,14 @@
                                     deck or expanding investor outreach.
                                 </p>
                             {/if}
-                            {#if startups.some((s) => s.team < 5 && (s.stage === "seed" || s.stage === "series_a"))}
+                            {#if startups.some((s:any) => s.team < 5 && (s.stage === "seed" || s.stage === "series_a"))}
                                 <p class="text-sm text-muted-foreground">
                                     <span class="font-medium text-foreground"
                                         >Team Growth:</span
                                     >
                                     Consider expanding your team to support scaling
                                     in the {startups.find(
-                                        (s) =>
+                                        (s:any) =>
                                             s.team < 5 &&
                                             (s.stage === "seed" ||
                                                 s.stage === "series_a"),
@@ -390,8 +391,8 @@
                                 >
                                 Your highest performing startup is showing {Math.max(
                                     ...startups
-                                        .filter((s) => s.metrics?.growth)
-                                        .map((s) => s.metrics?.growth || 0),
+                                        .filter((s:any) => s.metrics?.growth)
+                                        .map((s:any) => s.metrics?.growth || 0),
                                 )}% growth. Consider allocating more resources
                                 here.
                             </p>
@@ -501,9 +502,9 @@
                         <Select.Group>
                             <Select.Label>Industries</Select.Label>
                             {#each industryOptions as option}
-                                <Select.Item value={option.value}
-                                    >{option.label}</Select.Item
-                                >
+                                <Select.Item value={option.value}>
+                                    {option.label}
+                                </Select.Item>
                             {/each}
                         </Select.Group>
                     </Select.Content>
