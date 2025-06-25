@@ -38,7 +38,9 @@ export enum ApiEndpoint {
   UPLOAD_IMAGE = '/upload/image',
   UPLOAD_DOCUMENT = '/upload/document',
   UPLOAD_PROFILE_IMAGE = '/upload/profile-image',
+  UPLOAD_FILE = '/upload/video',
   DELETE_FILE = '/upload/{file_key}',
+  
 
 
   // Product related endpoints

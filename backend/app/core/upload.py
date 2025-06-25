@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import logging
 import os
 import uuid
 from datetime import datetime
@@ -15,6 +16,9 @@ from PIL import Image, ImageOps
 from pydantic import BaseModel
 
 from app.core.config import settings
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # from app.models import UploadResponse
 
@@ -143,6 +147,8 @@ class MinIOClient:
             config=Config(
                 signature_version="s3v4",
                 retries={"max_attempts": 3, "mode": "adaptive"},
+                max_pool_connections=50,  # Increase pool size
+                region_name="us-east-1",  # Add explicit region
             ),
             use_ssl=settings.MINIO_SECURE,
         )
@@ -171,6 +177,9 @@ class MinIOClient:
         try:
             extra_args = {"ContentType": content_type, "Metadata": metadata or {}}
 
+            # Ensure file_data is at the beginning
+            file_data.seek(0)
+
             await asyncio.to_thread(
                 self.client.upload_fileobj,
                 file_data,
@@ -191,6 +200,10 @@ class MinIOClient:
 
         except ClientError as e:
             raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Unexpected upload error: {str(e)}"
+            )
 
     async def delete_file(self, key: str) -> None:
         """Delete file from MinIO"""
@@ -234,91 +247,135 @@ class FileUploadService:
 
     async def upload_image(self, file: UploadFile) -> UploadResponse:
         """Upload and process image file"""
-        # Validate file
-        self.validator.validate_file_size(file, settings.MAX_IMAGE_SIZE)
-        detected_type = await self.validator.validate_file_type(
-            file, settings.ALLOWED_IMAGE_TYPES
-        )
+        optimized_image = None
+        thumbnail_data = None
 
-        # Read file content
-        content = await file.read()
-        file_hash = self._calculate_file_hash(content)
-
-        # Process image
         try:
-            image = Image.open(BytesIO(content))
+            logger.info(f"Starting image upload for file: {file.filename}")
 
-            # Convert RGBA to RGB for JPEG compatibility
-            if image.mode in ("RGBA", "LA", "P"):
-                background = Image.new("RGB", image.size, (255, 255, 255))
-                if image.mode == "P":
-                    image = image.convert("RGBA")
-                background.paste(
-                    image, mask=image.split()[-1] if image.mode == "RGBA" else None
-                )
-                image = background
-
-            # Auto-orient based on EXIF data
-            image = ImageOps.exif_transpose(image)
-
-            # Resize if necessary
-            if (
-                image.width > settings.IMAGE_MAX_WIDTH
-                or image.height > settings.IMAGE_MAX_HEIGHT
-            ):
-                image = self.image_processor.resize_image(
-                    image, settings.IMAGE_MAX_WIDTH, settings.IMAGE_MAX_HEIGHT
-                )
-
-            # Create optimized version
-            optimized_image = self.image_processor.optimize_image(image)
-
-            # Create thumbnail
-            thumbnail = self.image_processor.create_thumbnail(
-                image, settings.THUMBNAIL_SIZE
+            # Validate file
+            self.validator.validate_file_size(file, settings.MAX_IMAGE_SIZE)
+            detected_type = await self.validator.validate_file_type(
+                file, settings.ALLOWED_IMAGE_TYPES
             )
-            thumbnail_data = self.image_processor.optimize_image(thumbnail)
+            logger.info(f"File validation passed: {detected_type}")
 
+            # Read file content
+            content = await file.read()
+            file_hash = self._calculate_file_hash(content)
+            logger.info(f"File content read and hash calculated: {file_hash[:16]}...")
+
+            # Process image
+            try:
+                image = Image.open(BytesIO(content))
+                logger.info(
+                    f"Image opened successfully: {image.size}, mode: {image.mode}"
+                )
+
+                # Convert RGBA to RGB for JPEG compatibility
+                if image.mode in ("RGBA", "LA", "P"):
+                    background = Image.new("RGB", image.size, (255, 255, 255))
+                    if image.mode == "P":
+                        image = image.convert("RGBA")
+                    background.paste(
+                        image, mask=image.split()[-1] if image.mode == "RGBA" else None
+                    )
+                    image = background
+                    logger.info("Image converted to RGB mode")
+
+                # Auto-orient based on EXIF data
+                image = ImageOps.exif_transpose(image)
+
+                # Resize if necessary
+                if (
+                    image.width > settings.IMAGE_MAX_WIDTH
+                    or image.height > settings.IMAGE_MAX_HEIGHT
+                ):
+                    image = self.image_processor.resize_image(
+                        image, settings.IMAGE_MAX_WIDTH, settings.IMAGE_MAX_HEIGHT
+                    )
+                    logger.info(f"Image resized to: {image.size}")
+
+                # Create optimized version
+                optimized_image = self.image_processor.optimize_image(image)
+                logger.info("Image optimized successfully")
+
+                # Create thumbnail
+                thumbnail = self.image_processor.create_thumbnail(
+                    image, settings.THUMBNAIL_SIZE
+                )
+                thumbnail_data = self.image_processor.optimize_image(thumbnail)
+                logger.info("Thumbnail created successfully")
+
+            except Exception as e:
+                logger.error(f"Image processing failed: {str(e)}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid image file: {str(e)}"
+                )
+
+            # Generate file keys
+            file_key = self._generate_file_key(file.filename or "image", detected_type)
+            thumbnail_key = f"thumbnails/{file_key}"
+            logger.info(f"File keys generated: {file_key}")
+
+            # Ensure bucket exists
+            await self.minio_client.ensure_bucket_exists()
+            logger.info("Bucket existence verified")
+
+            # Upload files
+            metadata = {
+                "original-filename": file.filename or "",
+                "file-hash": file_hash,
+                "upload-timestamp": datetime.utcnow().isoformat(),
+            }
+
+            # Upload main image
+            logger.info("Starting main image upload...")
+            url = await self.minio_client.upload_file(
+                optimized_image, file_key, detected_type, metadata
+            )
+            logger.info(f"Main image uploaded successfully: {url}")
+
+            # Upload thumbnail
+            logger.info("Starting thumbnail upload...")
+            thumbnail_url = await self.minio_client.upload_file(
+                thumbnail_data, thumbnail_key, detected_type, metadata
+            )
+            logger.info(f"Thumbnail uploaded successfully: {thumbnail_url}")
+
+            response = UploadResponse(
+                file_id=file_key.split("/")[-1].split("_")[0],
+                filename=file.filename or "image",
+                content_type=detected_type,
+                size=len(optimized_image.getvalue()),
+                url=url,
+                thumbnail_url=thumbnail_url,
+                metadata={
+                    "hash": file_hash,
+                    "dimensions": f"{image.width}x{image.height}",
+                    "original_size": len(content),
+                },
+            )
+            logger.info("Upload response created successfully")
+            return response
+
+        except HTTPException:
+            # Re-raise HTTP exceptions as-is
+            logger.error("HTTPException occurred during image upload")
+            raise
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
-
-        # Generate file keys
-        file_key = self._generate_file_key(file.filename or "image", detected_type)
-        thumbnail_key = f"thumbnails/{file_key}"
-
-        # Ensure bucket exists
-        await self.minio_client.ensure_bucket_exists()
-
-        # Upload files
-        metadata = {
-            "original-filename": file.filename or "",
-            "file-hash": file_hash,
-            "upload-timestamp": datetime.utcnow().isoformat(),
-        }
-
-        # Upload main image
-        url = await self.minio_client.upload_file(
-            optimized_image, file_key, detected_type, metadata
-        )
-
-        # Upload thumbnail
-        thumbnail_url = await self.minio_client.upload_file(
-            thumbnail_data, thumbnail_key, detected_type, metadata
-        )
-
-        return UploadResponse(
-            file_id=file_key.split("/")[-1].split("_")[0],
-            filename=file.filename or "image",
-            content_type=detected_type,
-            size=len(optimized_image.getvalue()),
-            url=url,
-            thumbnail_url=thumbnail_url,
-            metadata={
-                "hash": file_hash,
-                "dimensions": f"{image.width}x{image.height}",
-                "original_size": len(content),
-            },
-        )
+            # Catch any other unexpected errors
+            logger.error(f"Unexpected error during image upload: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Image upload failed: {str(e)}"
+            )
+        finally:
+            # Clean up BytesIO objects
+            if optimized_image and hasattr(optimized_image, "close"):
+                optimized_image.close()
+            if thumbnail_data and hasattr(thumbnail_data, "close"):
+                thumbnail_data.close()
+            logger.info("Image upload cleanup completed")
 
     async def upload_document(self, file: UploadFile) -> UploadResponse:
         """Upload document file"""
@@ -409,5 +466,11 @@ class FileUploadService:
             pass  # Thumbnail might not exist
 
 
-# Singleton instance
+# Function to get upload service instance - avoid singleton issues
+def get_upload_service() -> FileUploadService:
+    """Get a new upload service instance"""
+    return FileUploadService()
+
+
+# Singleton instance for backward compatibility
 upload_service = FileUploadService()
