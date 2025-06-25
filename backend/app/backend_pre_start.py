@@ -51,15 +51,15 @@ async def init_storage() -> None:
             return
 
         # Import here to avoid circular imports and ensure settings are loaded
-        from app.core.upload import MinIOClient
+        from app.core.storage import get_default_storage_client
 
-        minio_client = MinIOClient()
+        storage_client = get_default_storage_client()
 
         # Test connection by trying to check if bucket exists
-        await minio_client.ensure_bucket_exists()
+        await storage_client.ensure_bucket_exists()
 
         logger.info(
-            f"Storage server connected successfully - Bucket: {minio_client.bucket_name}"
+            f"Storage server connected successfully - Bucket: {storage_client.bucket_name}"
         )
 
     except Exception as e:

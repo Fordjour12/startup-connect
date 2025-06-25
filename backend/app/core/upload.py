@@ -1,413 +1,328 @@
-import asyncio
-import hashlib
-import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import BytesIO
-from typing import Any, BinaryIO
+from pathlib import Path
+from typing import Dict, List, Optional
 
-import boto3
-import magic
-from botocore.config import Config
-from botocore.exceptions import ClientError
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException, UploadFile, status
 from PIL import Image, ImageOps
-from pydantic import BaseModel
 
 from app.core.config import settings
-
-# from app.models import UploadResponse
-
-
-class UploadResponse(BaseModel):
-    """Response model for file uploads"""
-
-    file_id: str
-    filename: str
-    content_type: str
-    size: int
-    url: str
-    thumbnail_url: str | None = None
-    metadata: dict[str, Any] = {}
+from app.core.storage import StorageClient, get_default_storage_client
+from app.models.upload import FileMetadata, UploadResponse
 
 
-class FileValidator:
-    """Handles file validation and security checks"""
+class FileUploadError(HTTPException):
+    """Custom exception for file upload errors"""
 
-    @staticmethod
-    def validate_file_size(file: UploadFile, max_size: int) -> None:
-        """Validate file size"""
-        if not hasattr(file.file, "seek") or not hasattr(file.file, "tell"):
-            raise HTTPException(status_code=400, detail="Invalid file object")
-
-        # Get file size
-        file.file.seek(0, 2)  # Seek to end
-        size = file.file.tell()
-        file.file.seek(0)  # Reset to beginning
-
-        if size > max_size:
-            raise HTTPException(
-                status_code=413,
-                detail=f"File too large. Maximum size: {max_size // (1024 * 1024)}MB",
-            )
-
-    @staticmethod
-    async def validate_file_type(file: UploadFile, allowed_types: list[str]) -> str:
-        """Validate file type using python-magic for security"""
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="Filename is required")
-
-        # Read file content for magic detection
-        content = await file.read()
-        await file.seek(0)  # Reset file pointer
-
-        # Detect actual file type
-        detected_type = magic.from_buffer(content, mime=True)
-
-        # Validate against allowed types
-        if detected_type not in allowed_types:
-            raise HTTPException(
-                status_code=400,
-                detail=f"File type '{detected_type}' not allowed. Allowed types: {allowed_types}",
-            )
-
-        return detected_type
-
-    @staticmethod
-    def sanitize_filename(filename: str) -> str:
-        """Sanitize filename for security"""
-        # Remove path separators and other dangerous characters
-        filename = os.path.basename(filename)
-        filename = "".join(c for c in filename if c.isalnum() or c in "._-")
-
-        # Ensure filename is not empty
-        if not filename:
-            filename = "unnamed_file"
-
-        return filename[:255]  # Limit length
+    def __init__(self, detail: str, status_code: int = status.HTTP_400_BAD_REQUEST):
+        super().__init__(status_code=status_code, detail=detail)
 
 
-class ImageProcessor:
-    """Handles image processing and optimization"""
+class UploadService:
+    """Production-grade file upload service with pluggable storage backend"""
 
-    @staticmethod
-    def resize_image(
-        image: Image.Image, max_width: int, max_height: int
-    ) -> Image.Image:
-        """Resize image while maintaining aspect ratio"""
-        # Calculate new size maintaining aspect ratio
-        ratio = min(max_width / image.width, max_height / image.height)
-        if ratio < 1:
-            new_size = (int(image.width * ratio), int(image.height * ratio))
-            image = image.resize(new_size, Image.Resampling.LANCZOS)
+    def __init__(self, storage_client: Optional[StorageClient] = None):
+        self.storage_client = storage_client or get_default_storage_client()
+        # Ensure bucket exists on initialization
+        self._ensure_bucket_exists()
 
-        return image
-
-    @staticmethod
-    def create_thumbnail(image: Image.Image, size: tuple[int, int]) -> Image.Image:
-        """Create thumbnail with proper aspect ratio"""
-        thumbnail = image.copy()
-        thumbnail.thumbnail(size, Image.Resampling.LANCZOS)
-        return thumbnail
-
-    @staticmethod
-    def optimize_image(
-        image: Image.Image, format: str = "JPEG", quality: int = 85
-    ) -> BytesIO:
-        """Optimize image for web"""
-        output = BytesIO()
-
-        # Set optimization parameters based on format
-        if format.upper() == "JPEG":
-            image.save(output, format=format, quality=quality, optimize=True)
-        elif format.upper() == "PNG":
-            image.save(output, format=format, optimize=True)
-        elif format.upper() == "WEBP":
-            image.save(output, format=format, quality=quality, optimize=True)
-        else:
-            image.save(output, format=format)
-
-        output.seek(0)
-        return output
-
-
-class MinIOClient:
-    """MinIO/S3 client wrapper"""
-
-    def __init__(self):
-        self.client = boto3.client(
-            "s3",
-            endpoint_url=f"http{'s' if settings.MINIO_SECURE else ''}://{settings.MINIO_ENDPOINT}",
-            aws_access_key_id=settings.MINIO_ACCESS_KEY,
-            aws_secret_access_key=settings.MINIO_SECRET_KEY,
-            config=Config(
-                signature_version="s3v4",
-                retries={"max_attempts": 3, "mode": "adaptive"},
-            ),
-            use_ssl=settings.MINIO_SECURE,
-        )
-        self.bucket_name = settings.MINIO_BUCKET_NAME
-
-    async def ensure_bucket_exists(self) -> None:
-        """Ensure the bucket exists, create if not"""
+    def _ensure_bucket_exists(self) -> None:
+        """Ensure the storage bucket exists"""
         try:
-            await asyncio.to_thread(self.client.head_bucket, Bucket=self.bucket_name)
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "404":
-                await asyncio.to_thread(
-                    self.client.create_bucket, Bucket=self.bucket_name
-                )
-            else:
-                raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")
+            if not self.storage_client.bucket_exists():
+                import asyncio
 
-    async def upload_file(
-        self,
-        file_data: BinaryIO,
-        key: str,
-        content_type: str,
-        metadata: dict[str, str] | None = None,
+                # Run async method in sync context
+                if hasattr(asyncio, "_get_running_loop"):
+                    try:
+                        asyncio.get_running_loop()
+                        # We're in an async context
+                        raise RuntimeError(
+                            "Cannot initialize bucket synchronously in async context"
+                        )
+                    except RuntimeError:
+                        # No running loop, we can use asyncio.run
+                        asyncio.run(self.storage_client.ensure_bucket_exists())
+                else:
+                    asyncio.run(self.storage_client.ensure_bucket_exists())
+        except Exception as e:
+            raise ValueError(f"Failed to initialize storage bucket: {e}")
+
+    def _generate_file_path(
+        self, file_type: str, file_id: str, filename: str, variant: str = ""
     ) -> str:
-        """Upload file to MinIO"""
-        try:
-            extra_args = {"ContentType": content_type, "Metadata": metadata or {}}
+        """Generate organized file path structure"""
+        date_path = datetime.now().strftime("%Y/%m/%d")
+        variant_suffix = f"_{variant}" if variant else ""
+        file_extension = Path(filename).suffix
 
-            await asyncio.to_thread(
-                self.client.upload_fileobj,
-                file_data,
-                self.bucket_name,
-                key,
-                ExtraArgs=extra_args,
+        return f"{file_type}/{date_path}/{file_id}{variant_suffix}{file_extension}"
+
+    def _validate_file_type(self, file: UploadFile, expected_types: List[str]) -> None:
+        """Validate file type against expected types"""
+        if not file.content_type or file.content_type not in expected_types:
+            raise FileUploadError(
+                f"Invalid file type. Expected: {', '.join(expected_types)}, got: {file.content_type}"
             )
 
-            # Generate URL - use public endpoint if available, otherwise use main endpoint
-            endpoint = settings.MINIO_ENDPOINT
-            if not endpoint:
-                raise HTTPException(
-                    status_code=500, detail="MinIO endpoint not configured"
-                )
-            url = f"http{'s' if settings.MINIO_SECURE else ''}://{endpoint}/{self.bucket_name}/{key}"
+    def _validate_file_size(self, file: UploadFile, max_size: int) -> None:
+        """Validate file size"""
+        if not file.size:
+            raise FileUploadError("File size cannot be determined")
 
-            return url
+        if file.size > max_size:
+            max_mb = max_size / (1024 * 1024)
+            raise FileUploadError(f"File too large. Maximum size: {max_mb:.1f}MB")
 
-        except ClientError as e:
-            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
-
-    async def delete_file(self, key: str) -> None:
-        """Delete file from MinIO"""
+    async def _read_file_content(self, file: UploadFile) -> bytes:
+        """Read file content safely"""
         try:
-            await asyncio.to_thread(
-                self.client.delete_object, Bucket=self.bucket_name, Key=key
-            )
-        except ClientError as e:
-            raise HTTPException(status_code=500, detail=f"Delete failed: {str(e)}")
+            content = await file.read()
+            await file.seek(0)  # Reset file pointer
+            return content
+        except Exception as e:
+            raise FileUploadError(f"Failed to read file content: {str(e)}")
 
+    def _calculate_checksum(self, content: bytes) -> str:
+        """Calculate MD5 checksum for file integrity"""
+        import hashlib
 
-class FileUploadService:
-    """Main file upload service"""
+        return hashlib.md5(content).hexdigest()
 
-    def __init__(self):
-        self.minio_client = MinIOClient()
-        self.validator = FileValidator()
-        self.image_processor = ImageProcessor()
+    async def _process_image(
+        self, content: bytes, file_id: str, filename: str
+    ) -> Dict[str, str]:
+        """Process image: resize, optimize, create thumbnails"""
+        variants = {}
 
-    def _generate_file_key(self, filename: str, file_type: str) -> str:
-        """Generate unique file key with organized folder structure"""
-        timestamp = datetime.utcnow().strftime("%Y/%m/%d")
-        file_id = str(uuid.uuid4())
-        sanitized_name = self.validator.sanitize_filename(filename)
-
-        # Organize by file type
-        if file_type.startswith("image/"):
-            folder = "images"
-        elif file_type.startswith("video/"):
-            folder = "videos"
-        elif file_type == "application/pdf":
-            folder = "documents"
-        else:
-            folder = "files"
-
-        return f"{folder}/{timestamp}/{file_id}_{sanitized_name}"
-
-    def _calculate_file_hash(self, content: bytes) -> str:
-        """Calculate SHA-256 hash of file content"""
-        return hashlib.sha256(content).hexdigest()
-
-    async def upload_image(self, file: UploadFile) -> UploadResponse:
-        """Upload and process image file"""
-        # Validate file
-        self.validator.validate_file_size(file, settings.MAX_IMAGE_SIZE)
-        detected_type = await self.validator.validate_file_type(
-            file, settings.ALLOWED_IMAGE_TYPES
-        )
-
-        # Read file content
-        content = await file.read()
-        file_hash = self._calculate_file_hash(content)
-
-        # Process image
         try:
+            # Open and process image
             image = Image.open(BytesIO(content))
 
-            # Convert RGBA to RGB for JPEG compatibility
-            if image.mode in ("RGBA", "LA", "P"):
-                background = Image.new("RGB", image.size, (255, 255, 255))
-                if image.mode == "P":
-                    image = image.convert("RGBA")
-                background.paste(
-                    image, mask=image.split()[-1] if image.mode == "RGBA" else None
-                )
-                image = background
+            # Convert to RGB if necessary
+            if image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
 
             # Auto-orient based on EXIF data
             image = ImageOps.exif_transpose(image)
 
-            # Resize if necessary
-            if (
-                image.width > settings.IMAGE_MAX_WIDTH
-                or image.height > settings.IMAGE_MAX_HEIGHT
-            ):
-                image = self.image_processor.resize_image(
-                    image, settings.IMAGE_MAX_WIDTH, settings.IMAGE_MAX_HEIGHT
+            # Create different variants
+            variants_config = {
+                "original": None,  # Keep original
+                "large": (1920, 1080),
+                "medium": (800, 600),
+                "small": (400, 300),
+                "thumbnail": settings.THUMBNAIL_SIZE,
+            }
+
+            for variant_name, size in variants_config.items():
+                processed_image = image.copy()
+
+                if size and (image.width > size[0] or image.height > size[1]):
+                    processed_image.thumbnail(size, Image.Resampling.LANCZOS)
+
+                # Save processed image
+                output = BytesIO()
+                processed_image.save(output, format="JPEG", quality=85, optimize=True)
+                processed_content = output.getvalue()
+
+                # Upload variant using storage client
+                variant_path = self._generate_file_path(
+                    "images", file_id, filename, variant_name
                 )
+                variant_url = await self.storage_client.upload_file(
+                    variant_path, processed_content, "image/jpeg"
+                )
+                variants[variant_name] = variant_url
 
-            # Create optimized version
-            optimized_image = self.image_processor.optimize_image(image)
-
-            # Create thumbnail
-            thumbnail = self.image_processor.create_thumbnail(
-                image, settings.THUMBNAIL_SIZE
-            )
-            thumbnail_data = self.image_processor.optimize_image(thumbnail)
+            return variants
 
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
+            raise FileUploadError(f"Image processing failed: {str(e)}")
 
-        # Generate file keys
-        file_key = self._generate_file_key(file.filename or "image", detected_type)
-        thumbnail_key = f"thumbnails/{file_key}"
+    async def upload_image(self, file: UploadFile) -> UploadResponse:
+        """Upload and process image files"""
+        # Validation
+        if not file.filename:
+            raise FileUploadError("Filename is required")
+        if not file.content_type:
+            raise FileUploadError("Content type is required")
 
-        # Ensure bucket exists
-        await self.minio_client.ensure_bucket_exists()
+        self._validate_file_type(file, settings.ALLOWED_IMAGE_TYPES)
+        self._validate_file_size(file, settings.MAX_IMAGE_SIZE)
 
-        # Upload files
-        metadata = {
-            "original-filename": file.filename or "",
-            "file-hash": file_hash,
-            "upload-timestamp": datetime.utcnow().isoformat(),
-        }
+        # Generate file ID and read content
+        file_id = str(uuid.uuid4())
+        content = await self._read_file_content(file)
+        checksum = self._calculate_checksum(content)
 
-        # Upload main image
-        url = await self.minio_client.upload_file(
-            optimized_image, file_key, detected_type, metadata
-        )
+        # Process image and create variants
+        variants = await self._process_image(content, file_id, file.filename)
 
-        # Upload thumbnail
-        thumbnail_url = await self.minio_client.upload_file(
-            thumbnail_data, thumbnail_key, detected_type, metadata
+        # Create metadata
+        file_metadata_obj = FileMetadata(
+            filename=f"{file_id}{Path(file.filename).suffix}",
+            original_filename=file.filename,
+            content_type=file.content_type,
+            size=len(content),
+            upload_date=datetime.now(),
+            file_id=file_id,
+            file_type="image",
+            processed=True,
+            thumbnail_url=variants.get("thumbnail"),
+            variants=variants,
+            checksum=checksum,
         )
 
         return UploadResponse(
-            file_id=file_key.split("/")[-1].split("_")[0],
-            filename=file.filename or "image",
-            content_type=detected_type,
-            size=len(optimized_image.getvalue()),
-            url=url,
-            thumbnail_url=thumbnail_url,
-            metadata={
-                "hash": file_hash,
-                "dimensions": f"{image.width}x{image.height}",
-                "original_size": len(content),
-            },
+            success=True,
+            file_id=file_id,
+            filename=file_metadata_obj.filename,
+            content_type=file.content_type,
+            size=len(content),
+            url=variants.get("original", ""),
+            thumbnail_url=variants.get("thumbnail"),
+            variants=variants,
+            file_metadata=file_metadata_obj.model_dump(),
+            upload_date=file_metadata_obj.upload_date,
         )
 
     async def upload_document(self, file: UploadFile) -> UploadResponse:
-        """Upload document file"""
-        # Validate file
-        self.validator.validate_file_size(file, settings.MAX_FILE_SIZE)
-        detected_type = await self.validator.validate_file_type(
-            file, settings.ALLOWED_DOCUMENT_TYPES
+        """Upload document files"""
+        # Validation
+        if not file.filename:
+            raise FileUploadError("Filename is required")
+        if not file.content_type:
+            raise FileUploadError("Content type is required")
+
+        self._validate_file_type(file, settings.ALLOWED_DOCUMENT_TYPES)
+        self._validate_file_size(file, settings.MAX_FILE_SIZE)
+
+        # Generate file ID and read content
+        file_id = str(uuid.uuid4())
+        content = await self._read_file_content(file)
+        checksum = self._calculate_checksum(content)
+
+        # Upload file using storage client
+        file_path = self._generate_file_path("documents", file_id, file.filename)
+        url = await self.storage_client.upload_file(
+            file_path, content, file.content_type
         )
 
-        # Read file content
-        content = await file.read()
-        file_hash = self._calculate_file_hash(content)
-
-        # Generate file key
-        file_key = self._generate_file_key(file.filename or "document", detected_type)
-
-        # Ensure bucket exists
-        await self.minio_client.ensure_bucket_exists()
-
-        # Upload file
-        metadata = {
-            "original-filename": file.filename or "",
-            "file-hash": file_hash,
-            "upload-timestamp": datetime.utcnow().isoformat(),
-        }
-
-        url = await self.minio_client.upload_file(
-            BytesIO(content), file_key, detected_type, metadata
+        # Create metadata
+        file_metadata_obj = FileMetadata(
+            filename=f"{file_id}{Path(file.filename).suffix}",
+            original_filename=file.filename,
+            content_type=file.content_type,
+            size=len(content),
+            upload_date=datetime.now(),
+            file_id=file_id,
+            file_type="document",
+            processed=True,
+            checksum=checksum,
         )
 
         return UploadResponse(
-            file_id=file_key.split("/")[-1].split("_")[0],
-            filename=file.filename or "document",
-            content_type=detected_type,
+            success=True,
+            file_id=file_id,
+            filename=file_metadata_obj.filename,
+            content_type=file.content_type,
             size=len(content),
             url=url,
-            metadata={"hash": file_hash, "original_size": len(content)},
+            file_metadata=file_metadata_obj.model_dump(),
+            upload_date=file_metadata_obj.upload_date,
         )
 
     async def upload_video(self, file: UploadFile) -> UploadResponse:
-        """Upload video file"""
-        # Validate file
-        self.validator.validate_file_size(file, settings.MAX_VIDEO_SIZE)
-        detected_type = await self.validator.validate_file_type(
-            file, settings.ALLOWED_VIDEO_TYPES
+        """Upload video files"""
+        # Validation
+        if not file.filename:
+            raise FileUploadError("Filename is required")
+        if not file.content_type:
+            raise FileUploadError("Content type is required")
+
+        self._validate_file_type(file, settings.ALLOWED_VIDEO_TYPES)
+        self._validate_file_size(file, settings.MAX_VIDEO_SIZE)
+
+        # Generate file ID and read content
+        file_id = str(uuid.uuid4())
+        content = await self._read_file_content(file)
+        checksum = self._calculate_checksum(content)
+
+        # Upload file using storage client
+        file_path = self._generate_file_path("videos", file_id, file.filename)
+        url = await self.storage_client.upload_file(
+            file_path, content, file.content_type
         )
 
-        # Read file content
-        content = await file.read()
-        file_hash = self._calculate_file_hash(content)
-
-        # Generate file key
-        file_key = self._generate_file_key(file.filename or "video", detected_type)
-
-        # Ensure bucket exists
-        await self.minio_client.ensure_bucket_exists()
-
-        # Upload file
-        metadata = {
-            "original-filename": file.filename or "",
-            "file-hash": file_hash,
-            "upload-timestamp": datetime.utcnow().isoformat(),
-            "file-type": "video",
-        }
-
-        url = await self.minio_client.upload_file(
-            BytesIO(content), file_key, detected_type, metadata
+        # Create metadata
+        file_metadata_obj = FileMetadata(
+            filename=f"{file_id}{Path(file.filename).suffix}",
+            original_filename=file.filename,
+            content_type=file.content_type,
+            size=len(content),
+            upload_date=datetime.now(),
+            file_id=file_id,
+            file_type="video",
+            processed=True,
+            checksum=checksum,
         )
 
         return UploadResponse(
-            file_id=file_key.split("/")[-1].split("_")[0],
-            filename=file.filename or "video",
-            content_type=detected_type,
+            success=True,
+            file_id=file_id,
+            filename=file_metadata_obj.filename,
+            content_type=file.content_type,
             size=len(content),
             url=url,
-            metadata={"hash": file_hash, "original_size": len(content)},
+            file_metadata=file_metadata_obj.model_dump(),
+            upload_date=file_metadata_obj.upload_date,
         )
 
-    async def delete_file(self, file_key: str) -> None:
-        """Delete file and its thumbnail if exists"""
-        await self.minio_client.delete_file(file_key)
+    async def upload_startup_files(
+        self, files: Dict[str, UploadFile], startup_id: str
+    ) -> Dict[str, UploadResponse]:
+        """Upload multiple files for a startup profile"""
+        results = {}
 
-        # Try to delete thumbnail (ignore if doesn't exist)
-        try:
-            thumbnail_key = f"thumbnails/{file_key}"
-            await self.minio_client.delete_file(thumbnail_key)
-        except HTTPException:
-            pass  # Thumbnail might not exist
+        # Define file handlers
+        handlers = {
+            "logo": self.upload_image,
+            "pitchDeck": self.upload_document,
+            "demoVideo": self.upload_video,
+            "productScreenshots": self.upload_image,
+        }
+
+        for field_name, file in files.items():
+            if file and field_name in handlers:
+                try:
+                    result = await handlers[field_name](file)
+                    # Add startup context to metadata
+                    result.file_metadata.update(
+                        {"startup_id": startup_id, "field_name": field_name}
+                    )
+                    results[field_name] = result
+                except Exception as e:
+                    results[field_name] = {"success": False, "error": str(e)}
+
+        return results
+
+    async def delete_file(self, file_path: str) -> bool:
+        """Delete file from storage"""
+        return await self.storage_client.delete_file(file_path)
+
+    def generate_presigned_url(
+        self, file_path: str, expires: timedelta = timedelta(hours=1)
+    ) -> str:
+        """Generate presigned URL for temporary access"""
+        return self.storage_client.generate_presigned_url(file_path, expires)
+
+    @property
+    def bucket_name(self) -> str:
+        """Get bucket name from storage client"""
+        return self.storage_client.bucket_name
 
 
-# Singleton instance
-upload_service = FileUploadService()
+# Global upload service instance
+upload_service = UploadService()

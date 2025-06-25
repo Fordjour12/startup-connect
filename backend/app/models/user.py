@@ -8,9 +8,9 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 class UserRole(str, enum.Enum):
-    FOUNDER = "founder"
-    SUPPORTER = "supporter"
-    INVESTOR = "investor"
+    FOUNDER = "Founder"
+    SUPPORTER = "Supporter"
+    INVESTOR = "Investor"
 
 
 class UserBase(SQLModel):

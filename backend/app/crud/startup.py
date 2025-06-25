@@ -42,7 +42,7 @@ def get_startups(
 
     # Filter by published status by default for public listings
     if published_only:
-        statement = statement.where(Startup.is_published.is_(True))
+        statement = statement.where(Startup.is_published)
     if industry:
         statement = statement.where(Startup.industry == industry)
     if location:
@@ -149,7 +149,7 @@ def get_startups_by_founder(
 
     # If not including drafts, only return published startups
     if not include_drafts:
-        statement = statement.where(Startup.is_published == True)
+        statement = statement.where(Startup.is_published )
 
     results = db.exec(statement).all()
     return results
@@ -195,7 +195,7 @@ def get_draft_startups_by_founder(
     db: Session, founder_id: uuid.UUID
 ) -> Sequence[Startup]:
     statement = select(Startup).where(
-        Startup.founder_id == founder_id, Startup.is_published == False
+        Startup.founder_id == founder_id, not Startup.is_published
     )
     results = db.exec(statement).all()
     return results

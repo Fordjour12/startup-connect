@@ -26,7 +26,7 @@
         TabsList,
         TabsTrigger,
     } from "$lib/components/ui/tabs";
-    import { portfolioManager } from "@/PortfolioManager.svelte";
+    import { portfolioManager } from "@/hooks/PortfolioManager.svelte";
     import { onMount } from "svelte";
     import type { PageData } from "./$types";
 
