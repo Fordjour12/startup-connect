@@ -17,7 +17,7 @@
         SelectItem,
         SelectTrigger,
     } from "$lib/components/ui/select";
-    import { portfolioManager } from "@/PortfolioManager.svelte";
+    import { portfolioManager } from "@/hooks/PortfolioManager.svelte";
 
     // Local state
     let open = $state(false);
