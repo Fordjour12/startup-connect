@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 
 from sqlmodel import JSON, Column, Field, SQLModel
 
@@ -33,5 +33,25 @@ class UploadResponse(SQLModel):
     url: str
     thumbnail_url: Optional[str] = None
     variants: Dict[str, str] = Field(default_factory=dict)
-    file_metadata: Dict[str, Union[str, int, bool]] = Field(default_factory=dict)
+    file_metadata: Dict[str, Union[str, int, bool, datetime, dict, None]] = Field(
+        default_factory=dict
+    )
     upload_date: datetime
+
+
+# Add these new models
+class BatchUploadResponse(SQLModel):
+    """Response for batch upload operations"""
+
+    total_files: int
+    successful_uploads: List[UploadResponse]
+    failed_uploads: List[dict]
+    success_count: int
+    error_count: int
+
+
+class StartupFilesRequest(SQLModel):
+    """Request model for startup file uploads"""
+
+    startup_name: Optional[str] = None
+    startup_id: Optional[str] = None

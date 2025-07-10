@@ -37,8 +37,11 @@ export enum ApiEndpoint {
   // Upload endpoints
   UPLOAD_IMAGE = '/upload/image',
   UPLOAD_DOCUMENT = '/upload/document',
+  UPLOAD_VIDEO = '/upload/video',
   UPLOAD_PROFILE_IMAGE = '/upload/profile-image',
   UPLOAD_FILE = '/upload/video',
+  UPLOAD_BATCH = '/upload/batch',
+  UPLOAD_BATCH_ATOMIC = '/upload/batch-atomic',
   UPLOAD_STARTUP_FILES = '/upload/startup-files',
   DELETE_FILE = '/upload/{file_key}',
 

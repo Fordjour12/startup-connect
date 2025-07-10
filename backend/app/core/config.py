@@ -66,6 +66,7 @@ class Settings(BaseSettings):
         "image/gif",
         "image/svg+xml",
         "image/svg",
+        "image/jpg",
     ]
     ALLOWED_DOCUMENT_TYPES: list[str] = [
         "application/pdf",
