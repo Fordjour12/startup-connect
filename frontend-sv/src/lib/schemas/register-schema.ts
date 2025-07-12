@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const userTypes = ['founder', 'supporter', 'investor'] as const;
+export const userTypes = ['Founder', 'Supporter', 'Investor'] as const;
 
 // export const userTypes = ["STARTUP", "SUPPORTER", "INVESTOR", "SERVICE PROVIDER"] as const;
 // export const userTypes = ["Startup Founder", "Investor", "Service Provider"] as const;

@@ -1,52 +1,54 @@
 import enum
+import json
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
+from pydantic import field_validator
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 
 class Industry(str, enum.Enum):
-    TECHNOLOGY = "technology"
-    HEALTHCARE = "healthcare"
-    FINANCE = "finance"
-    EDUCATION = "education"
-    RETAIL = "retail"
-    MANUFACTURING = "manufacturing"
-    REAL_ESTATE = "real_estate"
-    ENERGY = "energy"
-    TRANSPORTATION = "transportation"
-    MEDIA = "media"
-    ENTERTAINMENT = "entertainment"
-    FOOD_BEVERAGE = "food_beverage"
-    AGRICULTURE = "agriculture"
-    HOSPITALITY = "hospitality"
-    CONSTRUCTION = "construction"
-    TELECOMMUNICATIONS = "telecommunications"
-    BIOTECHNOLOGY = "biotechnology"
-    AEROSPACE = "aerospace"
-    AUTOMOTIVE = "automotive"
-    ECOMMERCE = "ecommerce"
-    GAMING = "gaming"
-    CYBERSECURITY = "cybersecurity"
-    FINTECH = "fintech"
-    HEALTH_TECH = "health_tech"
-    ED_TECH = "ed_tech"
-    OTHER = "other"
+    TECHNOLOGY = "Technology"
+    HEALTHCARE = "Healthcare"
+    FINANCE = "Finance"
+    EDUCATION = "Education"
+    RETAIL = "Retail"
+    MANUFACTURING = "Manufacturing"
+    REAL_ESTATE = "Real Estate"
+    ENERGY = "Energy"
+    TRANSPORTATION = "Transportation"
+    MEDIA = "Media"
+    ENTERTAINMENT = "Entertainment"
+    FOOD_BEVERAGE = "Food & Beverage"
+    AGRICULTURE = "Agriculture"
+    HOSPITALITY = "Hospitality"
+    CONSTRUCTION = "Construction"
+    TELECOMMUNICATIONS = "Telecommunications"
+    BIOTECHNOLOGY = "Biotechnology"
+    AEROSPACE = "Aerospace"
+    AUTOMOTIVE = "Automotive"
+    ECOMMERCE = "Ecommerce"
+    GAMING = "Gaming"
+    CYBERSECURITY = "Cybersecurity"
+    FINTECH = "Fintech"
+    HEALTH_TECH = "Health Tech"
+    ED_TECH = "Ed Tech"
+    OTHER = "Other"
 
 
 class FundingStage(str, enum.Enum):
-    IDEA = "idea"
-    MVP = "mvp"
-    EARLY_STAGE = "early_stage"
-    PRE_SEED = "pre_seed"
-    SEED = "seed"
-    SERIES_A = "series_a"
-    SERIES_B = "series_b"
-    SERIES_C = "series_c"
-    IPO = "ipo"
-    MERGER_ACQUISITION = "merger_acquisition"
-    OTHER = "other"
+    IDEA = "Idea"
+    MVP = "MVP"
+    EARLY_STAGE = "Early Stage"
+    PRE_SEED = "Pre-Seed"
+    SEED = "Seed"
+    SERIES_A = "Series A"
+    SERIES_B = "Series B"
+    SERIES_C = "Series C"
+    IPO = "IPO"
+    MERGER_ACQUISITION = "Merger & Acquisition"
+    OTHER = "Other"
 
 
 class TeamMember(SQLModel):
@@ -145,14 +147,64 @@ class Startup(StartupBase, table=True):
 
 class StartupCreate(StartupBase):
     is_published: bool = Field(default=False)
-    team_members: Optional[Dict[str, Any]] = None
-    funding: Optional[Dict[str, Any]] = None
-    metrics: Optional[Dict[str, Any]] = None
-    social_media: Optional[Dict[str, Any]] = None
-    contact: Optional[Dict[str, Any]] = None
-    traction: Optional[Dict[str, Any]] = None
-    use_of_funds: Optional[Dict[str, Any]] = None
-    timeline: Optional[Dict[str, Any]] = None
+    team_members: Optional[Union[List[Dict[str, Any]], Dict[str, Any]]] = None
+    funding: Optional[Union[str, Dict[str, Any]]] = None
+    metrics: Optional[Union[str, Dict[str, Any]]] = None
+    social_media: Optional[Union[str, Dict[str, Any]]] = None
+    contact: Optional[Union[str, Dict[str, Any]]] = None
+    traction: Optional[Union[str, Dict[str, Any]]] = None
+    use_of_funds: Optional[Union[str, Dict[str, Any]]] = None
+    timeline: Optional[Union[str, Dict[str, Any]]] = None
+
+    # Validators handle type conversion from flexible input types (int->str, List[str]->JSON string)
+    @field_validator("founded_year")
+    @classmethod
+    def validate_founded_year(cls, v):
+        if v is not None:
+            return str(v)
+        return v
+
+    @field_validator("competitors")
+    @classmethod
+    def validate_competitors(cls, v):
+        if v is not None:
+            if isinstance(v, list):
+                # Convert list to JSON string for storage
+                return json.dumps(v)
+            return v
+        return v
+
+    @field_validator("team_members")
+    @classmethod
+    def validate_team_members(cls, v):
+        if v is not None:
+            if isinstance(v, list):
+                # Convert list to dict format for storage
+                return {"members": v}
+            return v
+        return v
+
+    @field_validator(
+        "funding",
+        "metrics",
+        "social_media",
+        "contact",
+        "traction",
+        "use_of_funds",
+        "timeline",
+    )
+    @classmethod
+    def validate_json_fields(cls, v):
+        if v is not None:
+            if isinstance(v, str):
+                # If it's a JSON string, try to parse it
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    # If parsing fails, store as-is in a wrapper dict
+                    return {"value": v}
+            return v
+        return v
 
 
 class StartupRead(StartupBase):
@@ -186,11 +238,56 @@ class StartupUpdate(SQLModel):
     target_market: Optional[str] = None
     competitors: Optional[str] = None
     is_published: Optional[bool] = None
-    team_members: Optional[Dict[str, Any]] = None
-    funding: Optional[Dict[str, Any]] = None
-    metrics: Optional[Dict[str, Any]] = None
-    social_media: Optional[Dict[str, Any]] = None
-    contact: Optional[Dict[str, Any]] = None
-    traction: Optional[Dict[str, Any]] = None
-    use_of_funds: Optional[Dict[str, Any]] = None
-    timeline: Optional[Dict[str, Any]] = None
+    team_members: Optional[Union[List[Dict[str, Any]], Dict[str, Any]]] = None
+    funding: Optional[Union[str, Dict[str, Any]]] = None
+    metrics: Optional[Union[str, Dict[str, Any]]] = None
+    social_media: Optional[Union[str, Dict[str, Any]]] = None
+    contact: Optional[Union[str, Dict[str, Any]]] = None
+    traction: Optional[Union[str, Dict[str, Any]]] = None
+    use_of_funds: Optional[Union[str, Dict[str, Any]]] = None
+    timeline: Optional[Union[str, Dict[str, Any]]] = None
+
+    @field_validator("founded_year")
+    @classmethod
+    def validate_founded_year(cls, v):
+        if v is not None:
+            return str(v)
+        return v
+
+    @field_validator("competitors")
+    @classmethod
+    def validate_competitors(cls, v):
+        if v is not None:
+            if isinstance(v, list):
+                return json.dumps(v)
+            return v
+        return v
+
+    @field_validator("team_members")
+    @classmethod
+    def validate_team_members(cls, v):
+        if v is not None:
+            if isinstance(v, list):
+                return {"members": v}
+            return v
+        return v
+
+    @field_validator(
+        "funding",
+        "metrics",
+        "social_media",
+        "contact",
+        "traction",
+        "use_of_funds",
+        "timeline",
+    )
+    @classmethod
+    def validate_json_fields(cls, v):
+        if v is not None:
+            if isinstance(v, str):
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    return {"value": v}
+            return v
+        return v

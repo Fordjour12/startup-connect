@@ -1,56 +1,53 @@
-import { startupSchema } from '@/schemas/startup-schema';
-import { ApiEndpoint } from '@/endpoints';
-import { redirect } from '@sveltejs/kit';
-import { zod } from 'sveltekit-superforms/adapters';
-import { superValidate, withFiles, fail } from 'sveltekit-superforms';
-import type { Actions, PageServerLoad } from './$types';
-import { env } from '$env/dynamic/private';
-import { uploadStartupFiles, mapStartupDataWithFiles, deleteFiles } from '@/services/file-upload.service';
+import { env } from "$env/dynamic/private";
+import { ApiEndpoint } from "@/endpoints";
+import { startupSchema } from "@/schemas/startup-schema";
+import { fail, superValidate, withFiles } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
+import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
-
   const technologyOptions = [
-    { label: 'Technology', value: 'technology' },
-    { label: 'Healthcare', value: 'healthcare' },
-    { label: 'Finance', value: 'finance' },
-    { label: 'Education', value: 'education' },
-    { label: 'Retail', value: 'retail' },
-    { label: 'Manufacturing', value: 'manufacturing' },
-    { label: 'Real Estate', value: 'real_estate' },
-    { label: 'Energy', value: 'energy' },
-    { label: 'Transportation', value: 'transportation' },
-    { label: 'Media', value: 'media' },
-    { label: 'Entertainment', value: 'entertainment' },
-    { label: 'Food & Beverage', value: 'food_beverage' },
-    { label: 'Agriculture', value: 'agriculture' },
-    { label: 'Hospitality', value: 'hospitality' },
-    { label: 'Construction', value: 'construction' },
-    { label: 'Telecommunications', value: 'telecommunications' },
-    { label: 'Biotechnology', value: 'biotechnology' },
-    { label: 'Aerospace', value: 'aerospace' },
-    { label: 'Automotive', value: 'automotive' },
-    { label: 'E-commerce', value: 'ecommerce' },
-    { label: 'Gaming', value: 'gaming' },
-    { label: 'Cybersecurity', value: 'cybersecurity' },
-    { label: 'Fintech', value: 'fintech' },
-    { label: 'Health Tech', value: 'health_tech' },
-    { label: 'Ed Tech', value: 'ed_tech' },
-    { label: 'Other', value: 'other' }
-  ]
+    { label: "Technology", value: "technology" },
+    { label: "Healthcare", value: "healthcare" },
+    { label: "Finance", value: "finance" },
+    { label: "Education", value: "education" },
+    { label: "Retail", value: "retail" },
+    { label: "Manufacturing", value: "manufacturing" },
+    { label: "Real Estate", value: "real_estate" },
+    { label: "Energy", value: "energy" },
+    { label: "Transportation", value: "transportation" },
+    { label: "Media", value: "media" },
+    { label: "Entertainment", value: "entertainment" },
+    { label: "Food & Beverage", value: "food_beverage" },
+    { label: "Agriculture", value: "agriculture" },
+    { label: "Hospitality", value: "hospitality" },
+    { label: "Construction", value: "construction" },
+    { label: "Telecommunications", value: "telecommunications" },
+    { label: "Biotechnology", value: "biotechnology" },
+    { label: "Aerospace", value: "aerospace" },
+    { label: "Automotive", value: "automotive" },
+    { label: "E-commerce", value: "ecommerce" },
+    { label: "Gaming", value: "gaming" },
+    { label: "Cybersecurity", value: "cybersecurity" },
+    { label: "Fintech", value: "fintech" },
+    { label: "Health Tech", value: "health_tech" },
+    { label: "Ed Tech", value: "ed_tech" },
+    { label: "Other", value: "other" },
+  ];
 
   const fundingStageOptions = [
-    { label: 'Idea', value: 'idea' },
-    { label: 'MVP', value: 'mvp' },
-    { label: 'Early Stage', value: 'early_stage' },
-    { label: 'Pre-Seed', value: 'pre_seed' },
-    { label: 'Seed', value: 'seed' },
-    { label: 'Series A', value: 'series_a' },
-    { label: 'Series B', value: 'series_b' },
-    { label: 'Series C', value: 'series_c' },
-    { label: 'IPO', value: 'ipo' },
-    { label: 'Merger/Acquisition', value: 'merger_acquisition' },
-    { label: 'Other', value: 'other' }
-  ]
+    { label: "Idea", value: "idea" },
+    { label: "MVP", value: "mvp" },
+    { label: "Early Stage", value: "early_stage" },
+    { label: "Pre-Seed", value: "pre_seed" },
+    { label: "Seed", value: "seed" },
+    { label: "Series A", value: "series_a" },
+    { label: "Series B", value: "series_b" },
+    { label: "Series C", value: "series_c" },
+    { label: "IPO", value: "ipo" },
+    { label: "Merger/Acquisition", value: "merger_acquisition" },
+    { label: "Other", value: "other" },
+  ];
 
   return {
     industry: technologyOptions,
@@ -65,6 +62,28 @@ interface ApiError {
   code?: string;
 }
 
+// Interface for file upload response
+interface FileUploadResponse {
+  success: boolean;
+  file_id: string;
+  filename: string;
+  content_type: string;
+  size: number;
+  url: string;
+  thumbnail_url?: string;
+  file_metadata: Record<string, any>;
+  upload_date: string;
+}
+
+// Interface for batch upload response
+interface BatchUploadResponse {
+  total_files: number;
+  successful_uploads: FileUploadResponse[];
+  failed_uploads: any[];
+  success_count: number;
+  error_count: number;
+}
+
 export const actions: Actions = {
   default: async (event) => {
     const form = await superValidate(event, zod(startupSchema));
@@ -73,95 +92,159 @@ export const actions: Actions = {
       return fail(400, withFiles({ form }));
     }
 
-    const cookies = event.cookies.get('access_token');
+    const { cookies } = event;
+    const access_token = cookies.get("access_token");
 
-
-
-    let uploadedFiles: Array<any> = [];
-    let fileKeys: string[] = [];
+    if (!access_token) {
+      return fail(401, withFiles({
+        form,
+        error: "Authentication required. Please login to create a startup."
+      }));
+    }
 
     try {
-      // Step 1: Upload all files using the service
-      console.log('Starting transactional startup creation...');
+      let uploadedFileUrls: Record<string, string> = {};
 
-      const fileUploadData = {
-        logo: form.data.logo,
-        pitchDeck: form.data.pitchDeck,
-        productScreenshots: form.data.productScreenshots,
-        demoVideo: form.data.demoVideo,
+      // Step 1: Upload files if they exist
+      const filesToUpload = new FormData();
+      let hasFiles = false;
+
+      if (form.data.logo && form.data.logo.size > 0) {
+        filesToUpload.append("logo", form.data.logo);
+        hasFiles = true;
+      }
+
+      if (form.data.pitchDeck && form.data.pitchDeck.size > 0) {
+        filesToUpload.append("pitch_deck", form.data.pitchDeck);
+        hasFiles = true;
+      }
+
+      if (form.data.demoVideo && form.data.demoVideo.size > 0) {
+        filesToUpload.append("demo_video", form.data.demoVideo);
+        hasFiles = true;
+      }
+
+      if (form.data.productScreenshots && form.data.productScreenshots.length > 0) {
+        form.data.productScreenshots.forEach((screenshot, index) => {
+          if (screenshot.size > 0) {
+            filesToUpload.append("product_screenshots", screenshot);
+            hasFiles = true;
+          }
+        });
+      }
+
+      // Upload files if any exist
+      if (hasFiles) {
+        const uploadResponse = await fetch(
+          `${env.DEPLOYMENT_API_URL}${ApiEndpoint.UPLOAD_STARTUP_FILES}`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${access_token}`,
+            },
+            body: filesToUpload,
+          }
+        );
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => ({}));
+          return fail(uploadResponse.status, withFiles({
+            form,
+            error: `File upload failed: ${errorData.detail || "Unknown error"}`,
+          }));
+        }
+
+        const uploadResult: BatchUploadResponse = await uploadResponse.json();
+
+        if (uploadResult.error_count > 0) {
+          return fail(400, withFiles({
+            form,
+            error: `Some files failed to upload. Please try again.`,
+          }));
+        }
+
+        // Map uploaded files to their URLs
+        uploadResult.successful_uploads.forEach((upload) => {
+          const metadata = upload.file_metadata;
+          const purpose = metadata.file_purpose;
+
+          if (purpose === "logo") {
+            uploadedFileUrls.logo_url = upload.url;
+          } else if (purpose === "pitch_deck") {
+            uploadedFileUrls.pitch_deck_url = upload.url;
+          } else if (purpose === "demo_video") {
+            uploadedFileUrls.demo_video_url = upload.url;
+          }
+          // Note: Product screenshots handling may need different logic based on backend requirements
+        });
+      }
+
+      // Step 2: Prepare startup data for creation
+      const startupData = {
+        name: form.data.name,
+        description: form.data.description,
+        industry: form.data.industry,
+        location: form.data.location,
+        funding_stage: form.data.fundingStage,
+        founded_year: form.data.foundedYear,
+        team_size: form.data.teamSize,
+        website: form.data.website,
+        business_model: form.data.businessModel,
+        target_market: form.data.targetMarket,
+        competitors: form.data.competitors,
+        is_published: form.data.isPublished || false,
+
+        // Include uploaded file URLs
+        ...uploadedFileUrls,
+
+        // Handle JSON fields
+        team_members: form.data.teamMembers || null,
+        funding: form.data.funding || null,
+        metrics: form.data.metrics || null,
+        social_media: form.data.socialMedia || null,
+        contact: form.data.contact || null,
+        traction: form.data.traction || null,
+        use_of_funds: form.data.useOfFunds || null,
+        timeline: form.data.timeline || null,
       };
 
-      const uploadResult = await uploadStartupFiles(fileUploadData, String(cookies));
-      uploadedFiles = uploadResult.uploadedFiles;
-      fileKeys = uploadResult.fileKeys;
-
-      console.log(`Successfully uploaded ${uploadedFiles.length} files`);
-
-      // Step 2: Prepare startup data with file references
-      const startupData = mapStartupDataWithFiles(form.data, uploadedFiles);
-
-      // Step 3: Create startup
-      console.log('Creating startup...');
-      const createResponse = await fetch(`${env.DEPLOYMENT_API_URL}${ApiEndpoint.CREATE_STARTUP}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `bearer ${cookies}`
-        },
-        body: JSON.stringify(startupData)
-      });
+      // Step 3: Create the startup
+      const createResponse = await fetch(
+        `${env.DEPLOYMENT_API_URL}${ApiEndpoint.CREATE_STARTUP}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${access_token}`,
+          },
+          body: JSON.stringify(startupData),
+        }
+      );
 
       if (!createResponse.ok) {
-        const error: ApiError = await createResponse.json().catch(() => ({
-          detail: `Failed to create startup (HTTP ${createResponse.status})`
+        const errorData = await createResponse.json().catch(() => ({}));
+        return fail(createResponse.status, withFiles({
+          form,
+          error: `Failed to create startup: ${errorData.detail || "Unknown error"}`,
         }));
-        console.error('Startup creation failed:', {
-          status: createResponse.status,
-          statusText: createResponse.statusText,
-          error: error.detail
-        });
-        throw new Error(error.detail);
       }
 
       const createdStartup = await createResponse.json();
-      console.log('Startup created successfully:', {
-        id: createdStartup.id,
-        name: createdStartup.name,
-        filesUploaded: uploadedFiles.length
-      });
 
-      // Success! Redirect to the startup page
-      // throw redirect(303, `/dashboard/founder/startup/${createdStartup.id}`);
+      // Success - redirect to the created startup or dashboard
+      return withFiles({
+        form,
+        success: true,
+        startup: createdStartup,
+        message: "Startup created successfully!",
+      });
 
     } catch (error) {
-      console.error('Startup creation transaction failed:', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        filesUploaded: uploadedFiles.length,
-        fileKeys: fileKeys
-      });
-
-      // Step 4: Cleanup uploaded files if startup creation failed
-      if (fileKeys.length > 0) {
-        console.log(`Cleaning up ${fileKeys.length} uploaded files due to transaction failure...`);
-        try {
-          await deleteFiles(fileKeys, String(cookies));
-          console.log('File cleanup completed successfully');
-        } catch (cleanupError) {
-          console.error('File cleanup failed:', cleanupError);
-          // Continue with error response even if cleanup fails
-        }
-      }
-
-      // Return error to form with detailed message
-      const errorMessage = error instanceof Error
-        ? error.message
-        : 'Failed to create startup due to an unexpected error';
-
+      console.error("Error creating startup:", error);
       return fail(500, withFiles({
         form,
-        error: errorMessage,
-        uploadedFileCount: uploadedFiles.length
+        error: `An unexpected error occurred: ${error instanceof Error ? error.message : "Unknown error"}`,
       }));
     }
-  }
-}
+  },
+};
