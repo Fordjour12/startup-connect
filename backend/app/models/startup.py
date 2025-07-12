@@ -118,6 +118,7 @@ class StartupBase(SQLModel):
     website: Optional[str] = None
     logo_url: Optional[str] = None
     pitch_deck_url: Optional[str] = None
+    demo_video_url: Optional[str] = None
     business_model: Optional[str] = None
     target_market: Optional[str] = None
     competitors: Optional[str] = None
@@ -180,6 +181,7 @@ class StartupUpdate(SQLModel):
     website: Optional[str] = None
     logo_url: Optional[str] = None
     pitch_deck_url: Optional[str] = None
+    demo_video_url: Optional[str] = None
     business_model: Optional[str] = None
     target_market: Optional[str] = None
     competitors: Optional[str] = None
