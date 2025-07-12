@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 from fastapi import HTTPException, UploadFile, status
 from PIL import Image, ImageOps
+from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.storage import StorageClient, get_default_storage_client
@@ -61,6 +62,9 @@ class UploadService:
 
     def _validate_file_type(self, file: UploadFile, expected_types: List[str]) -> None:
         """Validate file type against expected types"""
+        print(
+            f"DEBUG: Validating file type - got: {file.content_type}, expected: {expected_types}"
+        )
         if not file.content_type or file.content_type not in expected_types:
             raise FileUploadError(
                 f"Invalid file type. Expected: {', '.join(expected_types)}, got: {file.content_type}"
@@ -141,8 +145,14 @@ class UploadService:
         except Exception as e:
             raise FileUploadError(f"Image processing failed: {str(e)}")
 
-    async def upload_image(self, file: UploadFile) -> UploadResponse:
+    async def upload_image(self, file: UploadFile, db: Session) -> UploadResponse:
         """Upload and process image files"""
+        # Debug logging
+        print(f"DEBUG: Filename: {file.filename}")
+        print(f"DEBUG: Content-Type: {file.content_type}")
+        print(f"DEBUG: File size: {file.size}")
+        print(f"DEBUG: Expected types: {settings.ALLOWED_IMAGE_TYPES}")
+
         # Validation
         if not file.filename:
             raise FileUploadError("Filename is required")
@@ -175,6 +185,11 @@ class UploadService:
             checksum=checksum,
         )
 
+        # Save to database
+        db.add(file_metadata_obj)
+        db.commit()
+        db.refresh(file_metadata_obj)
+
         return UploadResponse(
             success=True,
             file_id=file_id,
@@ -188,7 +203,7 @@ class UploadService:
             upload_date=file_metadata_obj.upload_date,
         )
 
-    async def upload_document(self, file: UploadFile) -> UploadResponse:
+    async def upload_document(self, file: UploadFile, db: Session) -> UploadResponse:
         """Upload document files"""
         # Validation
         if not file.filename:
@@ -223,6 +238,11 @@ class UploadService:
             checksum=checksum,
         )
 
+        # Save to database
+        db.add(file_metadata_obj)
+        db.commit()
+        db.refresh(file_metadata_obj)
+
         return UploadResponse(
             success=True,
             file_id=file_id,
@@ -234,7 +254,7 @@ class UploadService:
             upload_date=file_metadata_obj.upload_date,
         )
 
-    async def upload_video(self, file: UploadFile) -> UploadResponse:
+    async def upload_video(self, file: UploadFile, db: Session) -> UploadResponse:
         """Upload video files"""
         # Validation
         if not file.filename:
@@ -268,6 +288,11 @@ class UploadService:
             processed=True,
             checksum=checksum,
         )
+
+        # Save to database
+        db.add(file_metadata_obj)
+        db.commit()
+        db.refresh(file_metadata_obj)
 
         return UploadResponse(
             success=True,

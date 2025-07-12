@@ -1,18 +1,23 @@
 import asyncio
+import uuid
 from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.security import HTTPBearer
-from pydantic import BaseModel
 
-from app.api.deps import get_current_user
-from app.core.upload import UploadResponse, upload_service
+from app.api.deps import SessionDep, get_current_user
+from app.core.upload import (
+    UploadResponse,
+    upload_service,
+)
+from app.models.startup import Startup
+from app.models.upload import BatchUploadResponse, FileMetadata
 from app.models.user import User
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 security = HTTPBearer()
 
-
+'''
 # Add these new models
 class BatchUploadResponse(BaseModel):
     """Response for batch upload operations"""
@@ -30,6 +35,8 @@ class StartupFilesRequest(BaseModel):
     startup_name: Optional[str] = None
     startup_id: Optional[str] = None
 
+'''
+
 
 @router.post(
     "/image",
@@ -41,6 +48,7 @@ class StartupFilesRequest(BaseModel):
 async def upload_image(
     file: Annotated[UploadFile, File(description="Image file to upload")],
     current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
 ) -> UploadResponse:
     """
     Upload an image file with automatic processing:
@@ -54,7 +62,7 @@ async def upload_image(
     Returns upload details including URLs for main image and thumbnail.
     """
     try:
-        return await upload_service.upload_image(file)
+        return await upload_service.upload_image(file, db)
     except HTTPException:
         raise
     except Exception as e:
@@ -74,6 +82,7 @@ async def upload_image(
 async def upload_document(
     file: Annotated[UploadFile, File(description="Document file to upload")],
     current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
 ) -> UploadResponse:
     """
     Upload a document file:
@@ -92,7 +101,7 @@ async def upload_document(
     - JSON files
     """
     try:
-        return await upload_service.upload_document(file)
+        return await upload_service.upload_document(file, db)
     except HTTPException:
         raise
     except Exception as e:
@@ -112,6 +121,7 @@ async def upload_document(
 async def upload_video(
     file: Annotated[UploadFile, File(description="Video file to upload")],
     current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
 ) -> UploadResponse:
     """
     Upload a video file:
@@ -131,7 +141,7 @@ async def upload_video(
     Note: Large video files may take some time to upload.
     """
     try:
-        return await upload_service.upload_video(file)
+        return await upload_service.upload_video(file, db)
     except HTTPException:
         raise
     except Exception as e:
@@ -140,7 +150,7 @@ async def upload_video(
             detail=f"Video upload failed: {str(e)}",
         )
 
-
+        '''
 @router.post(
     "/startup-demo-video",
     response_model=UploadResponse,
@@ -151,6 +161,7 @@ async def upload_video(
 async def upload_startup_demo_video(
     file: Annotated[UploadFile, File(description="Demo video file to upload")],
     current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
 ) -> UploadResponse:
     """
     Upload a demo video specifically for startup presentations:
@@ -184,7 +195,7 @@ async def upload_startup_demo_video(
         )
 
     try:
-        result = await upload_service.upload_video(file)
+        result = await upload_service.upload_video(file, db)
 
         # Add startup-specific metadata
         result.file_metadata.update(
@@ -204,6 +215,8 @@ async def upload_startup_demo_video(
             detail=f"Demo video upload failed: {str(e)}",
         )
 
+            '''
+
 
 @router.post(
     "/profile-image",
@@ -215,6 +228,7 @@ async def upload_startup_demo_video(
 async def upload_profile_image(
     file: Annotated[UploadFile, File(description="Profile image to upload")],
     current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
 ) -> UploadResponse:
     """
     Upload a profile image with special handling:
@@ -231,7 +245,7 @@ async def upload_profile_image(
         )
 
     try:
-        result = await upload_service.upload_image(file)
+        result = await upload_service.upload_image(file, db)
 
         # TODO: Update user profile with new image URL
         # This would typically update the user's profile_image_url field
@@ -306,19 +320,20 @@ async def upload_health_check():
     response_model=BatchUploadResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Batch Upload Files",
-    description="Upload multiple files in a single request. Supports mixed file types.",
+    description="Upload multiple files in parallel. Supports mixed file types with partial success handling.",
 )
 async def upload_files_batch(
     current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
     files: List[UploadFile] = File(..., description="List of files to upload"),
 ) -> BatchUploadResponse:
     """
-    Upload multiple files in a single request:
+    Upload multiple files in parallel:
 
-    - **Processes files in parallel**
-    - **Handles mixed file types (images, documents, videos)**
+    - **Processes files in parallel** for better performance
+    - **Handles mixed file types** (images, documents, videos)
     - **Partial success handling** - some files can succeed while others fail
-    - **Atomic transaction option** - either all succeed or all fail
+    - **Database transaction safety** - each file gets its own transaction
     - **Progress tracking support**
 
     Returns detailed results for each file upload attempt.
@@ -348,9 +363,9 @@ async def upload_files_batch(
             content_type = file.content_type or ""
 
             if content_type.startswith("image/"):
-                result = await upload_service.upload_image(file)
+                result = await upload_service.upload_image(file, db)
             elif content_type.startswith("video/"):
-                result = await upload_service.upload_video(file)
+                result = await upload_service.upload_video(file, db)
             elif content_type in [
                 "application/pdf",
                 "application/msword",
@@ -361,10 +376,10 @@ async def upload_files_batch(
                 "text/csv",
                 "application/json",
             ]:
-                result = await upload_service.upload_document(file)
+                result = await upload_service.upload_document(file, db)
             else:
                 # Default to document upload for unknown types
-                result = await upload_service.upload_document(file)
+                result = await upload_service.upload_document(file, db)
 
             return True, result
 
@@ -414,12 +429,14 @@ async def upload_files_batch(
 )
 async def upload_startup_files_batch(
     current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
     logo: Optional[UploadFile] = File(None, description="Startup logo"),
     pitch_deck: Optional[UploadFile] = File(None, description="Pitch deck document"),
     demo_video: Optional[UploadFile] = File(None, description="Demo video"),
     product_screenshots: List[UploadFile] = File(
         default=[], description="Product screenshots"
     ),
+    startup_id: Optional[str] = None,
 ) -> BatchUploadResponse:
     """
     Upload all startup files in a single atomic transaction:
@@ -452,7 +469,7 @@ async def upload_startup_files_batch(
         )
 
     # Validate founder role for demo videos
-    if demo_video and current_user.role != "founder":
+    if demo_video and current_user.role != "Founder":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only founders can upload demo videos",
@@ -466,22 +483,33 @@ async def upload_startup_files_batch(
         for file_type, file in files_to_upload:
             try:
                 if file_type == "logo" or file_type.startswith("screenshot"):
-                    result = await upload_service.upload_image(file)
+                    result = await upload_service.upload_image(file, db)
                 elif file_type == "demo_video":
-                    result = await upload_service.upload_video(file)
+                    result = await upload_service.upload_video(file, db)
                 elif file_type == "pitch_deck":
-                    result = await upload_service.upload_document(file)
+                    result = await upload_service.upload_document(file, db)
                 else:
-                    result = await upload_service.upload_document(file)
+                    result = await upload_service.upload_document(file, db)
 
-                # Add startup-specific metadata
-                result.file_metadata.update(
-                    {
-                        "file_purpose": file_type,
-                        "startup_context": True,
-                        "founder_id": str(current_user.id),
-                    }
-                )
+                # Add startup-specific metadata to the database record
+                # We need to update the FileMetadata record in the database
+                # Get the file metadata record from database
+                file_metadata_record = db.get(FileMetadata, result.file_id)
+                if file_metadata_record:
+                    # Update the variants field to include startup-specific metadata
+                    if not file_metadata_record.variants:
+                        file_metadata_record.variants = {}
+
+                    file_metadata_record.variants.update(
+                        {
+                            "file_purpose": file_type,
+                            "startup_context": True,
+                            "founder_id": str(current_user.id),
+                        }
+                    )
+
+                    db.commit()
+                    db.refresh(file_metadata_record)
 
                 successful_uploads.append(result)
                 uploaded_file_keys.append(result.file_id)
@@ -500,6 +528,35 @@ async def upload_startup_files_batch(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=f"Atomic upload failed at {file_type}: {str(e)}. All uploads rolled back.",
                 )
+
+        # Update startup record with file URLs if startup_id is provided
+        if startup_id:
+            try:
+                startup_uuid = uuid.UUID(startup_id)
+                startup = db.get(Startup, startup_uuid)
+
+                if startup and startup.founder_id == current_user.id:
+                    # Update startup with file URLs
+                    for file_type, result in zip(
+                        [f[0] for f in files_to_upload], successful_uploads
+                    ):
+                        if file_type == "logo":
+                            startup.logo_url = result.url
+                        elif file_type == "pitch_deck":
+                            startup.pitch_deck_url = result.url
+                        elif file_type == "demo_video":
+                            startup.demo_video_url = result.url
+                        # Note: product_screenshots would need a separate field in the Startup model
+
+                    db.commit()
+                    db.refresh(startup)
+
+            except (ValueError, TypeError) as e:
+                # Invalid startup_id format, but don't fail the upload
+                print(f"Warning: Invalid startup_id format: {e}")
+            except Exception as e:
+                # Startup not found or other error, but don't fail the upload
+                print(f"Warning: Could not update startup record: {e}")
 
         return BatchUploadResponse(
             total_files=len(files_to_upload),
@@ -524,3 +581,128 @@ async def upload_startup_files_batch(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Startup files upload failed: {str(e)}",
         )
+
+
+@router.post(
+    "/batch-atomic",
+    response_model=BatchUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Atomic Batch Upload Files",
+    description="Upload multiple files in parallel with atomic transaction handling. Either all succeed or all fail.",
+)
+async def upload_files_batch_atomic(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: SessionDep,
+    files: List[UploadFile] = File(..., description="List of files to upload"),
+) -> BatchUploadResponse:
+    """
+    Upload multiple files with atomic transaction handling:
+
+    - **Processes files in parallel** for better performance
+    - **Atomic operation** - either all files succeed or all fail
+    - **Handles mixed file types** (images, documents, videos)
+    - **Automatic rollback** on any failure
+    - **Database transaction safety** - uses shared session with proper error handling
+
+    This endpoint ensures data consistency by rolling back all uploads if any fail.
+    """
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No files provided for upload",
+        )
+
+    if len(files) > 20:  # Reasonable limit
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum 20 files allowed per batch upload",
+        )
+
+    successful_uploads = []
+    uploaded_file_keys = []
+
+    async def upload_single_file(
+        file: UploadFile,
+    ) -> tuple[bool, UploadResponse | dict]:
+        """Upload a single file and return success status with result"""
+        try:
+            # Auto-detect file type and route to appropriate service
+            content_type = file.content_type or ""
+
+            if content_type.startswith("image/"):
+                result = await upload_service.upload_image(file, db)
+            elif content_type.startswith("video/"):
+                result = await upload_service.upload_video(file, db)
+            elif content_type in [
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                "text/plain",
+                "text/csv",
+                "application/json",
+            ]:
+                result = await upload_service.upload_document(file, db)
+            else:
+                # Default to document upload for unknown types
+                result = await upload_service.upload_document(file, db)
+
+            return True, result
+
+        except Exception as e:
+            return False, {
+                "filename": file.filename,
+                "error": str(e),
+                "content_type": file.content_type,
+            }
+
+    try:
+        # Execute all uploads in parallel
+        tasks = [upload_single_file(file) for file in files]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Process results and collect successful uploads
+        for i, result in enumerate(results):
+            if isinstance(result, BaseException):
+                # Any exception means we need to rollback
+                raise result
+            else:
+                success, data = result
+                if success:
+                    successful_uploads.append(data)
+                    uploaded_file_keys.append(data.file_id)
+                else:
+                    # Any failure means we need to rollback
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=f"Upload failed for {files[i].filename}: {data.get('error', 'Unknown error')}",
+                    )
+
+        # If we get here, all uploads succeeded
+        return BatchUploadResponse(
+            total_files=len(files),
+            successful_uploads=successful_uploads,
+            failed_uploads=[],
+            success_count=len(successful_uploads),
+            error_count=0,
+        )
+
+    except Exception as e:
+        # Rollback: delete all successfully uploaded files
+        if uploaded_file_keys:
+            try:
+                for file_key in uploaded_file_keys:
+                    await upload_service.delete_file(file_key)
+            except Exception as cleanup_error:
+                # Log cleanup error but don't mask original error
+                print(f"Cleanup failed: {cleanup_error}")
+
+        # Re-raise the original exception
+        if isinstance(e, HTTPException):
+            raise
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Atomic batch upload failed: {str(e)}",
+            )

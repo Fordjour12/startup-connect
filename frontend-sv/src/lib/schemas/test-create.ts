@@ -20,13 +20,14 @@ export const testCreateSchema = z.object({
     )
     .optional(),
   productScreenshots: z
-    .instanceof(File, { message: 'Please upload valid screenshot files.' })
-    .refine((f) => f.size < 5_000_000, 'Max 5MB per screenshot.')
-    .refine(
-      (f) => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'].includes(f.type),
-      'Only JPEG, PNG, WebP and SVG files are allowed for screenshots.'
+    .array(
+      z.instanceof(File, { message: 'Please upload valid screenshot files.' })
+        .refine((f) => f.size < 5_000_000, 'Max 5MB per screenshot.')
+        .refine(
+          (f) => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'].includes(f.type),
+          'Only JPEG, PNG, WebP and SVG files are allowed for screenshots.'
+        )
     )
-    .array()
     .optional(),
   demoVideo: z
     .instanceof(File, { message: 'Please upload a demo video file.' })
@@ -43,7 +44,6 @@ export type TestCreateSchema = typeof testCreateSchema;
 
 
 
-import { z } from "zod/v3";
 
 export const startupSchema = z.object({
   name: z.string().min(2, "Startup name must be at least 2 characters"),

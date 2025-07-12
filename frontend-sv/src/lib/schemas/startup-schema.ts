@@ -74,13 +74,14 @@ export const startupSchema = z.object({
     address: z.string().optional(),
   }),
   productScreenshots: z
-    .instanceof(File, { message: 'Please upload valid screenshot files.' })
-    .refine((f) => f.size < 5_000_000, 'Max 5MB per screenshot.')
-    .refine(
-      (f) => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'].includes(f.type),
-      'Only JPEG, PNG, WebP and SVG files are allowed for screenshots.'
+    .array(
+      z.instanceof(File, { message: 'Please upload valid screenshot files.' })
+        .refine((f) => f.size < 5_000_000, 'Max 5MB per screenshot.')
+        .refine(
+          (f) => ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'].includes(f.type),
+          'Only JPEG, PNG, WebP and SVG files are allowed for screenshots.'
+        )
     )
-    .array()
     .optional(),
   demoVideo: z
     .instanceof(File, { message: 'Please upload a demo video file.' })

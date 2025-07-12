@@ -18,6 +18,7 @@ from app.models.pitch import (
     PitchStatus,
 )
 from app.models.startup import Startup
+from app.models.upload import FileMetadata
 from app.models.user import User, UserCreate, UserPublic, UserRole, UserUpdate
 
 __all__ = [
@@ -39,4 +40,5 @@ __all__ = [
     "PitchMessageCreate",
     "PitchMessageRead",
     "PitchStatus",
+    "FileMetadata",
 ]
