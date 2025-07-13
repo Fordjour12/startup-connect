@@ -1,10 +1,10 @@
 import uuid
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.models.startup import FundingStage, Industry
+from app.models.startup import FundingStage, Industry, startup_investor_association
 
 
 class InvestorProfileBase(SQLModel):
@@ -28,6 +28,9 @@ class InvestorProfile(InvestorProfileBase, table=True):
 
     # Relationship to User
     user: "User" = Relationship(back_populates="investor_profile")  # type: ignore # noqa: F821
+    startups: List["Startup"] = Relationship(
+        back_populates="investors", link_model=startup_investor_association
+    )
 
 
 class InvestorProfileCreate(InvestorProfileBase):
@@ -69,3 +72,7 @@ class InvestorWithUserRead(SQLModel):
     profile_picture: Optional[str] = None
     min_investment: Optional[int] = None
     max_investment: Optional[int] = None
+
+
+if TYPE_CHECKING:
+    from .startup import Startup

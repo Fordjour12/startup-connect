@@ -168,6 +168,13 @@ upload_service = UploadService(storage_client=MockStorageClient())
 - **Purpose**: Demonstrates extensibility
 - **To Complete**: Implement using boto3
 
+### Google Cloud Storage (GCS) Client
+- **Production Ready**: ✅ Fully implemented
+- **Features**: Upload, delete, presigned URLs, bucket management, metadata support
+- **Configuration**: Via environment variables (see below)
+- **Access**: Files are private by default; use presigned URLs for access
+- **Error Handling**: Custom exceptions with proper error messages
+
 ## 📝 Interface Contract
 
 All storage clients must implement:
@@ -209,3 +216,45 @@ class UploadService:
 ```
 
 This abstraction makes your code more maintainable, testable, and future-proof! 🎉 
+
+## 🔧 Configuration
+
+### MinIO (default)
+Set the following environment variables:
+- `MINIO_ENDPOINT`
+- `MINIO_ACCESS_KEY`
+- `MINIO_SECRET_KEY`
+- `MINIO_BUCKET_NAME`
+- `STORAGE_BACKEND=minio`
+
+### Google Cloud Storage (GCS)
+Set the following environment variables:
+- `STORAGE_BACKEND=gcs`
+- `GCS_BUCKET_NAME=your-bucket-name`
+- `GCS_PROJECT=your-gcp-project-id` (optional, if not set in credentials)
+- `GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account.json`
+
+**Note:**
+- Files are uploaded as private. Use `generate_presigned_url` to provide temporary access.
+- Metadata is supported and passed to GCS as custom metadata.
+
+### Example Usage (GCS)
+```python
+from app.core.storage import get_storage_client
+
+storage = get_storage_client(backend="gcs")
+
+# Upload a file (private by default)
+url = await storage.upload_file(
+    file_path="uploads/myfile.txt",
+    content=b"hello world",
+    content_type="text/plain",
+    metadata={"uploaded_by": "user123"}
+)
+
+# Generate a presigned URL for download
+presigned_url = storage.generate_presigned_url(
+    "uploads/myfile.txt",
+    expires=timedelta(hours=1)
+)
+``` 

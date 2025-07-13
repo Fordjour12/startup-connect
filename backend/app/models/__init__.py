@@ -21,6 +21,8 @@ from app.models.startup import Startup
 from app.models.upload import FileMetadata
 from app.models.user import User, UserCreate, UserPublic, UserRole, UserUpdate
 
+from .user import EmailVerificationToken, PasswordResetToken
+
 __all__ = [
     "SQLModel",
     "User",

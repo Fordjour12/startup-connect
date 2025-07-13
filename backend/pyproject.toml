@@ -23,4 +23,5 @@ dependencies = [
     "python-magic>=0.4.27",
     "python-multipart>=0.0.19",
     "minio>=7.2.8",
+    "google-cloud-storage>=3.2.0",
 ]

@@ -1,11 +1,14 @@
 import enum
 import json
 import uuid
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from pydantic import field_validator
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, ForeignKey, Table
 from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from .investor import InvestorProfile
 
 
 class Industry(str, enum.Enum):
@@ -126,6 +129,15 @@ class StartupBase(SQLModel):
     competitors: Optional[str] = None
 
 
+# Association table for many-to-many relationship between startups and investors
+startup_investor_association = Table(
+    "startup_investor_association",
+    SQLModel.metadata,
+    Column("startup_id", ForeignKey("startup.id"), primary_key=True),
+    Column("investor_profile_id", ForeignKey("investorprofile.id"), primary_key=True),
+)
+
+
 class Startup(StartupBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     founder_id: uuid.UUID = Field(foreign_key="user.id")
@@ -140,6 +152,9 @@ class Startup(StartupBase, table=True):
     traction: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
     use_of_funds: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
     timeline: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
+    investors: List["InvestorProfile"] = Relationship(
+        back_populates="startups", link_model=startup_investor_association
+    )
 
     # Relationships
     founder: "User" = Relationship(back_populates="startups")  # type: ignore  # noqa: F821
