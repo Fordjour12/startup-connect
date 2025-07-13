@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -21,32 +21,63 @@ class UserBase(SQLModel):
     is_verified: bool = Field(default=False)
 
 
+class PasswordResetToken(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    token: str = Field(index=True)
+    expires_at: datetime
+    used: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    user: "User" = Relationship(back_populates="password_reset_tokens")
+
+
+class EmailVerificationToken(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    token: str = Field(index=True)
+    expires_at: datetime
+    used: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    user: "User" = Relationship(back_populates="email_verification_tokens")
+
+
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
 
-    # Password reset fields
-    reset_token: Optional[str] = Field(default=None)
-    reset_token_expires: Optional[datetime] = Field(default=None)
-
-    # Email verification fields
-    verification_token: Optional[str] = Field(default=None)
-    verification_token_expires: Optional[datetime] = Field(default=None)
-
     # Relationships
-    startups: List["Startup"] = Relationship(back_populates="founder")  # type: ignore # noqa: F821
+    files: List["FileMetadata"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    startups: List["Startup"] = Relationship(
+        back_populates="founder",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )  # type: ignore # noqa: F821
     investor_profile: Optional["InvestorProfile"] = Relationship(back_populates="user")  # type: ignore # noqa: F821
-
-    # Pitch-related relationships
-    pitch_decks: List["PitchDeck"] = Relationship(back_populates="founder")  # type: ignore # noqa: F821
+    pitch_decks: List["PitchDeck"] = Relationship(
+        back_populates="founder",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )  # type: ignore # noqa: F821
     sent_pitches: List["PitchMessage"] = Relationship(
         back_populates="sender",
-        sa_relationship_kwargs={"foreign_keys": "PitchMessage.founder_id"},
+        sa_relationship_kwargs={
+            "foreign_keys": "PitchMessage.founder_id",
+            "cascade": "all, delete-orphan",
+        },
     )  # type: ignore # noqa: F821
     received_pitches: List["PitchMessage"] = Relationship(
         back_populates="recipient",
-        sa_relationship_kwargs={"foreign_keys": "PitchMessage.investor_id"},
+        sa_relationship_kwargs={
+            "foreign_keys": "PitchMessage.investor_id",
+            "cascade": "all, delete-orphan",
+        },
     )  # type: ignore # noqa: F821
+    password_reset_tokens: List["PasswordResetToken"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
+    email_verification_tokens: List["EmailVerificationToken"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+    )
 
 
 class UserCreate(UserBase):
@@ -114,3 +145,11 @@ class UserRegistrationResponse(SQLModel):
     access_token: str
     token_type: str = "bearer"
     message: str = "Account created successfully"
+
+
+if TYPE_CHECKING:
+    from .investor import InvestorProfile
+    from .pitch import PitchDeck, PitchMessage
+    from .startup import Startup
+    from .upload import FileMetadata
+    from .user import EmailVerificationToken, PasswordResetToken

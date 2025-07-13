@@ -2,49 +2,47 @@
 Production-grade authentication endpoints with auto-login and email verification.
 """
 
-from typing import Annotated, Any
 from datetime import timedelta
+from typing import Annotated, Any
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import SessionDep
-from app.crud.user import (
-    create_user,
-    get_user_by_email,
-    authenticate_user,
-    update_user_password_reset_token,
-    reset_user_password,
-    update_user_verification_token,
-    get_user_by_verification_token,
-    verify_user_email,
-    resend_verification_email,
-)
-from app.models.user import (
-    UserCreate,
-    UserRegister,
-    UserPublic,
-    Token,
-    UserRegistrationResponse,
-    ForgotPasswordRequest,
-    ResetPasswordRequest,
-    PasswordResetResponse,
-    EmailVerificationRequest,
-    EmailVerificationResponse,
-)
 from app.core.config import settings
-from app.core.security import (
-    create_access_token,
-    create_password_reset_token,
-    verify_password_reset_token,
-    create_email_verification_token,
-)
 from app.core.email import (
-    send_reset_password_email,
     send_email_verification_email,
+    send_reset_password_email,
     send_welcome_email,
 )
-
+from app.core.security import (
+    create_access_token,
+    create_email_verification_token,
+    create_password_reset_token,
+    verify_password_reset_token,
+)
+from app.crud.user import (
+    authenticate_user,
+    create_email_verification_token_entry,
+    create_password_reset_token_entry,
+    create_user,
+    get_user_by_email,
+    get_valid_email_verification_token,
+    reset_user_password,
+    verify_user_email,
+)
+from app.models.user import (
+    EmailVerificationRequest,
+    EmailVerificationResponse,
+    ForgotPasswordRequest,
+    PasswordResetResponse,
+    ResetPasswordRequest,
+    Token,
+    UserCreate,
+    UserPublic,
+    UserRegister,
+    UserRegistrationResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -93,7 +91,7 @@ async def register_with_auto_login(session: SessionDep, user_in: UserRegister) -
             )
 
             # Store token in database
-            update_user_verification_token(
+            create_email_verification_token_entry(
                 db=session, user=user, token=verification_token
             )
 
@@ -150,7 +148,9 @@ async def register_email_verification_first(
     )
 
     # Store token in database
-    update_user_verification_token(db=session, user=user, token=verification_token)
+    create_email_verification_token_entry(
+        db=session, user=user, token=verification_token
+    )
 
     # Send verification email
     send_email_verification_email(
@@ -178,13 +178,17 @@ async def verify_email_and_login(
     """
 
     # Get user by verification token (includes expiry check)
-    user = get_user_by_verification_token(db=session, token=request.verification_token)
+    evt = get_valid_email_verification_token(
+        db=session, token=request.verification_token
+    )
 
-    if not user:
+    if not evt:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired verification token. Please request a new verification email.",
         )
+
+    user = evt.user
 
     # Check if already verified
     if user.is_verified:
@@ -254,7 +258,7 @@ async def resend_verification_email_endpoint(session: SessionDep, email: str) ->
         )
 
         # Update with rate limiting check
-        resend_verification_email(db=session, user=user, new_token=new_token)
+        create_email_verification_token_entry(db=session, user=user, token=new_token)
 
         # Send verification email
         send_email_verification_email(email_to=user.email, verification_token=new_token)
@@ -338,7 +342,7 @@ async def forgot_password(
     reset_token = create_password_reset_token(user.email)
 
     # Update user with reset token
-    update_user_password_reset_token(db=session, user=user, token=reset_token)
+    create_password_reset_token_entry(db=session, user=user, token=reset_token)
 
     # Send password reset email
     try:
