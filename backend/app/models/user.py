@@ -152,4 +152,8 @@ if TYPE_CHECKING:
     from .pitch import PitchDeck, PitchMessage
     from .startup import Startup
     from .upload import FileMetadata
-    from .user import EmailVerificationToken, PasswordResetToken
+if TYPE_CHECKING:
+    from .investor import InvestorProfile
+    from .pitch import PitchDeck, PitchMessage
+    from .startup import Startup
+    from .upload import FileMetadata
