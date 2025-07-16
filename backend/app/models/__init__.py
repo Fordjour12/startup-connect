@@ -21,7 +21,29 @@ from app.models.startup import Startup
 from app.models.upload import FileMetadata
 from app.models.user import User, UserCreate, UserPublic, UserRole, UserUpdate
 
-from .user import EmailVerificationToken, PasswordResetToken
+__all__ = [
+    "SQLModel",
+    "User",
+    "UserCreate",
+    "UserPublic",
+    "UserUpdate",
+    "UserRole",
+    "EmailVerificationToken",
+    "PasswordResetToken",
+    "Startup",
+    "InvestorProfile",
+    "InvestorProfileCreate",
+    "InvestorProfileRead",
+    "InvestorProfileUpdate",
+    "PitchDeck",
+    "PitchDeckCreate",
+    "PitchDeckRead",
+    "PitchMessage",
+    "PitchMessageCreate",
+    "PitchMessageRead",
+    "PitchStatus",
+    "FileMetadata",
+]
 
 __all__ = [
     "SQLModel",

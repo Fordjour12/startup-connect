@@ -9,7 +9,10 @@ from google.api_core.exceptions import NotFound
 
 from .base import StorageClient
 
-_executor = ThreadPoolExecutor()
+# backend/app/core/storage/gcs_client.py
+
+-_executor = ThreadPoolExecutor()
++_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="gcs-")
 
 
 def _get_env(var: str, default: Optional[str] = None) -> str:
@@ -24,8 +27,11 @@ class GCSStorageClient(StorageClient):
         self._bucket_name = kwargs.get("bucket_name") or _get_env("GCS_BUCKET_NAME")
         self._project = kwargs.get("project") or os.getenv("GCS_PROJECT")
         self._credentials_path = kwargs.get("credentials_path") or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-        self._client = storage.Client(project=self._project)
-        self._bucket = self._client.bucket(self._bucket_name)
+        try:
+            self._client = storage.Client(project=self._project)
+            self._bucket = self._client.bucket(self._bucket_name)
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize GCS client: {e}")
 
     @property
     def bucket_name(self) -> str:
@@ -44,7 +50,7 @@ class GCSStorageClient(StorageClient):
             blob.upload_from_string(content, content_type=content_type)
             # Make private by default (do not call blob.make_public())
             return blob.public_url  # This will not be accessible unless made public
-        await asyncio.get_event_loop().run_in_executor(_executor, _upload)
+        await asyncio.get_running_loop().run_in_executor(_executor, _upload)
         # Return the GCS URI (not public URL)
         return f"gs://{self._bucket_name}/{file_path}"
 
@@ -62,7 +68,11 @@ class GCSStorageClient(StorageClient):
         self, file_path: str, expires: timedelta = timedelta(hours=1)
     ) -> str:
         blob = self._bucket.blob(file_path)
-        expiration = datetime.utcnow() + expires
+# Add this to your imports (alongside any existing datetime import)
+from datetime import timezone
+
+# Replace the old assignment
+expiration = datetime.now(timezone.utc) + expires
         url = blob.generate_signed_url(
             expiration=expiration,
             method="GET",
