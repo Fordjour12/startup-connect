@@ -5,7 +5,13 @@ name: Deploy to Cloud Run
 on:
   push:
     branches:
-      - main # This should match the GITHUB_DEPLOY_BRANCH configured in your setup script
+      - master
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Select the environment to deploy to
+        default: Production - startup-connect-backend
 
 env:
   DOCKERFILE_PATH: "./Dockerfile" # Path to your Dockerfile relative to the repo root
@@ -13,6 +19,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'Production - startup-connect-backend' }}
     permissions:
       contents: "read"
       id-token: "write" # This is crucial for Workload Identity Federation
@@ -25,11 +32,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
-          # Authenticate with Workload Identity Federation
-          # This step uses the 'id-token' permission to get a token from GitHub's OIDC issuer,
-          # which is then exchanged for Google Cloud credentials via the WIF provider.
-          # The service account specified must have the 'roles/iam.workloadIdentityUser' role
-          # on the WIF provider.
           service_account: ${{ secrets.SA_EMAIL }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER_FULL_PATH }}
 
@@ -39,29 +41,23 @@ jobs:
       - name: Build and push Docker image to Artifact Registry
         run: |
           cd backend
-          # Construct the full image path for Artifact Registry
           IMAGE_PATH="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/${{ vars.IMAGE_NAME }}:${{ github.sha }}"
           echo "Building image: ${IMAGE_PATH}"
           docker build -t "${IMAGE_PATH}" -f "${{ env.DOCKERFILE_PATH }}" .
           echo "Pushing image to Artifact Registry..."
           docker push "${IMAGE_PATH}"
-          echo "IMAGE_PATH=${IMAGE_PATH}" >> $GITHUB_ENV # Store for next step
+          echo "IMAGE_PATH=${IMAGE_PATH}" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
         run: |
           echo "Deploying Cloud Run service: ${{ vars.CLOUD_RUN_SERVICE_NAME }}"
           gcloud run deploy ${{ vars.CLOUD_RUN_SERVICE_NAME }} \
-            --image "${{ vars.IMAGE_PATH }}" \
+            --image "${{ env.IMAGE_PATH }}" \
             --region "${{ vars.GCP_REGION }}" \
             --platform "managed" \
             --allow-unauthenticated \
-            # --port 8080 # Uncomment and set if your app listens on a different port
-            # --memory 512Mi # Uncomment to set memory
-            # --cpu 1 # Uncomment to set CPU
-            --min-instances 0 # Uncomment to set min instances
-            --max-instances 1 # Uncomment to set max instances
-            # --set-env-vars KEY=VALUE # Uncomment to set environment variables
-            # --service-account "${{ env.SA_EMAIL }}" # Uncomment if your Cloud Run service needs to run as this SA at runtime (not just for deployment)
+            --min-instances 0 \
+            --max-instances 1 \
             --project="${{ vars.GCP_PROJECT_ID }}"
           echo "Cloud Run deployment complete."
 
@@ -73,3 +69,6 @@ jobs:
             --format="value(status.url)")
           echo "Cloud Run Service URL: ${SERVICE_URL}"
           echo "SERVICE_URL=${SERVICE_URL}" >> $GITHUB_ENV
+
+      - name: Output Cloud Run URL
+        run: echo "🚀 Your Cloud Run service is available at: ${{ env.SERVICE_URL }}"
