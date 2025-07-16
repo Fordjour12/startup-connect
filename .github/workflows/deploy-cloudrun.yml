@@ -14,7 +14,7 @@ on:
         default: Production - startup-connect-backend
 
 env:
-  DOCKERFILE_PATH: "./Dockerfile" # Path to your Dockerfile relative to the repo root
+  DOCKERFILE_NAME: "Dockerfile" # Path to your Dockerfile relative to the repo root
 
 jobs:
   deploy:
@@ -43,7 +43,7 @@ jobs:
           cd backend
           IMAGE_PATH="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/${{ vars.IMAGE_NAME }}:${{ github.sha }}"
           echo "Building image: ${IMAGE_PATH}"
-          docker build -t "${IMAGE_PATH}" -f "${{ env.DOCKERFILE_PATH }}" .
+          docker build -t "${IMAGE_PATH}" -f "${{ env.DOCKERFILE_NAME }}" .
           echo "Pushing image to Artifact Registry..."
           docker push "${IMAGE_PATH}"
           echo "IMAGE_PATH=${IMAGE_PATH}" >> $GITHUB_ENV
@@ -69,6 +69,3 @@ jobs:
             --format="value(status.url)")
           echo "Cloud Run Service URL: ${SERVICE_URL}"
           echo "SERVICE_URL=${SERVICE_URL}" >> $GITHUB_ENV
-
-      - name: Output Cloud Run URL
-        run: echo "🚀 Your Cloud Run service is available at: ${{ env.SERVICE_URL }}"
