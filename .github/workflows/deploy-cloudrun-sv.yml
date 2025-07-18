@@ -65,7 +65,7 @@ jobs:
         # Using the dedicated Cloud Run deploy action for simplicity and robustness
         uses: "google-github-actions/deploy-cloudrun@v2"
         with:
-          service: ${{ vars.CLOUD_RUN_SERVICE_NAME }}
+          service: ${{ vars.CLOUD_RUN_SERVICE_NAME_SV }}
           region: ${{ vars.GCP_REGION }}
           image: "${{ env.IMAGE_PATH }}" # Use the image path from the previous step
           platform: "managed"
