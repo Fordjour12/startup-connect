@@ -37,7 +37,7 @@ jobs:
           service_account: ${{ secrets.SA_EMAIL }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER_FULL_PATH }}
           # Ensure you request an access token explicitly for Docker
-          token_format: "access_token" # <-- Recommended for explicit control
+          # token_format: "access_token" # <-- Recommended for explicit control
 
       - name: Set up Google Cloud SDK and Configure Docker
         # This action installs gcloud CLI and automatically sets up Docker credential helper
