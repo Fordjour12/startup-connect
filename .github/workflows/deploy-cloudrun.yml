@@ -36,15 +36,11 @@ jobs:
           project_id: ${{ vars.GCP_PROJECT_ID }} # Use vars if not sensitive, or secrets if preferred
           service_account: ${{ secrets.SA_EMAIL }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER_FULL_PATH }}
-          # Ensure you request an access token explicitly for Docker
-          # token_format: "access_token" # <-- Recommended for explicit control
 
       - name: Set up Google Cloud SDK and Configure Docker
-        # This action installs gcloud CLI and automatically sets up Docker credential helper
+        # automatically sets up Docker credential helper
         # using the credentials from the 'auth' step.
-        uses: "google-github-actions/setup-gcloud@v2"
-        with:
-          project_id: ${{ vars.GCP_PROJECT_ID }}
+        run: gcloud --quiet auth configure-docker ${{vars.GCP_REGION}}-docker.pkg.dev
 
       - name: Build and push Docker image to Artifact Registry
         run: |
