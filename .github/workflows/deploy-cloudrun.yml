@@ -37,6 +37,11 @@ jobs:
           service_account: ${{ secrets.SA_EMAIL }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER_FULL_PATH }}
 
+      - name: Set up cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          version: ">=413.0.0"
+
       - name: Set up Google Cloud SDK and Configure Docker
         # automatically sets up Docker credential helper
         # using the credentials from the 'auth' step.
