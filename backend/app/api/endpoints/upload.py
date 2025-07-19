@@ -502,8 +502,8 @@ async def upload_startup_files_batch(
 
                     file_metadata_record.variants.update(
                         {
-                            "file_purpose": file_type,
-                            "startup_context": True,
+                            "file_purpose": str(file_type),
+                            "startup_context": "true",
                             "founder_id": str(current_user.id),
                         }
                     )
@@ -671,12 +671,18 @@ async def upload_files_batch_atomic(
                 success, data = result
                 if success:
                     successful_uploads.append(data)
-                    uploaded_file_keys.append(data.file_id)
+                    if isinstance(data, UploadResponse):
+                        uploaded_file_keys.append(data.file_id)
                 else:
                     # Any failure means we need to rollback
+                    error_msg = (
+                        data.get("error", "Unknown error")
+                        if isinstance(data, dict)
+                        else "Unknown error"
+                    )
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail=f"Upload failed for {files[i].filename}: {data.get('error', 'Unknown error')}",
+                        detail=f"Upload failed for {files[i].filename}: {error_msg}",
                     )
 
         # If we get here, all uploads succeeded

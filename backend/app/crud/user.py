@@ -1,11 +1,17 @@
 import uuid
-from typing import List, Optional
 from datetime import datetime, timedelta
+from typing import List, Optional
 
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models.user import User, UserCreate, UserUpdate
+from app.models.user import (
+    EmailVerificationToken,
+    PasswordResetToken,
+    User,
+    UserCreate,
+    UserUpdate,
+)
 
 
 def get_user(*, db: Session, user_id: uuid.UUID) -> Optional[User]:
@@ -46,40 +52,42 @@ def authenticate_user(*, db: Session, email: str, password: str) -> User | None:
     return user
 
 
-def update_user_password_reset_token(*, db: Session, user: User, token: str) -> User:
-    """Update user with password reset token and expiry time."""
-    user.reset_token = token
-    user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
-    db.add(user)
+def create_password_reset_token_entry(
+    *, db: Session, user: User, token: str, expires_in_hours: int = 1
+) -> PasswordResetToken:
+    expires_at = datetime.utcnow() + timedelta(hours=expires_in_hours)
+    prt = PasswordResetToken(user_id=user.id, token=token, expires_at=expires_at)
+    db.add(prt)
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(prt)
+    return prt
+
+
+def get_valid_password_reset_token(
+    *, db: Session, token: str
+) -> Optional[PasswordResetToken]:
+    prt = db.exec(
+        select(PasswordResetToken).where(
+            PasswordResetToken.token == token,
+            not PasswordResetToken.used,
+            PasswordResetToken.expires_at > datetime.utcnow(),
+        )
+    ).first()
+    return prt
+
+
+def mark_password_reset_token_used(*, db: Session, prt: PasswordResetToken) -> None:
+    prt.used = True
+    db.add(prt)
+    db.commit()
 
 
 def reset_user_password(*, db: Session, user: User, new_password: str) -> User:
-    """Reset user password and clear reset token."""
     user.hashed_password = get_password_hash(new_password)
-    user.reset_token = None
-    user.reset_token_expires = None
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
-
-
-def get_user_by_reset_token(*, db: Session, token: str) -> User | None:
-    """Get user by reset token if token is valid and not expired."""
-    # First get user by token, then check expiry in Python
-    statement = select(User).where(User.reset_token == token)
-    user = db.exec(statement).first()
-
-    if (
-        user
-        and user.reset_token_expires
-        and user.reset_token_expires > datetime.utcnow()
-    ):
-        return user
-    return None
 
 
 def update_user(
@@ -157,13 +165,13 @@ def delete_user(*, db: Session, user_id: uuid.UUID) -> bool:
 
 def get_active_users(*, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
     """Get only active users."""
-    statement = select(User).where(User.is_active == True).offset(skip).limit(limit)
+    statement = select(User).where(User.is_active).offset(skip).limit(limit)
     return db.exec(statement).all()  # type: ignore
 
 
 def get_verified_users(*, db: Session, skip: int = 0, limit: int = 100) -> List[User]:
     """Get only verified users."""
-    statement = select(User).where(User.is_verified == True).offset(skip).limit(limit)
+    statement = select(User).where(User.is_verified).offset(skip).limit(limit)
     return db.exec(statement).all()  # type: ignore
 
 
@@ -183,13 +191,13 @@ def count_users(*, db: Session) -> int:
 
 def count_active_users(*, db: Session) -> int:
     """Get count of active users."""
-    statement = select(User).where(User.is_active == True)
+    statement = select(User).where(User.is_active)
     return len(db.exec(statement).all())
 
 
 def count_verified_users(*, db: Session) -> int:
     """Get count of verified users."""
-    statement = select(User).where(User.is_verified == True)
+    statement = select(User).where(User.is_verified)
     return len(db.exec(statement).all())
 
 
@@ -199,114 +207,84 @@ def user_exists(*, db: Session, email: str) -> bool:
     return user is not None
 
 
-def clear_expired_reset_tokens(*, db: Session) -> int:
-    """Clear all expired password reset tokens and return count of cleared tokens."""
-    current_time = datetime.utcnow()
-    # Get all users with reset tokens
-    statement = select(User).where(User.reset_token != None)
-    users_with_tokens = db.exec(statement).all()
-
-    count = 0
-    for user in users_with_tokens:
-        # Check if token is expired
-        if user.reset_token_expires and user.reset_token_expires <= current_time:
-            user.reset_token = None
-            user.reset_token_expires = None
-            db.add(user)
-            count += 1
-
-    if count > 0:
-        db.commit()
-
-    return count
-
-
-# Email verification functions
-def update_user_verification_token(*, db: Session, user: User, token: str) -> User:
-    """Update user with email verification token and expiry time."""
-    user.verification_token = token
-    user.verification_token_expires = datetime.utcnow() + timedelta(
-        hours=24
-    )  # 24 hour expiry
-    db.add(user)
+def create_email_verification_token_entry(
+    *, db: Session, user: User, token: str, expires_in_hours: int = 24
+) -> EmailVerificationToken:
+    expires_at = datetime.utcnow() + timedelta(hours=expires_in_hours)
+    evt = EmailVerificationToken(user_id=user.id, token=token, expires_at=expires_at)
+    db.add(evt)
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(evt)
+    return evt
 
 
-def get_user_by_verification_token(*, db: Session, token: str) -> User | None:
-    """Get user by verification token if token is valid and not expired."""
-    # First get user by token, then check expiry in Python
-    statement = select(User).where(User.verification_token == token)
-    user = db.exec(statement).first()
+def get_valid_email_verification_token(
+    *, db: Session, token: str
+) -> Optional[EmailVerificationToken]:
+    evt = db.exec(
+        select(EmailVerificationToken).where(
+            EmailVerificationToken.token == token,
+            not EmailVerificationToken.used,
+            EmailVerificationToken.expires_at > datetime.utcnow(),
+        )
+    ).first()
+    return evt
 
-    if (
-        user
-        and user.verification_token_expires
-        and user.verification_token_expires > datetime.utcnow()
-    ):
-        return user
-    return None
+
+def mark_email_verification_token_used(
+    *, db: Session, evt: EmailVerificationToken
+) -> None:
+    evt.used = True
+    db.add(evt)
+    db.commit()
 
 
 def verify_user_email(*, db: Session, user: User) -> User:
-    """Verify user email and clear verification token."""
     user.is_verified = True
-    user.verification_token = None
-    user.verification_token_expires = None
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
 
 
-def clear_expired_verification_tokens(*, db: Session) -> int:
-    """Clear all expired email verification tokens and return count of cleared tokens."""
-    current_time = datetime.utcnow()
-    # Get all users with verification tokens
-    statement = select(User).where(User.verification_token != None)
-    users_with_tokens = db.exec(statement).all()
-
+def cleanup_expired_password_reset_tokens(*, db: Session) -> int:
+    """Delete all expired password reset tokens and return the count."""
+    now = datetime.utcnow()
+    statement = select(PasswordResetToken).where(
+        PasswordResetToken.expires_at <= now, not PasswordResetToken.used
+    )
+    expired_tokens = db.exec(statement).all()
     count = 0
-    for user in users_with_tokens:
-        # Check if token is expired
-        if (
-            user.verification_token_expires
-            and user.verification_token_expires <= current_time
-        ):
-            user.verification_token = None
-            user.verification_token_expires = None
-            db.add(user)
-            count += 1
-
+    for token in expired_tokens:
+        db.delete(token)
+        count += 1
     if count > 0:
         db.commit()
-
     return count
 
 
-def resend_verification_email(*, db: Session, user: User, new_token: str) -> User:
-    """Resend verification email with new token (rate limited)."""
-    # Check if user already has a recent verification token (rate limiting)
-    if (
-        user.verification_token_expires
-        and user.verification_token_expires
-        > datetime.utcnow() + timedelta(hours=23)  # Less than 1 hour old
-    ):
-        raise ValueError(
-            "Verification email already sent recently. Please wait before requesting another."
-        )
-
-    return update_user_verification_token(db=db, user=user, token=new_token)
+def cleanup_expired_email_verification_tokens(*, db: Session) -> int:
+    """Delete all expired email verification tokens and return the count."""
+    now = datetime.utcnow()
+    statement = select(EmailVerificationToken).where(
+        EmailVerificationToken.expires_at <= now, not EmailVerificationToken.used
+    )
+    expired_tokens = db.exec(statement).all()
+    count = 0
+    for token in expired_tokens:
+        db.delete(token)
+        count += 1
+    if count > 0:
+        db.commit()
+    return count
 
 
 def cleanup_expired_tokens(*, db: Session) -> dict:
-    """Cleanup all expired tokens (both reset and verification) and return counts."""
-    reset_count = clear_expired_reset_tokens(db=db)
-    verification_count = clear_expired_verification_tokens(db=db)
-
+    """Cleanup all expired tokens and return counts for each type."""
+    reset_count = cleanup_expired_password_reset_tokens(db=db)
+    verification_count = cleanup_expired_email_verification_tokens(db=db)
     return {
-        "reset_tokens_cleared": reset_count,
-        "verification_tokens_cleared": verification_count,
-        "total_cleared": reset_count + verification_count,
+        "reset_tokens_deleted": reset_count,
+        "verification_tokens_deleted": verification_count,
+        "total_deleted": reset_count + verification_count,
     }

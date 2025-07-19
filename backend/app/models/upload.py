@@ -1,7 +1,10 @@
 from datetime import datetime
-from typing import Dict, Optional, Union, List
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
-from sqlmodel import JSON, Column, Field, SQLModel
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class FileMetadata(SQLModel, table=True):
@@ -20,6 +23,8 @@ class FileMetadata(SQLModel, table=True):
         default_factory=dict, sa_column=Column(JSON)
     )  # Different sizes/formats
     checksum: Optional[str] = None
+    user_id: Optional[str] = Field(default=None, foreign_key="user.id")
+    user: Optional["User"] = Relationship(back_populates="files")
 
 
 class UploadResponse(SQLModel):

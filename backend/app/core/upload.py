@@ -306,7 +306,7 @@ class UploadService:
         )
 
     async def upload_startup_files(
-        self, files: Dict[str, UploadFile], startup_id: str
+        self, files: Dict[str, UploadFile], startup_id: str, db: Session
     ) -> Dict[str, UploadResponse]:
         """Upload multiple files for a startup profile"""
         results = {}
@@ -322,7 +322,7 @@ class UploadService:
         for field_name, file in files.items():
             if file and field_name in handlers:
                 try:
-                    result = await handlers[field_name](file)
+                    result = await handlers[field_name](file, db)
                     # Add startup context to metadata
                     result.file_metadata.update(
                         {"startup_id": startup_id, "field_name": field_name}
