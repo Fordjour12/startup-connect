@@ -96,7 +96,13 @@ class Settings(BaseSettings):
 
     @computed_field
     @property
-    def SQLALCHEMY_DATABASE_URL(self) -> PostgresDsn | None:
+    def SQLALCHEMY_DATABASE_URL(self) -> PostgresDsn | str | None:
+        # First check if we have a complete DATABASE_URL string
+        database_url = getattr(self, 'DATABASE_URL', None)
+        if database_url:
+            return database_url
+
+        # Fall back to building from individual components
         if not all([self.POSTGRES_USER, self.POSTGRES_PASSWORD, self.POSTGRES_HOST]):
             return None
         return MultiHostUrl.build(
