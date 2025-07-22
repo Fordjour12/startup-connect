@@ -1,0 +1,149 @@
+# .github/workflows/migrate-production.yml
+
+name: Run Database Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Select the environment to migrate
+        default: Production - startup-connect-backend
+      dry_run:
+        type: boolean
+        description: Run migration check without applying changes
+        default: false
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: Environment to migrate
+        default: Production - startup-connect-backend
+      dry_run:
+        type: boolean
+        description: Run migration check without applying changes
+        default: false
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || github.event.inputs.environment || 'Production - startup-connect-backend' }}
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          uv sync
+
+      - name: Verify database connection
+        working-directory: backend
+        env:
+          SQLALCHEMY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Testing database connection..."
+          uv run python -c "
+          import asyncio
+          from sqlalchemy import create_engine, text
+          from app.core.config import settings
+
+          engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URL))
+          with engine.connect() as conn:
+              result = conn.execute(text('SELECT version()'))
+              version = result.fetchone()[0]
+              print(f'Connected to PostgreSQL: {version}')
+          "
+
+      - name: Check migration status
+        working-directory: backend
+        env:
+          SQLALCHEMY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Current migration status:"
+          uv run alembic current
+          echo "Pending migrations:"
+          uv run alembic show head
+
+      - name: Run dry-run migration check
+        if: ${{ inputs.dry_run == true || github.event.inputs.dry_run == 'true' }}
+        working-directory: backend
+        env:
+          SQLALCHEMY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🔍 Running migration dry-run check..."
+          uv run alembic check
+          echo "✅ Migration check completed successfully"
+
+      - name: Generate migration SQL (for review)
+        if: ${{ inputs.dry_run == true || github.event.inputs.dry_run == 'true' }}
+        working-directory: backend
+        env:
+          SQLALCHEMY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "📝 Generating SQL for pending migrations..."
+          uv run alembic upgrade head --sql > migration_preview.sql
+          echo "Generated SQL preview:"
+          cat migration_preview.sql
+
+      - name: Run database migrations
+        if: ${{ inputs.dry_run != true && github.event.inputs.dry_run != 'true' }}
+        working-directory: backend
+        env:
+          SQLALCHEMY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🚀 Running database migrations..."
+          uv run alembic upgrade head
+          echo "✅ Migrations completed successfully"
+
+      - name: Verify migration completion
+        if: ${{ inputs.dry_run != true && github.event.inputs.dry_run != 'true' }}
+        working-directory: backend
+        env:
+          SQLALCHEMY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Verifying migration status after upgrade:"
+          uv run alembic current
+          echo "✅ Migration verification completed"
+
+      - name: Create migration summary
+        if: always()
+        working-directory: backend
+        env:
+          SQLALCHEMY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "## 📊 Migration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment || github.event.inputs.environment || 'Production - startup-connect-backend' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ inputs.dry_run || github.event.inputs.dry_run || 'false' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Current Migration Status" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          uv run alembic current >> $GITHUB_STEP_SUMMARY 2>&1 || echo "Failed to get current migration status" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  notify-deployment:
+    runs-on: ubuntu-latest
+    needs: migrate
+    if: ${{ success() && (inputs.dry_run != true && github.event.inputs.dry_run != 'true') }}
+    steps:
+      - name: Migration Success Notification
+        run: |
+          echo "🎉 Database migrations completed successfully!"
+          echo "The application deployment can now proceed safely."
+          echo "Environment: ${{ inputs.environment || github.event.inputs.environment || 'Production - startup-connect-backend' }}"
