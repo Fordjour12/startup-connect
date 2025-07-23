@@ -1,0 +1,119 @@
+# name: Deploy Frontend and Backend to Cloud Run -- echo
+
+# on:
+#   push:
+#     branches:
+#       - master
+#   workflow_dispatch:
+#     inputs:
+#       environment:
+#         type: environment
+#         description: Select the environment to deploy to
+
+# env:
+#   BACKEND_DOCKERFILE_PATH: "backend/Dockerfile"
+#   FRONTEND_DOCKERFILE_PATH: "frontend/Dockerfile"
+
+# jobs:
+#   deploy-backend:
+#     runs-on: ubuntu-latest
+#     environment: ${{ inputs.environment || 'Production - startup-connect-backend' }}
+#     permissions:
+#       contents: "read"
+#       id-token: "write"
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Set up Google Cloud SDK
+#         uses: google-github-actions/setup-gcloud@v2
+#         with:
+#           project_id: ${{ vars.GCP_PROJECT_ID }}
+#           service_account: ${{ secrets.BACKEND_SA_EMAIL }}
+#           workload_identity_provider: ${{ secrets.WIF_PROVIDER_FULL_PATH }}
+
+#       - name: Configure Docker to use Artifact Registry
+#         run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev
+
+#       - name: Build and push backend Docker image
+#         run: |
+#           cd backend
+#           IMAGE_PATH="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/fastapi-gcs:${{ github.sha }}"
+#           echo "Building backend image: ${IMAGE_PATH}"
+#           docker build -t "${IMAGE_PATH}" -f "${{ env.BACKEND_DOCKERFILE_PATH }}" .
+#           echo "Pushing backend image to Artifact Registry..."
+#           docker push "${IMAGE_PATH}"
+#           echo "BACKEND_IMAGE_PATH=${IMAGE_PATH}" >> $GITHUB_ENV
+
+#       - name: Deploy backend to Cloud Run
+#         run: |
+#           echo "Deploying backend Cloud Run service: ${{ vars.BACKEND_SERVICE_NAME }}"
+#           gcloud run deploy ${{ vars.BACKEND_SERVICE_NAME }} \
+#             --image "${{ env.BACKEND_IMAGE_PATH }}" \
+#             --region "${{ vars.GCP_REGION }}" \
+#             --platform managed \
+#             --no-allow-unauthenticated \
+#             --service-account "${{ secrets.BACKEND_SA_EMAIL }}" \
+#             --set-env-vars "GCS_BUCKET_NAME=${{ vars.GCS_BUCKET_NAME }}" \
+#             --project "${{ vars.GCP_PROJECT_ID }}" \
+#             --min-instances 0 \
+#             --max-instances 1
+#           echo "Backend deployment complete."
+
+#   deploy-frontend:
+#     runs-on: ubuntu-latest
+#     environment: ${{ inputs.environment || 'Production - startup-connect-backend' }}
+#     permissions:
+#       contents: "read"
+#       id-token: "write"
+#     needs: deploy-backend  # Ensure backend is deployed first
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+#       - name: Set up Google Cloud SDK
+#         uses: google-github-actions/setup-gcloud@v2
+#         with:
+#           project_id: ${{ vars.GCP_PROJECT_ID }}
+#           service_account: ${{ secrets.FRONTEND_SA_EMAIL }}
+#           workload_identity_provider: ${{ secrets.WIF_PROVIDER_FULL_PATH }}
+
+#       - name: Configure Docker to use Artifact Registry
+#         run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev
+
+#       - name: Build and push frontend Docker image
+#         run: |
+#           cd frontend
+#           IMAGE_PATH="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.AR_REPO_NAME }}/frontend:${{ github.sha }}"
+#           echo "Building frontend image: ${IMAGE_PATH}"
+#           docker build -t "${IMAGE_PATH}" -f "${{ env.FRONTEND_DOCKERFILE_PATH }}" .
+#           echo "Pushing frontend image to Artifact Registry..."
+#           docker push "${IMAGE_PATH}"
+#           echo "FRONTEND_IMAGE_PATH=${IMAGE_PATH}" >> $GITHUB_ENV
+
+#       - name: Deploy frontend to Cloud Run
+#         run: |
+#           echo "Deploying frontend Cloud Run service: ${{ vars.FRONTEND_SERVICE_NAME }}"
+#           gcloud run deploy ${{ vars.FRONTEND_SERVICE_NAME }} \
+#             --image "${{ env.FRONTEND_IMAGE_PATH }}" \
+#             --region "${{ vars.GCP_REGION }}" \
+#             --platform managed \
+#             --allow-unauthenticated \
+#             --service-account "${{ secrets.FRONTEND_SA_EMAIL }}" \
+#             --set-env-vars "BACKEND_URL=https://${{ vars.BACKEND_SERVICE_NAME }}-abc123-uc.a.run.app" \
+#             --project "${{ vars.GCP_PROJECT_ID }}" \
+#             --min-instances 0 \
+#             --max-instances 1
+#           echo "Frontend deployment complete."
+
+#       - name: Get frontend service URL
+#         continue-on-error: true
+#         run: |
+#           SERVICE_URL=$(gcloud run services describe ${{ vars.FRONTEND_SERVICE_NAME }} \
+#             --region "${{ vars.GCP_REGION }}" \
+#             --project "${{ vars.GCP_PROJECT_ID }}" \
+#             --format="value(status.url)")
+#           echo "Frontend Service URL: ${SERVICE_URL}"
+#           echo "SERVICE_URL=${SERVICE_URL}" >> $GITHUB_ENV
