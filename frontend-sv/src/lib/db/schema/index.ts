@@ -1,1 +1,1 @@
-export { account, session, user, verification, usrRoleEnum } from "./auth-schema"
+export { account, session, user, verification } from "./auth-schema"

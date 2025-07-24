@@ -4,11 +4,25 @@ import {
   timestamp,
   boolean,
   integer,
-  pgEnum
+  pgEnum,
+  check
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
+// Define user roles as a const object for better type safety and maintainability
+export const USER_ROLES = {
+  FOUNDER: "founder",
+  INVESTOR: "investor",
+  SUPPORT: "support",
+  MODERATOR: "755940",
+  ADMIN: "6203875"
+} as const;
 
-export const usrRoleEnum = pgEnum("role", ["founder", "investor", "support", "755940", "6203875"])
+// Type for user roles
+export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+
+// Array of valid role values for check constraint
+export const VALID_USER_ROLES = Object.values(USER_ROLES);
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -18,30 +32,44 @@ export const user = pgTable("user", {
     .$defaultFn(() => false)
     .notNull(),
   image: text("image"),
+  role: text("role")
+    .notNull()
+    .default(USER_ROLES.FOUNDER),
+  banned: boolean("banned").$defaultFn(() => false).notNull(),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
   updatedAt: timestamp("updated_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
+    .$onUpdateFn(() => /* @__PURE__ */ new Date())
     .notNull(),
-  role: usrRoleEnum("role").notNull().default("founder"),
-  banned: boolean("banned"),
-  banReason: text("ban_reason"),
-  banExpires: timestamp("ban_expires"),
-});
+}, (table) => ({
+  roleCheck: check("role_check", sql`${table.role} IN (${sql.join(VALID_USER_ROLES.map(role => sql`${role}`), sql`, `)})`),
+  banConstraint: check("ban_constraint", sql`
+        (${table.banned} = false) OR
+        (${table.banned} = true AND ${table.banReason} IS NOT NULL)
+      `)
+}));
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   impersonatedBy: text("impersonated_by"),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .$onUpdateFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
 export const account = pgTable("account", {
