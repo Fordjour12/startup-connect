@@ -1,6 +1,6 @@
 <script lang="ts">
    import { page } from "$app/state";
-   import LoginForm from "$lib/components/LoginForm.svelte";
+   import LoginForm from "@/components/auth/LoginForm.svelte";
    import { CheckCircle } from "@lucide/svelte";
    import type { PageProps } from "./$types";
 

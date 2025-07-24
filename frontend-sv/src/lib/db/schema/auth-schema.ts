@@ -8,6 +8,7 @@ import {
   check
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
 
 // Define user roles as a const object for better type safety and maintainability
 export const USER_ROLES = {
@@ -25,7 +26,7 @@ export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
 export const VALID_USER_ROLES = Object.values(USER_ROLES);
 
 export const user = pgTable("user", {
-  id: text("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(() => createId()),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified")
@@ -45,13 +46,12 @@ export const user = pgTable("user", {
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .$onUpdateFn(() => /* @__PURE__ */ new Date())
     .notNull(),
-}, (table) => ({
-  roleCheck: check("role_check", sql`${table.role} IN (${sql.join(VALID_USER_ROLES.map(role => sql`${role}`), sql`, `)})`),
-  banConstraint: check("ban_constraint", sql`
-        (${table.banned} = false) OR
-        (${table.banned} = true AND ${table.banReason} IS NOT NULL)
-      `)
-}));
+}, (table) => [
+  //check("role_check", sql`${table.role} IN (${sql.join(VALID_USER_ROLES.map(role => sql`${role}`), sql`, `)})`),
+  check('ban_constraint', sql`
+      (${table.banned} = false) OR (${table.banned} = true AND ${table.banReason} IS NOT NULL)`
+  ),
+]);
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -108,3 +108,12 @@ export const verification = pgTable("verification", {
     .$onUpdateFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 });
+
+
+
+
+// roleCheck: check("role_check", sql`${table.role} IN (${sql.join(VALID_USER_ROLES.map(role => sql`${role}`), sql`, `)})`),
+// banConstraint: check("ban_constraint", sql`
+//       (${table.banned} = false) OR
+//       (${table.banned} = true AND ${table.banReason} IS NOT NULL)
+//     `)
