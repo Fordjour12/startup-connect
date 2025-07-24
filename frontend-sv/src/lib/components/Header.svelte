@@ -16,34 +16,35 @@
     import ModeToggle from "./ModeToggle.svelte";
     import UserDropdown from "./UserDropdown.svelte";
 
-    type UserData = {
-        user: {
-            id: string;
-            email: string;
-            full_name: string;
-        };
-    };
+    /* type UserData = {
+      user: {
+         id: string;
+         email: string;
+         full_name: string;
+      };
+   };*/
 
-    let { data }: { data: UserData } = $props();
+    let { data } = $props();
 
     // App name - modify this to match your application name
     const appName = $state("StartupConnect");
 
     // Derive login state from user data
-    let isLoggedIn = $derived(!!data.user);
+    //let isLoggedIn = $derived(!!data.user);
 
     // Responsive state
     let menuOpen = $state(false);
 
     // Handle logout
-    function handleLogout() {
+    /*     function handleLogout() {
         // In a real app, implement your logout logic here
         console.log("Logging out");
         // Clear the access token and redirect to login
         document.cookie =
             "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-        window.location.href = "/login";
+        //window.location.href = "/login";
     }
+    */
 
     // Navigation items - customize these based on your app routes
     const navItems = [
@@ -108,7 +109,7 @@
 
             <div class="flex items-center gap-4">
                 <ModeToggle />
-                <UserDropdown {isLoggedIn} user={data.user} />
+                <!-- <UserDropdown {isLoggedIn} user={data.user} />-->
             </div>
         </nav>
 
@@ -152,10 +153,10 @@
                             </a>
                         {/each}
                     </nav>
-                    <div class="mt-auto pt-4 border-t space-y-2">
-                        {#if isLoggedIn && data.user}
-                            <div class="flex items-center gap-2 px-4 py-2">
-                                <!-- <img
+                    <!-- <div class="mt-auto pt-4 border-t space-y-2">
+                  {#if isLoggedIn && data.user}
+                     <div class="flex items-center gap-2 px-4 py-2">
+                         <img
                                     src={data.user.avatarUrl || ""}
                                     alt=""
                                     class="h-10 w-10 rounded-full bg-muted"
@@ -167,33 +168,28 @@
                                     <span class="text-xs text-muted-foreground"
                                         >{data.user.email || ""}</span
                                     >
-                                </div> -->
-                            </div>
-                            <Button
-                                variant="ghost"
-                                class="w-full justify-start text-destructive"
-                                onclick={handleLogout}
-                            >
-                                <LogOut class="mr-2 h-4 w-4" />
-                                Log out
-                            </Button>
-                        {:else}
-                            <a href="/login" class="w-full">
-                                <Button
-                                    variant="outline"
-                                    class="w-full justify-start"
-                                >
-                                    <UserIcon class="mr-2 h-4 w-4" />
-                                    Login
-                                </Button>
-                            </a>
-                            <a href="/register" class="w-full">
-                                <Button class="w-full justify-start">
-                                    Sign Up
-                                </Button>
-                            </a>
-                        {/if}
-                    </div>
+                                </div>
+                     </div>
+                     <Button
+                        variant="ghost"
+                        class="w-full justify-start text-destructive"
+                        onclick={handleLogout}
+                     >
+                        <LogOut class="mr-2 h-4 w-4" />
+                        Log out
+                     </Button>
+                  {:else}
+                     <a href="/login" class="w-full">
+                        <Button variant="outline" class="w-full justify-start">
+                           <UserIcon class="mr-2 h-4 w-4" />
+                           Login
+                        </Button>
+                     </a>
+                     <a href="/register" class="w-full">
+                        <Button class="w-full justify-start">Sign Up</Button>
+                     </a>
+                  {/if}
+               </div> -->
                 </SheetContent>
             </Sheet>
         </div>

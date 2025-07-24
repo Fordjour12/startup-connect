@@ -1,3 +1,12 @@
+import { auth } from "@/auth";
+import { svelteKitHandler } from "better-auth/svelte-kit";
+import { building } from "$app/environment";
+
+export async function handle({ event, resolve }) {
+  return svelteKitHandler({ event, resolve, auth, building });
+}
+
+
 // import { env } from '$env/dynamic/private';
 // import { ApiEndpoint } from '@/endpoints';
 // import type { Handle } from '@sveltejs/kit';
