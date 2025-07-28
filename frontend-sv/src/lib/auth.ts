@@ -10,43 +10,29 @@ import * as schema from "@/db/schema/auth-schema"
 
 
 export const auth = betterAuth({
-   database: drizzleAdapter(db, {
-      provider: "pg", // or "mysql", "sqlite"
-      schema
-   }),
-   emailAndPassword: {
-      enabled: true,
-   },
-   // socialProviders: {
-   //   github: {
-   //     clientId: process.env.GITHUB_CLIENT_ID as string,
-   //     clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-   //   },
-   //   google: {
-   //     clientId: process.env.GOOGLE_CLIENT_ID as string,
-   //     clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-   //   },
-   // },
-   plugins: [
-      sveltekitCookies(() => Promise.resolve(getRequestEvent())),
-      admin({
-         defaultRole: USER_ROLES.FOUNDER,
-         adminRoles: [USER_ROLES.MODERATOR, USER_ROLES.ADMIN],
-      }),
-   ],
-   secret: env.SECRET_KEY
+  database: drizzleAdapter(db, {
+    provider: "pg", // or "mysql", "sqlite"
+    schema
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  // socialProviders: {
+  //   github: {
+  //     clientId: process.env.GITHUB_CLIENT_ID as string,
+  //     clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+  //   },
+  //   google: {
+  //     clientId: process.env.GOOGLE_CLIENT_ID as string,
+  //     clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+  //   },
+  // },
+  plugins: [
+    sveltekitCookies(() => Promise.resolve(getRequestEvent())),
+    admin({
+      defaultRole: USER_ROLES.FOUNDER,
+      adminRoles: [USER_ROLES.MODERATOR, USER_ROLES.ADMIN],
+    }),
+  ],
+  secret: env.SECRET_KEY
 });
-
-
-
-/* roles: [{
-       name: "user",
-       permissions: ["read", "write"]
-     },
-     {
-        name: "admin",
-        permissions: ["read", "write", "delete"]
-      }, {
-        name: "moderator",
-        permissions: ["read", "write", "delete", "moderate"]
-      }] */

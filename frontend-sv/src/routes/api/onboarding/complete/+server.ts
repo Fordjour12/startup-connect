@@ -2,16 +2,22 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OnboardingService } from '@/db/onboarding';
 import type { OnboardingData } from '@/schemas/onboarding-schema';
+import { auth } from '@/auth';
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const formData: OnboardingData = await request.json();
 		
-		// Get user ID from session/auth context
-		const userId = locals.user?.id;
-		if (!userId) {
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: request.headers
+		});
+		
+		if (!session) {
 			return json({ error: 'Unauthorized' }, { status: 401 });
 		}
+
+		const userId = session.user.id;
 
 		// Validate the data (you might want to add Zod validation here)
 		if (!formData.role || !formData.fullName || !formData.email) {

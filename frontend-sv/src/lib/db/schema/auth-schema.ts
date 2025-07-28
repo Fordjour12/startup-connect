@@ -33,9 +33,7 @@ export const user = pgTable("user", {
     .$defaultFn(() => false)
     .notNull(),
   image: text("image"),
-  role: text("role")
-    .notNull()
-    .default(USER_ROLES.FOUNDER),
+  role: text("role").notNull(),
   banned: boolean("banned").$defaultFn(() => false).notNull(),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),

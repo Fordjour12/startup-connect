@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
     import {
         Avatar,
         AvatarImage,
@@ -16,110 +16,67 @@
     import Settings from "@lucide/svelte/icons/settings";
     import LogOut from "@lucide/svelte/icons/log-out";
     import User from "@lucide/svelte/icons/user-circle-2";
+    import { sessionStore, signOut } from "@/auth-client";
 
-    type UserData = {
-        id: string;
-        email: string;
-        full_name: string;
-    };
+    // Get session from store
+    let session = $state(null);
+    let isLoggedIn = $derived(!!session);
 
-    // User state - in a real app, this would come from your auth store
-    let { user, isLoggedIn = false }: { user: UserData; isLoggedIn: boolean } =
-        $props();
+    // Subscribe to session store
+    $effect(() => {
+        const unsubscribe = sessionStore.subscribe((value) => {
+            session = value;
+        });
+        return unsubscribe;
+    });
+
+    // Extract user data from session
+    let user = $derived(session?.user || null);
 
     // Extract initials from name if available
     let initials = $derived(() => {
-        if (!user?.full_name) return "U";
-        return user.full_name.substring(0, 2).toUpperCase();
+        if (!user?.name) return "U";
+        return user.name.substring(0, 2).toUpperCase();
     });
 
     // Handle logout
-    function handleLogout() {
-        // Implement your logout logic here
-        console.log("User logged out");
-        // Clear the access token and redirect to login
-        document.cookie =
-            "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    async function handleLogout() {
+        await signOut();
         window.location.href = "/login";
     }
 </script>
 
 {#if isLoggedIn && user}
-    <div class="relative">
-        <Button
-            variant="ghost"
-            size="icon"
-            class="relative h-8 w-8 rounded-full"
-        >
-            <Avatar class="h-8 w-8">
-                {#if user.avatarUrl}
-                    <AvatarImage
-                        src={user.avatarUrl}
-                        alt={user.full_name || "User"}
-                    />
-                {:else}
-                    <AvatarImage
-                        src="https://github.com/shadcn.png"
-                        alt="@shadcn"
-                    />
-                {/if}
-                <AvatarFallback class="text-xs font-medium">
-                    {initials}
-                </AvatarFallback>
-            </Avatar>
-        </Button>
-        <div class="absolute inset-0">
-            <DropdownMenu>
-                <DropdownMenuTrigger class="cursor-pointer absolute inset-0"
-                ></DropdownMenuTrigger>
-                <DropdownMenuContent class="w-56">
-                    <div class="flex flex-col space-y-1 px-2 py-1.5">
-                        <p class="text-sm font-medium leading-none">
-                            {user.full_name || "User"}
-                        </p>
-                        <p class="text-xs leading-none text-muted-foreground">
-                            {user.email || ""}
-                        </p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem>
-                            <a href="/profile" class="flex items-center w-full">
-                                <User class="mr-2 h-4 w-4" />
-                                <span>Profile</span>
-                            </a>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <a
-                                href="/settings"
-                                class="flex items-center w-full"
-                            >
-                                <Settings class="mr-2 h-4 w-4" />
-                                <span>Settings</span>
-                            </a>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                        <button
-                            onclick={handleLogout}
-                            class="flex items-center w-full"
-                        >
-                            <LogOut class="mr-2 h-4 w-4" />
-                            <span>Log out</span>
-                        </button>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-    </div>
+    <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild let:builder>
+            <Button variant="ghost" class="relative h-8 w-8 rounded-full" use:builder>
+                <Avatar.Root class="h-8 w-8">
+                    <Avatar.Image src="" alt={user.name || 'User'} />
+                    <Avatar.Fallback>{initials}</Avatar.Fallback>
+                </Avatar.Root>
+            </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content class="w-56" align="end" forceMount>
+            <DropdownMenuGroup>
+                <DropdownMenuItem>
+                    <User class="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                    <Settings class="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onclick={handleLogout}>
+                <LogOut class="mr-2 h-4 w-4" />
+                <span>Log out</span>
+            </DropdownMenuItem>
+        </DropdownMenu.Content>
+    </DropdownMenu.Root>
 {:else}
-    <div class="flex items-center gap-2">
-        <a href="/login">
-            <Button variant="outline" size="sm">Login</Button>
-        </a>
-        <a href="/register">
-            <Button size="sm">Sign Up</Button>
-        </a>
-    </div>
-{/if}
+    <Button variant="ghost" onclick={() => window.location.href = '/login'}>
+        <User class="mr-2 h-4 w-4" />
+        Sign In
+    </Button>
+{/if} -->

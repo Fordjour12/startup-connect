@@ -38,3 +38,15 @@ export function formatNumber(num: number): string {
     maximumFractionDigits: 1,
   }).format(num);
 }
+
+
+export function getRoleDashboardPath(role: string): string {
+  switch (role) {
+    case "investor":
+      return "/dashboard/investor";
+    case "support":
+      return "/dashboard/supporter";
+    default:
+      return "/dashboard/founder";
+  }
+}

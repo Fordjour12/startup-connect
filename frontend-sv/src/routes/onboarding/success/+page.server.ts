@@ -1,28 +1,20 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { USER_ROLES } from '@/db/schema/auth-schema';
+import { auth } from '@/auth';
 
-export const load: PageServerLoad = async ({ cookies, url }) => {
-   // Check if user is authenticated
-   const userCookie = cookies.get('user');
-   const accessToken = cookies.get('access_token');
+export const load: PageServerLoad = async ({ request, url }) => {
+   // Get session from Better Auth
+   const session = await auth.api.getSession({
+      headers: request.headers
+   });
 
-   if (!userCookie || !accessToken) {
-      throw redirect(302, '/login');
-   }
-
-   let user = null;
-   try {
-      user = JSON.parse(userCookie);
-   } catch (error) {
-      // Clear invalid cookie and redirect to login
-      cookies.delete('user', { path: '/' });
-      cookies.delete('access_token', { path: '/' });
+   if (!session?.user) {
       throw redirect(302, '/login');
    }
 
    // Get role from URL params or user data
-   const role = url.searchParams.get('role') || user.role;
+   const role = url.searchParams.get('role') || session.user.role;
 
    // Determine redirect path based on role
    let redirectPath: string;

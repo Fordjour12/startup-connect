@@ -1,109 +1,196 @@
 <script lang="ts">
-   import type { PageProps } from "./$types";
-   import { onboardingState } from "@/components/onboarding/onboarding-state.svelte";
-   import ProgressIndicator from "@/components/onboarding/ProgressIndicator.svelte";
-   import WelcomeStep from "@/components/onboarding/steps/WelcomeStep.svelte";
-   import RoleSelection from "@/components/onboarding/RoleSelection.svelte";
-   import BasicInfoStep from "@/components/onboarding/steps/BasicInfoStep.svelte";
-   import GoalsStep from "@/components/onboarding/steps/GoalsStep.svelte";
-   import CompletionStep from "@/components/onboarding/steps/CompletionStep.svelte";
-   import { onMount } from "svelte";
+    import type { PageProps } from "./$types";
+    import { onboardingState } from "@/hooks/onboarding-state.svelte";
+    import ProgressIndicator from "@/components/onboarding/ProgressIndicator.svelte";
+    import WelcomeStep from "@/components/onboarding/steps/WelcomeStep.svelte";
+    import RoleSelection from "@/components/onboarding/RoleSelection.svelte";
+    import BasicInfoStep from "@/components/onboarding/steps/BasicInfoStep.svelte";
+    import GoalsStep from "@/components/onboarding/steps/GoalsStep.svelte";
+    import SkillsStep from "@/components/onboarding/steps/SkillsStep.svelte";
+    import PreferencesStep from "@/components/onboarding/steps/PreferencesStep.svelte";
+    import RoleDetailsStep from "@/components/onboarding/steps/RoleDetailsStep.svelte";
+    import VerificationStep from "@/components/onboarding/steps/VerificationStep.svelte";
+    import CompletionStep from "@/components/onboarding/steps/CompletionStep.svelte";
+    import Toast from "@/components/ui/toast.svelte";
+    import { onMount } from "svelte";
 
-   let { data }: PageProps = $props();
+    let { data } = $props();
 
-   // Initialize onboarding state with user data if available
-   onMount(() => {
-      if (data.user) {
-         onboardingState.updateFormData({
-            fullName: data.user.full_name || '',
-            email: data.user.email || '',
-            role: data.user.role || 'founder'
-         });
-      }
-   });
+    // Error handling state
+    let showToast = $state(false);
+    let toastMessage = $state("");
+    let toastType = $state<"success" | "error" | "warning" | "info">("info");
 
-   // Get current step ID
-   let currentStepId = $derived(onboardingState.currentStep.id);
+    // Initialize onboarding state with user data if available
+    onMount(() => {
+        if (data.user) {
+            // Map database role to onboarding role
+            const roleMapping: Record<
+                string,
+                "founder" | "investor" | "supporter"
+            > = {
+                founder: "founder",
+                investor: "investor",
+                support: "supporter", // Map database 'support' to onboarding 'supporter'
+                user: "founder", // Map 'user' role to 'founder' as default for onboarding
+            };
+
+            const userRole = data.user.role || "founder";
+            const mappedRole = roleMapping[userRole] || "founder";
+
+            onboardingState.updateFormData({
+                fullName: data.user.name || "",
+                email: data.user.email || "",
+                role: mappedRole,
+            });
+        }
+
+        // Load saved progress
+        onboardingState.loadProgress().catch((error) => {
+            console.error("Failed to load onboarding progress:", error);
+            showError("Failed to load saved progress. Starting fresh.");
+        });
+
+        // Listen for errors from onboarding state
+        $effect(() => {
+            if (onboardingState.hasErrors()) {
+                const errors = Object.values(onboardingState.errors);
+                if (errors.length > 0) {
+                    const firstError = errors[0];
+                    showError(firstError.message);
+                }
+            }
+        });
+    });
+
+    function showError(message: string) {
+        toastMessage = message;
+        toastType = "error";
+        showToast = true;
+    }
+
+    function showSuccess(message: string) {
+        toastMessage = message;
+        toastType = "success";
+        showToast = true;
+    }
+
+    function handleToastClose() {
+        showToast = false;
+    }
+
+    // Get current step ID for conditional rendering
+    let currentStepId = $derived(
+        onboardingState.currentStep()?.id || "welcome",
+    );
+
+    // Check if we're on the completion step (which has its own navigation)
+    let isCompletionStep = $derived(currentStepId === "completion");
 </script>
 
-<div
-   class="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0"
->
-   <!-- Left Sidebar -->
-   <div
-      class="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r"
-   >
-      <div class="absolute inset-0 bg-primary"></div>
-      <div class="relative z-20 flex items-center text-lg font-medium">
-         <img src="/logo.svg" alt="Logo" class="h-8 w-8 mr-2" />
-         StartupConnect
-      </div>
-      
-      <!-- Progress Indicator for Desktop -->
-      <div class="relative z-20 mt-8">
-         <ProgressIndicator showStepNumbers={true} showProgressBar={true} />
-      </div>
-      
-      <div class="relative z-20 mt-auto">
-         <blockquote class="space-y-2">
-            <p class="text-lg">
-               "Connect with founders, investors, and supporters to grow your startup ecosystem."
-            </p>
-            <footer class="text-sm">Your journey starts here</footer>
-         </blockquote>
-      </div>
-   </div>
+<!-- Toast Notification -->
+<Toast
+    bind:show={showToast}
+    message={toastMessage}
+    type={toastType}
+    on:close={handleToastClose}
+/>
 
-   <!-- Main Content -->
-   <div class="lg:p-8">
-      <div
-         class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[600px]"
-      >
-         <!-- Mobile Progress Indicator -->
-         <div class="lg:hidden">
-            <ProgressIndicator showStepNumbers={false} showProgressBar={true} />
-         </div>
+<div class="min-h-screen bg-background">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Progress Indicator -->
+            <ProgressIndicator />
 
-         <!-- Step Content -->
-         <div class="space-y-6">
-            {#if currentStepId === 'welcome'}
-               <WelcomeStep {data} />
-            {:else if currentStepId === 'role'}
-               <RoleSelection {data} />
-            {:else if currentStepId === 'basicInfo'}
-               <BasicInfoStep {data} />
-            {:else if currentStepId === 'goals'}
-               <GoalsStep {data} />
-            {:else if currentStepId === 'verification'}
-               <CompletionStep {data} />
-            {:else}
-               <!-- Placeholder for steps not yet implemented -->
-               <div class="text-center space-y-4">
-                  <div class="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                     <span class="text-2xl">🚧</span>
-                  </div>
-                  <h2 class="text-2xl font-semibold">Coming Soon</h2>
-                  <p class="text-muted-foreground">
-                     This step is being implemented. Please check back soon!
-                  </p>
-                  <div class="flex justify-center space-x-2">
-                     <button
-                        class="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                        onclick={() => onboardingState.nextStep()}
-                     >
-                        Skip for now
-                     </button>
-                  </div>
-               </div>
-            {/if}
-         </div>
-      </div>
-   </div>
+            <!-- Main Content -->
+            <div class="mt-8">
+                <!-- Loading State -->
+                {#if onboardingState.isLoading}
+                    <div class="flex items-center justify-center py-12">
+                        <div
+                            class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
+                        ></div>
+                        <span class="ml-3 text-muted-foreground"
+                            >Loading...</span
+                        >
+                    </div>
+                {:else}
+                    <!-- Step Content -->
+                    <div class="space-y-6">
+                        {#if currentStepId === "welcome"}
+                            <WelcomeStep />
+                        {:else if currentStepId === "role"}
+                            <RoleSelection {data} />
+                        {:else if currentStepId === "basicInfo"}
+                            <BasicInfoStep />
+                        {:else if currentStepId === "goals"}
+                            <GoalsStep />
+                        {:else if currentStepId === "skills"}
+                            <SkillsStep />
+                        {:else if currentStepId === "preferences"}
+                            <PreferencesStep />
+                        {:else if currentStepId === "roleSpecific"}
+                            <RoleDetailsStep />
+                        {:else if currentStepId === "verification"}
+                            <VerificationStep />
+                        {:else if currentStepId === "completion"}
+                            <CompletionStep />
+                        {:else}
+                            <!-- Placeholder for steps not yet implemented -->
+                            <div class="text-center space-y-4">
+                                <div
+                                    class="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center"
+                                >
+                                    <span class="text-2xl">🚧</span>
+                                </div>
+                                <h3 class="text-lg font-semibold">
+                                    Step in Development
+                                </h3>
+                                <p class="text-muted-foreground">
+                                    This step is currently being implemented.
+                                </p>
+                            </div>
+                        {/if}
+                    </div>
+
+                    <!-- Navigation - Only show if not on completion step -->
+                    {#if !isCompletionStep}
+                        <div
+                            class="flex justify-between items-center mt-8 pt-6 border-t"
+                        >
+                            <button
+                                class="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                onclick={() => onboardingState.previousStep()}
+                                disabled={!onboardingState.canGoPrevious}
+                            >
+                                ← Previous
+                            </button>
+
+                            <div class="flex items-center space-x-3">
+                                {#if onboardingState.currentStep()?.canSkip}
+                                    <button
+                                        class="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                        onclick={() =>
+                                            onboardingState.skipCurrentStep()}
+                                    >
+                                        Skip for now
+                                    </button>
+                                {/if}
+
+                                <button
+                                    class="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onclick={() => onboardingState.nextStep()}
+                                    disabled={!onboardingState.canGoNext}
+                                >
+                                    {onboardingState.isComplete
+                                        ? "Complete"
+                                        : "Next"}
+                                </button>
+                            </div>
+                        </div>
+                    {/if}
+                {/if}
+            </div>
+        </div>
+    </div>
 </div>
-
-<style>
-   /* Add smooth transitions between steps */
-   :global(.step-transition) {
-      transition: opacity 0.3s ease-in-out;
-   }
-</style>
