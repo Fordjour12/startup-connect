@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-// mapUserTypeToRole
 import { registerSchema } from "@/schemas/register-schema";
 import { fail, redirect } from "@sveltejs/kit";
 import { superValidate } from "sveltekit-superforms";
@@ -12,7 +11,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions = {
-  default: async ({ request, cookies }) => {
+  default: async ({ request }) => {
     const form = await superValidate(request, zod(registerSchema));
 
     if (!form.valid) {
@@ -43,40 +42,6 @@ export const actions = {
 
       console.log("User registered successfully", result.user);
 
-      // Set authentication cookies
-      if (result.token) {
-        cookies.set('access_token', result.token, {
-          path: '/',
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 60 * 60 * 24 * 7 // 7 days
-        });
-      }
-
-      // Set user cookie with basic info
-      const userData = {
-        id: result.user.id,
-        email: result.user.email,
-        full_name: result.user.name,
-        role: 'founder', // Default role, will be updated in onboarding
-        is_active: true,
-        is_verified: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      cookies.set('user', JSON.stringify(userData), {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      });
-
-      // Redirect to onboarding flow
-      return redirect(302, '/onboarding');
-
     } catch (error) {
       console.error("Registration error:", error);
       return fail(500, {
@@ -84,5 +49,8 @@ export const actions = {
         message: "An unexpected error occurred. Please try again.",
       });
     }
+
+    // Redirect to onboarding flow (outside try-catch)
+    redirect(302, '/onboarding');
   },
 } satisfies Actions;

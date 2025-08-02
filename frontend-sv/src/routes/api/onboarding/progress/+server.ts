@@ -1,16 +1,22 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { OnboardingService } from '@/db/onboarding';
+import { auth } from '@/auth';
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const { currentStepIndex, completedSteps, formData } = await request.json();
 
-		// Get user ID from session/auth context
-		const userId = locals.user?.id;
-		if (!userId) {
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: request.headers
+		});
+		
+		if (!session) {
 			return json({ error: 'Unauthorized' }, { status: 401 });
 		}
+
+		const userId = session.user.id;
 
 		await OnboardingService.saveProgress(userId, currentStepIndex, completedSteps, formData);
 
@@ -21,13 +27,18 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	}
 };
 
-export const GET: RequestHandler = async ({ locals }) => {
+export const GET: RequestHandler = async ({ request }) => {
 	try {
-		// Get user ID from session/auth context
-		const userId = locals.user?.id;
-		if (!userId) {
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: request.headers
+		});
+		
+		if (!session) {
 			return json({ error: 'Unauthorized' }, { status: 401 });
 		}
+
+		const userId = session.user.id;
 
 		const progress = await OnboardingService.getProgress(userId);
 
@@ -38,13 +49,18 @@ export const GET: RequestHandler = async ({ locals }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ locals }) => {
+export const DELETE: RequestHandler = async ({ request }) => {
 	try {
-		// Get user ID from session/auth context
-		const userId = locals.user?.id;
-		if (!userId) {
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: request.headers
+		});
+		
+		if (!session) {
 			return json({ error: 'Unauthorized' }, { status: 401 });
 		}
+
+		const userId = session.user.id;
 
 		await OnboardingService.deleteOnboardingData(userId);
 

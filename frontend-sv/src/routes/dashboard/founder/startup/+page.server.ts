@@ -2,14 +2,18 @@ import { env } from '$env/dynamic/private';
 import { ApiEndpoint } from '@/endpoints';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { auth } from '@/auth';
 
-export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
-  // Get the current user from locals or cookies
-  const user = locals.user;
+export const load: PageServerLoad = async ({ fetch, cookies, request }) => {
+  // Get session from Better Auth
+  const session = await auth.api.getSession({
+    headers: request.headers
+  });
 
-  if (!user?.id) {
+  if (!session?.user?.id) {
     throw error(401, 'User not authenticated');
   }
+
   // Get the access token from cookies
   const accessToken = cookies.get('access_token');
 
@@ -20,7 +24,7 @@ export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
   try {
     // Fetch founder's startups using the founder_id
     const founderStartupResponse = await fetch(
-      `${env.DEPLOYMENT_API_URL}${ApiEndpoint.GET_FOUNDER_STARTUPS.replace('{founder_id}', String(user.id))}`,
+      `${env.DEPLOYMENT_API_URL}${ApiEndpoint.GET_FOUNDER_STARTUPS.replace('{founder_id}', String(session.user.id))}`,
       {
         headers: {
           'Authorization': `bearer ${accessToken}`
@@ -28,8 +32,8 @@ export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
       }
     );
 
-    console.log('Request URL:', `${env.DEPLOYMENT_API_URL}${ApiEndpoint.GET_FOUNDER_STARTUPS.replace('{founder_id}', String(user.id))}`);
-    console.log('User ID:', user.id);
+    console.log('Request URL:', `${env.DEPLOYMENT_API_URL}${ApiEndpoint.GET_FOUNDER_STARTUPS.replace('{founder_id}', String(session.user.id))}`);
+    console.log('User ID:', session.user.id);
     console.log('Response status:', founderStartupResponse.status);
 
     const industryOptions = [
@@ -75,7 +79,7 @@ export const load: PageServerLoad = async ({ fetch, locals, cookies }) => {
 
       if (founderStartupResponse.status === 422) {
         console.error('Validation error - check founder_id type and format');
-        console.error('Founder ID being sent:', user.id, 'Type:', typeof user.id);
+        console.error('Founder ID being sent:', session.user.id, 'Type:', typeof session.user.id);
       }
 
       throw error(founderStartupResponse.status, `Failed to fetch founder startups: ${errorText}`);

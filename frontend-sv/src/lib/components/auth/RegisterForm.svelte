@@ -16,8 +16,11 @@
     import * as Select from "@/components/ui/select";
     import { LoaderCircle } from "@lucide/svelte";
 
-    let { data }: { data: { form: SuperValidated<Infer<RegisterSchema>> } } =
-        $props();
+    interface Props {
+        data: { form: SuperValidated<Infer<RegisterSchema>> };
+    }
+
+    let { data }: Props = $props();
 
     const form = superForm(data.form, {
         validators: zodClient(registerSchema),
@@ -27,7 +30,8 @@
 </script>
 
 <div class="grid gap-6">
-    <form method="POST" use:enhance>
+    <!-- <form method="POST" use:enhance> -->
+    <form method="POST" use:enhance aria-label="User registration form">
         <div class="grid gap-4">
             <Form.Field {form} name="name">
                 <Form.Control>
