@@ -11,56 +11,92 @@
         CardHeader,
         CardTitle,
     } from "@/components/ui/card";
-    import { User, Mail, MapPin, Link, FileText } from "@lucide/svelte";
+    import { User, FileText } from "@lucide/svelte";
     import { cn } from "@/utils";
+    import {
+        basicInfoSchema,
+        type BasicInfo,
+    } from "@/schemas/onboarding-schema";
     import { onMount } from "svelte";
+    import { toast } from "svelte-sonner";
+    import { z } from "zod";
 
-    // Form data
-    let formData = $state({
-        fullName: onboardingState.formData.fullName || "",
-        email: onboardingState.formData.email || "",
-        location: onboardingState.formData.location || "",
-        bio: onboardingState.formData.bio || "",
-        linkedinUrl: onboardingState.formData.linkedinUrl || "",
-        website: onboardingState.formData.website || "",
+    let { data } = $props();
+
+    // Form data with proper typing
+    let formData = $state<BasicInfo>({
+        fullName: "",
+        email: "",
+        location: "",
+        bio: "",
+        linkedinUrl: "",
+        website: "",
     });
 
-    // Validation
-    let errors = $derived({
-        fullName:
-            formData.fullName.length < 2
-                ? "Name must be at least 2 characters"
-                : "",
-        email: !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-            ? "Please enter a valid email"
-            : "",
-        location: formData.location.length < 2 ? "Location is required" : "",
+    // Validation state
+    let validationErrors = $state<Record<string, string>>({});
+
+    // Initialize form with user data and saved progress
+    onMount(() => {
+        // Populate with user data if available
+        if (data.user) {
+            formData = {
+                fullName: data.user.name || "",
+                email: data.user.email || "",
+                location: onboardingState.formData.location || "",
+                bio: onboardingState.formData.bio || "",
+                linkedinUrl: onboardingState.formData.linkedinUrl || "",
+                website: onboardingState.formData.website || "",
+            };
+        } else {
+            // Use saved progress if no user data
+            formData = {
+                fullName: onboardingState.formData.fullName || "",
+                email: onboardingState.formData.email || "",
+                location: onboardingState.formData.location || "",
+                bio: onboardingState.formData.bio || "",
+                linkedinUrl: onboardingState.formData.linkedinUrl || "",
+                website: onboardingState.formData.website || "",
+            };
+        }
     });
 
-    let isValid = $derived(
-        formData.fullName.length >= 2 &&
-            formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) &&
-            formData.location.length >= 2,
-    );
+    // Validate form using Zod
+    function validateForm(): boolean {
+        try {
+            basicInfoSchema.parse(formData);
+            validationErrors = {};
+            return true;
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const zodErrors = error.errors;
+                const newErrors: Record<string, string> = {};
 
-    // Update onboarding state when form data changes
-    // onMount(() => {
-    //     if (isValid) {
-    //         onboardingState.updateFormData(formData);
-    //     }
-    // });
-    // $effect(() => {
-    // 	if (isValid) {
-    // 		onboardingState.updateFormData(formData);
-    // 	}
-    // });
+                zodErrors.forEach((err) => {
+                    const field = err.path[0];
+                    newErrors[field] = err.message;
+                });
+
+                validationErrors = newErrors;
+            }
+            return false;
+        }
+    }
 
     const handleNext = () => {
-        if (isValid) {
+        if (validateForm()) {
             onboardingState.updateFormData(formData);
             onboardingState.nextStep();
+            toast.success("Basic information saved successfully!");
+        } else {
+            toast.error("Please fix the errors before continuing.");
         }
     };
+
+    // Get error for a specific field
+    function getFieldError(field: keyof BasicInfo): string {
+        return validationErrors[field] || "";
+    }
 </script>
 
 <div class="space-y-6">
@@ -98,10 +134,14 @@
                     type="text"
                     placeholder="Enter your full name"
                     bind:value={formData.fullName}
-                    class={cn(errors.fullName && "border-destructive")}
+                    class={cn(
+                        getFieldError("fullName") && "border-destructive",
+                    )}
                 />
-                {#if errors.fullName}
-                    <p class="text-sm text-destructive">{errors.fullName}</p>
+                {#if getFieldError("fullName")}
+                    <p class="text-sm text-destructive">
+                        {getFieldError("fullName")}
+                    </p>
                 {/if}
             </div>
 
@@ -113,10 +153,12 @@
                     type="email"
                     placeholder="Enter your email address"
                     bind:value={formData.email}
-                    class={cn(errors.email && "border-destructive")}
+                    class={cn(getFieldError("email") && "border-destructive")}
                 />
-                {#if errors.email}
-                    <p class="text-sm text-destructive">{errors.email}</p>
+                {#if getFieldError("email")}
+                    <p class="text-sm text-destructive">
+                        {getFieldError("email")}
+                    </p>
                 {/if}
             </div>
 
@@ -128,10 +170,14 @@
                     type="text"
                     placeholder="City, Country (e.g., San Francisco, USA)"
                     bind:value={formData.location}
-                    class={cn(errors.location && "border-destructive")}
+                    class={cn(
+                        getFieldError("location") && "border-destructive",
+                    )}
                 />
-                {#if errors.location}
-                    <p class="text-sm text-destructive">{errors.location}</p>
+                {#if getFieldError("location")}
+                    <p class="text-sm text-destructive">
+                        {getFieldError("location")}
+                    </p>
                 {/if}
             </div>
         </CardContent>
@@ -160,8 +206,13 @@
                     maxlength={500}
                 />
                 <p class="text-xs text-muted-foreground">
-                    {formData.bio.length}/500 characters
+                    {formData.bio?.length || 0}/500 characters
                 </p>
+                {#if getFieldError("bio")}
+                    <p class="text-sm text-destructive">
+                        {getFieldError("bio")}
+                    </p>
+                {/if}
             </div>
 
             <!-- LinkedIn -->
@@ -172,7 +223,15 @@
                     type="url"
                     placeholder="https://linkedin.com/in/yourprofile"
                     bind:value={formData.linkedinUrl}
+                    class={cn(
+                        getFieldError("linkedinUrl") && "border-destructive",
+                    )}
                 />
+                {#if getFieldError("linkedinUrl")}
+                    <p class="text-sm text-destructive">
+                        {getFieldError("linkedinUrl")}
+                    </p>
+                {/if}
             </div>
 
             <!-- Website -->
@@ -183,7 +242,13 @@
                     type="url"
                     placeholder="https://yourwebsite.com"
                     bind:value={formData.website}
+                    class={cn(getFieldError("website") && "border-destructive")}
                 />
+                {#if getFieldError("website")}
+                    <p class="text-sm text-destructive">
+                        {getFieldError("website")}
+                    </p>
+                {/if}
             </div>
         </CardContent>
     </Card>
@@ -228,6 +293,6 @@
             Back
         </Button>
 
-        <Button onclick={handleNext} disabled={!isValid}>Continue</Button>
+        <Button onclick={handleNext}>Continue</Button>
     </div>
 </div>

@@ -3,8 +3,8 @@
 import type { z } from 'zod';
 import type { OnboardingData } from '@/schemas/onboarding-schema';
 
-// User roles with strict typing
-export type UserRole = 'founder' | 'investor' | 'supporter';
+// User roles with strict typing - matches database roles
+export type UserRole = 'founder' | 'investor' | 'support';
 
 // Step status tracking
 export type StepStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
@@ -32,7 +32,7 @@ export interface OnboardingStep {
   dependsOn?: string[];
   estimatedMinutes?: number;
   icon?: string;
-  category?: 'basic' | 'role_specific' | 'preferences' | 'verification';
+  category?: 'basic' | 'role_specific' | 'preferences' | 'verification' | 'completion';
 }
 
 // Progress tracking
@@ -208,7 +208,7 @@ export type ErrorField = string;
 
 // Type guards
 export function isUserRole(role: string): role is UserRole {
-  return ['founder', 'investor', 'supporter'].includes(role);
+  return ['founder', 'investor', 'support'].includes(role);
 }
 
 export function isOnboardingError(error: unknown): error is OnboardingError {

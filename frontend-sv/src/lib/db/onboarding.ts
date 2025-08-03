@@ -6,9 +6,19 @@ import {
   investorProfile,
   supporterProfile,
   onboardingProgress,
-  type OnboardingData
 } from "./schema";
 import type { OnboardingData as ZodOnboardingData } from "@/schemas/onboarding-schema";
+
+/**
+ * Helper function to safely parse decimal string values to numbers
+ * Used for fields that are stored as strings in the database (decimal columns)
+ * but need to be converted to numbers for calculations
+ */
+function parseDecimal(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? null : parsed;
+}
 
 export interface OnboardingProfileWithRelations {
   id: string;
@@ -44,10 +54,12 @@ export interface OnboardingProfileWithRelations {
     id: string;
     startupName: string;
     startupStage: string;
-    fundingNeeds?: number;
+    // Stored as string because Drizzle returns decimal columns as strings
+    fundingNeeds?: string;
     teamSize: number;
     startupDescription: string;
-    equityOffered?: number;
+    // Stored as string because Drizzle returns decimal columns as strings
+    equityOffered?: string;
   };
   investorProfile?: {
     id: string;
@@ -61,7 +73,8 @@ export interface OnboardingProfileWithRelations {
     id: string;
     supportType: string[];
     availability: string;
-    hourlyRate?: number;
+    // Stored as string because Drizzle returns decimal columns as strings
+    hourlyRate?: string;
     expertise?: string;
   };
 }
@@ -77,7 +90,7 @@ export class OnboardingService {
         // Create or update the main onboarding profile
         const profileData = {
           userId,
-          role: data.role,
+          role: data.role as 'founder' | 'investor' | 'support',
           fullName: data.fullName,
           email: data.email,
           location: data.location,
@@ -135,10 +148,12 @@ export class OnboardingService {
             onboardingProfileId: profileId,
             startupName: data.startupName!,
             startupStage: data.startupStage!,
-            fundingNeeds: data.fundingNeeds ? Number(data.fundingNeeds) : null,
+            // Convert to string for database storage (decimal columns are stored as strings)
+            fundingNeeds: data.fundingNeeds ? data.fundingNeeds.toString() : null,
             teamSize: data.teamSize!,
             startupDescription: data.startupDescription!,
-            equityOffered: data.equityOffered ? Number(data.equityOffered) : null,
+            // Convert to string for database storage (decimal columns are stored as strings)
+            equityOffered: data.equityOffered ? data.equityOffered.toString() : null,
           };
 
           // Check if founder profile exists
@@ -186,7 +201,8 @@ export class OnboardingService {
             onboardingProfileId: profileId,
             supportType: data.supportType!,
             availability: data.availability!,
-            hourlyRate: data.hourlyRate ? Number(data.hourlyRate) : null,
+            // Convert to string for database storage (decimal columns are stored as strings)
+            hourlyRate: data.hourlyRate ? data.hourlyRate.toString() : null,
             expertise: data.expertise,
           };
 
@@ -273,9 +289,29 @@ export class OnboardingService {
 
       return {
         ...profileData,
-        founderProfile: founderData,
-        investorProfile: investorData,
-        supporterProfile: supporterData,
+        bio: profileData.bio ?? undefined,
+        profilePicture: profileData.profilePicture ?? undefined,
+        linkedinUrl: profileData.linkedinUrl ?? undefined,
+        website: profileData.website ?? undefined,
+        additionalGoals: profileData.additionalGoals ?? undefined,
+        achievements: profileData.achievements ?? undefined,
+        founderProfile: founderData ? {
+          ...founderData,
+          // Use parseDecimal helper for decimal fields that are stored as strings
+          fundingNeeds: founderData.fundingNeeds ?? undefined,
+          equityOffered: founderData.equityOffered ?? undefined
+        } : undefined,
+        investorProfile: investorData ? {
+          ...investorData,
+          investmentHistory: investorData.investmentHistory ?? undefined,
+          portfolioCompanies: investorData.portfolioCompanies ?? undefined
+        } : undefined,
+        supporterProfile: supporterData ? {
+          ...supporterData,
+          // Use parseDecimal helper for decimal fields that are stored as strings
+          hourlyRate: supporterData.hourlyRate ?? undefined,
+          expertise: supporterData.expertise ?? undefined
+        } : undefined,
       };
     } catch (error) {
       console.error('Error getting onboarding profile:', error);

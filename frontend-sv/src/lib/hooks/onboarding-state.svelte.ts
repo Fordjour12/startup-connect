@@ -1,16 +1,26 @@
 import { z } from 'zod';
-import { stepSchemas, getRoleSpecificSchema, type UserRole, type OnboardingData } from '@/schemas/onboarding-schema';
+import {
+  stepSchemas,
+  getRoleSpecificSchema,
+  type UserRole,
+  type OnboardingData
+} from '@/schemas/onboarding-schema';
 import type {
   OnboardingStep,
   OnboardingError,
   OnboardingProgress,
   ProgressResponse,
-  SubmissionResponse
+  SubmissionResponse,
+  AutoSaveConfig,
 } from '@/types/onboarding';
 
-// OnboardingStep interface is now imported from types file
+// ============================================================================
+// UTILITY CLASSES
+// ============================================================================
 
-// Time utilities for better time handling
+/**
+ * Time utilities for better time handling
+ */
 export class TimeUtils {
   static now(): Date {
     return new Date();
@@ -37,24 +47,156 @@ export class TimeUtils {
   }
 }
 
-// Auto-save configuration
-interface AutoSaveConfig {
-  intervalSeconds: number;
-  minTimeBetweenSavesSeconds: number;
-  enabled: boolean;
-  maxRetries: number;
-  retryDelaySeconds: number;
-}
+// ============================================================================
+// CONFIGURATION INTERFACES
+// ============================================================================
 
-// Progress data structure, API response types, and Error types are now imported from types file
 
+// ============================================================================
+// STEP DEFINITIONS
+// ============================================================================
+
+/**
+ * Step definitions with strict typing
+ */
+const STEP_DEFINITIONS: OnboardingStep[] = [
+  {
+    id: 'welcome',
+    title: 'Welcome',
+    description: 'Get started with StartupConnect',
+    isRequired: true,
+    canSkip: false,
+    order: 0,
+    estimatedMinutes: 1,
+    icon: 'welcome',
+    category: 'basic'
+  },
+  {
+    id: 'role',
+    title: 'Your Role',
+    description: 'Choose how you want to participate',
+    isRequired: true,
+    canSkip: false,
+    order: 1,
+    validation: stepSchemas.role,
+    estimatedMinutes: 2,
+    icon: 'role',
+    category: 'basic'
+  },
+  {
+    id: 'basicInfo',
+    title: 'Basic Information',
+    description: 'Tell us about yourself',
+    isRequired: true,
+    canSkip: false,
+    order: 2,
+    validation: stepSchemas.basicInfo,
+    estimatedMinutes: 5,
+    icon: 'user',
+    category: 'basic'
+  },
+  {
+    id: 'goals',
+    title: 'Goals & Objectives',
+    description: 'What are you looking to achieve?',
+    isRequired: true,
+    canSkip: false,
+    order: 3,
+    validation: stepSchemas.goals,
+    estimatedMinutes: 3,
+    icon: 'target',
+    category: 'preferences'
+  },
+  {
+    id: 'skills',
+    title: 'Skills & Expertise',
+    description: 'What do you bring to the table?',
+    isRequired: false,
+    canSkip: true,
+    order: 4,
+    validation: stepSchemas.skills,
+    estimatedMinutes: 4,
+    icon: 'skills',
+    category: 'preferences'
+  },
+  {
+    id: 'preferences',
+    title: 'Matching Preferences',
+    description: 'How do you prefer to connect?',
+    isRequired: false,
+    canSkip: true,
+    order: 5,
+    validation: stepSchemas.preferences,
+    estimatedMinutes: 3,
+    icon: 'preferences',
+    category: 'preferences'
+  },
+  {
+    id: 'roleSpecific',
+    title: 'Role Details',
+    description: 'Tell us more about your specific role',
+    isRequired: true,
+    canSkip: false,
+    order: 6,
+    dependsOn: ['role'],
+    estimatedMinutes: 8,
+    icon: 'details',
+    category: 'role_specific'
+  },
+  {
+    id: 'verification',
+    title: 'Verification',
+    description: 'Complete your profile',
+    isRequired: true,
+    canSkip: false,
+    order: 7,
+    validation: stepSchemas.verification,
+    estimatedMinutes: 2,
+    icon: 'check',
+    category: 'verification'
+  },
+  {
+    id: 'review',
+    title: 'Review & Complete',
+    description: 'Review your information and complete setup',
+    isRequired: true,
+    canSkip: false,
+    order: 8,
+    estimatedMinutes: 3,
+    icon: 'review',
+    category: 'verification'
+  },
+  {
+    id: 'completion',
+    title: 'Welcome!',
+    description: 'Your profile is complete',
+    isRequired: false,
+    canSkip: false,
+    order: 9,
+    estimatedMinutes: 1,
+    icon: 'success',
+    category: 'completion'
+  }
+];
+
+// ============================================================================
+// MAIN ONBOARDING STATE CLASS
+// ============================================================================
+
+/**
+ * Main onboarding state management class
+ */
 export class OnboardingState {
+  // ============================================================================
+  // STATE PROPERTIES
+  // ============================================================================
+
   // Current step tracking
   currentStepIndex = $state(0);
   completedSteps = $state<Set<string>>(new Set());
 
-  // Form data with proper typing
-  formData = $state<Partial<OnboardingData>>({});
+  // Form data with proper typing - allow any string for role during onboarding
+  formData = $state<Partial<OnboardingData> & { role?: string }>({});
 
   // UI state
   isSubmitting = $state(false);
@@ -71,6 +213,7 @@ export class OnboardingState {
   private isPageVisible = $state(true);
   private cleanupVisibilityListeners: (() => void) | null = null;
 
+  // Configuration
   private readonly autoSaveConfig: AutoSaveConfig = {
     enabled: true,
     intervalSeconds: 30,
@@ -79,126 +222,29 @@ export class OnboardingState {
     retryDelaySeconds: 5
   };
 
-  // Step definitions with strict typing
-  private readonly stepDefinitions: OnboardingStep[] = [
-    {
-      id: 'welcome',
-      title: 'Welcome',
-      description: 'Get started with StartupConnect',
-      isRequired: true,
-      canSkip: false,
-      order: 0,
-      estimatedMinutes: 1,
-      icon: 'welcome',
-      category: 'basic'
-    },
-    {
-      id: 'role',
-      title: 'Your Role',
-      description: 'Choose how you want to participate',
-      isRequired: true,
-      canSkip: false,
-      order: 1,
-      validation: stepSchemas.role,
-      estimatedMinutes: 2,
-      icon: 'role',
-      category: 'basic'
-    },
-    {
-      id: 'basicInfo',
-      title: 'Basic Information',
-      description: 'Tell us about yourself',
-      isRequired: true,
-      canSkip: false,
-      order: 2,
-      validation: stepSchemas.basicInfo,
-      estimatedMinutes: 5,
-      icon: 'user',
-      category: 'basic'
-    },
-    {
-      id: 'goals',
-      title: 'Goals & Objectives',
-      description: 'What are you looking to achieve?',
-      isRequired: true,
-      canSkip: false,
-      order: 3,
-      validation: stepSchemas.goals,
-      estimatedMinutes: 3,
-      icon: 'target',
-      category: 'preferences'
-    },
-    {
-      id: 'skills',
-      title: 'Skills & Expertise',
-      description: 'What do you bring to the table?',
-      isRequired: false,
-      canSkip: true,
-      order: 4,
-      validation: stepSchemas.skills,
-      estimatedMinutes: 4,
-      icon: 'skills',
-      category: 'preferences'
-    },
-    {
-      id: 'preferences',
-      title: 'Matching Preferences',
-      description: 'How do you prefer to connect?',
-      isRequired: false,
-      canSkip: true,
-      order: 5,
-      validation: stepSchemas.preferences,
-      estimatedMinutes: 3,
-      icon: 'preferences',
-      category: 'preferences'
-    },
-    {
-      id: 'roleSpecific',
-      title: 'Role Details',
-      description: 'Tell us more about your specific role',
-      isRequired: true,
-      canSkip: false,
-      order: 6,
-      dependsOn: ['role'],
-      estimatedMinutes: 8,
-      icon: 'details',
-      category: 'role_specific'
-    },
-    {
-      id: 'verification',
-      title: 'Verification',
-      description: 'Complete your profile',
-      isRequired: true,
-      canSkip: false,
-      order: 7,
-      estimatedMinutes: 2,
-      icon: 'check',
-      category: 'verification'
-    }
-  ];
+  // ============================================================================
+  // COMPUTED PROPERTIES
+  // ============================================================================
 
-  // Computed properties with proper typing
+  /**
+   * Computed steps based on current role
+   */
   steps = $derived((): OnboardingStep[] => {
     const role = this.formData.role;
     if (!role) {
-      return this.stepDefinitions;
+      return STEP_DEFINITIONS;
     }
 
-    // Map database role to onboarding role
-    const roleMapping: Record<string, string> = {
-      'founder': 'founder',
-      'investor': 'investor',
-      'support': 'supporter', // Map database 'support' to onboarding 'supporter'
-      'user': 'founder' // Map Better Auth default 'user' to 'founder'
-    };
-
-    const mappedRole = roleMapping[role] || role;
-
-    // Get role-specific step based on mapped role
+    // Get role-specific step based on role
     let roleSpecificStep: OnboardingStep | undefined;
 
+    // Don't create role-specific step if user has default role and hasn't selected yet
+    if (this.hasDefaultRole() && this.currentStepIndex < 1) {
+      return STEP_DEFINITIONS;
+    }
+
     try {
-      const validation = getRoleSpecificSchema(mappedRole as UserRole);
+      const validation = getRoleSpecificSchema(role as UserRole);
 
       const roleConfig = {
         founder: {
@@ -209,17 +255,17 @@ export class OnboardingState {
           title: 'Investment Profile',
           description: 'Tell us about your investment criteria'
         },
-        supporter: {
+        support: {
           title: 'Support Services',
           description: 'Tell us about the support you can provide'
         }
       } as const;
 
-      if (mappedRole in roleConfig) {
+      if (role in roleConfig) {
         roleSpecificStep = {
           id: 'roleSpecific',
-          title: roleConfig[mappedRole as keyof typeof roleConfig].title,
-          description: roleConfig[mappedRole as keyof typeof roleConfig].description,
+          title: roleConfig[role as keyof typeof roleConfig].title,
+          description: roleConfig[role as keyof typeof roleConfig].description,
           isRequired: true,
           canSkip: false,
           order: 6,
@@ -228,15 +274,15 @@ export class OnboardingState {
         };
       }
     } catch (error) {
-      console.warn(`Invalid role for step validation: ${role} (mapped to: ${mappedRole})`, error);
+      console.warn(`Invalid role for step validation: ${role}`, error);
     }
 
     if (roleSpecificStep) {
-      return this.stepDefinitions.map(step =>
+      return STEP_DEFINITIONS.map(step =>
         step.id === 'roleSpecific' ? roleSpecificStep : step
       );
     }
-    return this.stepDefinitions;
+    return STEP_DEFINITIONS;
   });
 
   totalSteps = $derived(this.steps().length);
@@ -250,10 +296,12 @@ export class OnboardingState {
   canGoNext = $derived(this.validateCurrentStep());
   canGoPrevious = $derived(this.currentStepIndex > 0);
 
+  // ============================================================================
+  // CONSTRUCTOR & INITIALIZATION
+  // ============================================================================
+
   constructor() {
     this.createdAt = TimeUtils.now();
-
-    // Initialize state
     this.initializeState();
   }
 
@@ -280,7 +328,13 @@ export class OnboardingState {
     }
   }
 
-  // Auto-save management with better time handling
+  // ============================================================================
+  // AUTO-SAVE MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Initialize auto-save functionality
+   */
   private initializeAutoSave(): void {
     if (!this.autoSaveConfig.enabled) return;
 
@@ -293,6 +347,9 @@ export class OnboardingState {
     }, this.autoSaveConfig.intervalSeconds * 1000);
   }
 
+  /**
+   * Clear auto-save interval
+   */
   private clearAutoSaveInterval(): void {
     if (this.autoSaveInterval !== null) {
       clearInterval(this.autoSaveInterval);
@@ -300,6 +357,9 @@ export class OnboardingState {
     }
   }
 
+  /**
+   * Set up page visibility detection
+   */
   private setupVisibilityDetection(): void {
     if (typeof window === 'undefined') return;
 
@@ -333,6 +393,9 @@ export class OnboardingState {
     };
   }
 
+  /**
+   * Perform auto-save
+   */
   private async performAutoSave(): Promise<void> {
     // Only auto-save if page is visible and enabled
     if (!this.isPageVisible || !this.autoSaveConfig.enabled) return;
@@ -361,15 +424,13 @@ export class OnboardingState {
     }
   }
 
-  // Cleanup method
-  destroy(): void {
-    this.clearAutoSaveInterval();
-    if (this.cleanupVisibilityListeners) {
-      this.cleanupVisibilityListeners();
-    }
-  }
+  // ============================================================================
+  // NAVIGATION METHODS
+  // ============================================================================
 
-  // Navigation methods with better error handling
+  /**
+   * Navigate to next step
+   */
   nextStep(): boolean {
     if (!this.canGoNext || this.currentStepIndex >= this.totalSteps - 1) {
       return false;
@@ -389,6 +450,9 @@ export class OnboardingState {
     }
   }
 
+  /**
+   * Navigate to previous step
+   */
   previousStep(): boolean {
     if (!this.canGoPrevious) {
       return false;
@@ -407,6 +471,9 @@ export class OnboardingState {
     }
   }
 
+  /**
+   * Navigate to specific step
+   */
   goToStep(stepIndex: number): boolean {
     if (stepIndex < 0 || stepIndex >= this.totalSteps) {
       return false;
@@ -425,7 +492,13 @@ export class OnboardingState {
     }
   }
 
-  // Step completion with time tracking
+  // ============================================================================
+  // STEP MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Complete current step with time tracking
+   */
   completeCurrentStep(): void {
     const current = this.currentStep();
     if (!current) return;
@@ -434,11 +507,36 @@ export class OnboardingState {
     this.saveProgress(); // Save immediately when step is completed
   }
 
+  /**
+   * Check if step is completed
+   */
   isStepCompleted(stepId: string): boolean {
     return this.completedSteps.has(stepId);
   }
 
-  // Enhanced validation with better error handling
+  /**
+   * Skip current step
+   */
+  skipCurrentStep(): boolean {
+    if (!this.canSkipCurrentStep()) return false;
+    return this.nextStep();
+  }
+
+  /**
+   * Check if current step can be skipped
+   */
+  canSkipCurrentStep(): boolean {
+    const current = this.currentStep();
+    return current?.canSkip ?? false;
+  }
+
+  // ============================================================================
+  // VALIDATION METHODS
+  // ============================================================================
+
+  /**
+   * Validate current step
+   */
   validateCurrentStep(): boolean {
     const step = this.currentStep();
     if (!step?.validation) return true;
@@ -467,6 +565,9 @@ export class OnboardingState {
     }
   }
 
+  /**
+   * Validate specific step
+   */
   validateStep(stepId: string): boolean {
     const step = this.steps().find((s: OnboardingStep) => s.id === stepId);
     if (!step?.validation) return true;
@@ -479,18 +580,64 @@ export class OnboardingState {
     }
   }
 
-  // Form data management with time tracking
+  // ============================================================================
+  // FORM DATA MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Update form data
+   */
   updateFormData(data: Partial<OnboardingData>): void {
     this.formData = { ...this.formData, ...data };
     // Debounced save - will be handled by auto-save
   }
 
+  /**
+   * Set complete form data
+   */
   setFormData(data: Partial<OnboardingData>): void {
     this.formData = data;
     this.saveProgress(); // Save immediately when setting complete form data
   }
 
-  // Enhanced error handling
+  // ============================================================================
+  // ROLE MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Check if user has default role
+   */
+  hasDefaultRole(): boolean {
+    const role = this.formData.role;
+    const validRoles = ['founder', 'investor', 'support'];
+    return !role || !validRoles.includes(role as any);
+  }
+
+  /**
+   * Check if user requires role selection
+   */
+  requiresRoleSelection(): boolean {
+    return this.hasDefaultRole() && this.currentStepIndex === 1; // Role selection is step 1
+  }
+
+  /**
+   * Get current role for display
+   */
+  getCurrentRole(): string {
+    const role = this.formData.role;
+    if (this.hasDefaultRole()) {
+      return 'Select your role'; // Prompt user to select
+    }
+    return role || 'Unknown';
+  }
+
+  // ============================================================================
+  // ERROR HANDLING
+  // ============================================================================
+
+  /**
+   * Handle error with timestamp
+   */
   private handleError(error: Omit<OnboardingError, 'timestamp'>): void {
     const errorWithTimestamp: OnboardingError = {
       ...error,
@@ -504,6 +651,9 @@ export class OnboardingState {
     }
   }
 
+  /**
+   * Set error for specific field
+   */
   setError(field: string, message: string, type: OnboardingError['type'] = 'general'): void {
     this.errors[field] = {
       type,
@@ -513,10 +663,16 @@ export class OnboardingState {
     };
   }
 
+  /**
+   * Clear all errors
+   */
   clearErrors(): void {
     this.errors = {};
   }
 
+  /**
+   * Clear validation errors only
+   */
   clearValidationErrors(): void {
     const filteredErrors: Record<string, OnboardingError> = {};
     Object.entries(this.errors).forEach(([key, error]) => {
@@ -527,15 +683,27 @@ export class OnboardingState {
     this.errors = filteredErrors;
   }
 
+  /**
+   * Get error for specific field
+   */
   getError(field: string): OnboardingError | undefined {
     return this.errors[field];
   }
 
+  /**
+   * Check if there are any errors
+   */
   hasErrors(): boolean {
     return Object.keys(this.errors).length > 0;
   }
 
-  // Progress persistence with better error handling and time tracking
+  // ============================================================================
+  // PROGRESS PERSISTENCE
+  // ============================================================================
+
+  /**
+   * Save progress to server
+   */
   async saveProgress(): Promise<boolean> {
     try {
       // Only run on client side
@@ -575,7 +743,9 @@ export class OnboardingState {
     }
   }
 
-  // Synchronous save for page unload
+  /**
+   * Synchronous save for page unload
+   */
   private saveProgressSync(): void {
     try {
       if (typeof window === 'undefined') return;
@@ -596,6 +766,9 @@ export class OnboardingState {
     }
   }
 
+  /**
+   * Load progress from server
+   */
   async loadProgress(): Promise<void> {
     try {
       // Only run on client side
@@ -631,6 +804,9 @@ export class OnboardingState {
     }
   }
 
+  /**
+   * Clear progress from server
+   */
   async clearProgress(): Promise<boolean> {
     try {
       // Only run on client side
@@ -667,7 +843,13 @@ export class OnboardingState {
     }
   }
 
-  // Enhanced submission with better error handling
+  // ============================================================================
+  // SUBMISSION
+  // ============================================================================
+
+  /**
+   * Submit onboarding data
+   */
   async submit(): Promise<SubmissionResponse> {
     this.isSubmitting = true;
     this.clearErrors();
@@ -731,9 +913,13 @@ export class OnboardingState {
     }
   }
 
+  // ============================================================================
+  // UTILITY METHODS
+  // ============================================================================
 
-
-  // Utility methods
+  /**
+   * Get step progress statistics
+   */
   getStepProgress(): { completed: number; total: number; percentage: number } {
     const completed = this.completedSteps.size;
     const total = this.steps().filter((step: OnboardingStep) => step.isRequired).length;
@@ -742,22 +928,27 @@ export class OnboardingState {
     return { completed, total, percentage };
   }
 
+  /**
+   * Get time spent on onboarding
+   */
   getTimeSpentOnboarding(): number {
     const now = TimeUtils.now();
     return TimeUtils.differenceInSeconds(now, this.createdAt);
   }
 
-  canSkipCurrentStep(): boolean {
-    const current = this.currentStep();
-    return current?.canSkip ?? false;
-  }
-
-  skipCurrentStep(): boolean {
-    if (!this.canSkipCurrentStep()) return false;
-
-    return this.nextStep();
+  /**
+   * Cleanup method
+   */
+  destroy(): void {
+    this.clearAutoSaveInterval();
+    if (this.cleanupVisibilityListeners) {
+      this.cleanupVisibilityListeners();
+    }
   }
 }
 
-// Export singleton instance
+// ============================================================================
+// EXPORT SINGLETON INSTANCE
+// ============================================================================
+
 export const onboardingState = new OnboardingState();

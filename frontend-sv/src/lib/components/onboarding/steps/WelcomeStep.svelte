@@ -8,7 +8,7 @@
         CardHeader,
         CardTitle,
     } from "@/components/ui/card";
-    import { Rocket, Users, Target, Clock } from "@lucide/svelte";
+    import { Rocket, ArrowRight, Users, Target, Clock } from "@lucide/svelte";
 
     const benefits = [
         {
@@ -119,9 +119,9 @@
 
     <!-- Action Buttons -->
     <div class="flex justify-center pt-6">
-        <Button onclick={() => onboardingState.nextStep()} size="lg">
+        <Button onclick={() => onboardingState.nextStep()}>
             Get Started
-            <Rocket class="w-4 h-4 ml-2" />
+            <ArrowRight class="w-4 h-4 ml-2" />
         </Button>
     </div>
 
