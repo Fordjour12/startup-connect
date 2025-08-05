@@ -1,11 +1,11 @@
 import { z } from 'zod';
 
-// Role type for better type safety
-export type UserRole = 'founder' | 'investor' | 'supporter';
+// Role type for better type safety - matches database roles
+export type UserRole = 'founder' | 'investor' | 'support';
 
 // Role selection schema
 export const roleSelectionSchema = z.object({
-  role: z.enum(['founder', 'investor', 'supporter'], {
+  role: z.enum(['founder', 'investor', 'support'], {
     required_error: 'Please select a role'
   })
 });
@@ -114,6 +114,16 @@ export const supporterSchema = z.object({
   expertise: z.string().max(500, 'Expertise description must be less than 500 characters').optional()
 });
 
+// Verification schema
+export const verificationSchema = z.object({
+  phone: z.string().optional(),
+  linkedin: z.string().url('Please enter a valid LinkedIn URL').optional().or(z.literal('')),
+  website: z.string().url('Please enter a valid website URL').optional().or(z.literal('')),
+  location: z.string().optional(),
+  timezone: z.string().optional(),
+  notes: z.string().max(500, 'Notes must be less than 500 characters').optional()
+});
+
 // Base onboarding schema with common fields
 const baseOnboardingSchema = z.object({
   // Step 2: Basic information
@@ -127,6 +137,9 @@ const baseOnboardingSchema = z.object({
 
   // Step 5: Preferences
   ...preferencesSchema.shape,
+
+  // Step 6: Verification
+  verification: verificationSchema.optional(),
 
   // Step 7: Verification and completion
   termsAccepted: z.boolean().refine(val => val === true, 'You must accept the terms and conditions'),
@@ -148,7 +161,7 @@ const investorOnboardingSchema = z.object({
 });
 
 const supporterOnboardingSchema = z.object({
-  role: z.literal('supporter'),
+  role: z.literal('support'),
   ...baseOnboardingSchema.shape,
   ...supporterSchema.shape
 });
@@ -169,7 +182,8 @@ export const stepSchemas = {
   preferences: preferencesSchema,
   founder: founderSchema,
   investor: investorSchema,
-  supporter: supporterSchema
+  support: supporterSchema,
+  verification: verificationSchema
 } as const;
 
 // Type-safe function to get role-specific schema
@@ -177,7 +191,7 @@ export function getRoleSpecificSchema(role: UserRole): z.ZodSchema {
   const schemas = {
     founder: founderSchema,
     investor: investorSchema,
-    supporter: supporterSchema
+    support: supporterSchema
   } as const;
 
   return schemas[role];
@@ -202,4 +216,5 @@ export type Preferences = z.infer<typeof preferencesSchema>;
 export type FounderInfo = z.infer<typeof founderSchema>;
 export type InvestorInfo = z.infer<typeof investorSchema>;
 export type SupporterInfo = z.infer<typeof supporterSchema>;
+export type VerificationInfo = z.infer<typeof verificationSchema>;
 export type OnboardingData = z.infer<typeof onboardingSchema>;

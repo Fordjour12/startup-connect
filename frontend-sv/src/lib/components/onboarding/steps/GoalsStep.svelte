@@ -14,25 +14,64 @@
     import { Textarea } from "@/components/ui/textarea";
     import { Target, Clock } from "@lucide/svelte";
     import { cn } from "@/utils";
+    import { goalsSchema, type Goals } from "@/schemas/onboarding-schema";
+    import { toast } from "svelte-sonner";
 
-    // Form data
-    let formData = $state({
-        primaryGoal: (onboardingState.formData.primaryGoal as any) || "",
-        specificNeeds: (onboardingState.formData.specificNeeds as any) || [],
-        timeCommitment: (onboardingState.formData.timeCommitment as any) || "",
-        additionalGoals: onboardingState.formData.additionalGoals || "",
+    // Form data with proper typing
+    let formData = $state<Goals>({
+        primaryGoal: "" as Goals["primaryGoal"],
+        specificNeeds: [],
+        timeCommitment: "" as Goals["timeCommitment"],
+        additionalGoals: "",
     });
 
-    // Validation
-    let isValid = $derived(
-        formData.primaryGoal &&
-            formData.specificNeeds.length > 0 &&
-            formData.timeCommitment,
-    );
+    // Validation state
+    let validationErrors = $state<Record<string, string>>({});
 
-    // Update onboarding state when form data changes
-    // Removed automatic $effect to prevent infinite loops
-    // Data will be saved when user clicks Continue
+    // Initialize form with saved progress
+    $effect(() => {
+        formData = {
+            primaryGoal:
+                (onboardingState.formData
+                    .primaryGoal as Goals["primaryGoal"]) ||
+                ("" as Goals["primaryGoal"]),
+            specificNeeds:
+                (onboardingState.formData
+                    .specificNeeds as Goals["specificNeeds"]) || [],
+            timeCommitment:
+                (onboardingState.formData
+                    .timeCommitment as Goals["timeCommitment"]) ||
+                ("" as Goals["timeCommitment"]),
+            additionalGoals: onboardingState.formData.additionalGoals || "",
+        };
+    });
+
+    // Validate form using Zod
+    function validateForm(): boolean {
+        try {
+            goalsSchema.parse(formData);
+            validationErrors = {};
+            return true;
+        } catch (error) {
+            if (error instanceof Error && "errors" in error) {
+                const zodErrors = (error as any).errors;
+                const newErrors: Record<string, string> = {};
+
+                zodErrors.forEach((err: any) => {
+                    const field = err.path[0];
+                    newErrors[field] = err.message;
+                });
+
+                validationErrors = newErrors;
+            }
+            return false;
+        }
+    }
+
+    // Get error for a specific field
+    function getFieldError(field: keyof Goals): string {
+        return validationErrors[field] || "";
+    }
 
     const primaryGoals = [
         {
@@ -83,7 +122,7 @@
             description: "Learn from experienced founders and investors",
             icon: "📚",
         },
-    ];
+    ] as const;
 
     const specificNeeds = [
         { value: "technical_expertise", label: "Technical Expertise" },
@@ -95,7 +134,7 @@
         { value: "team_building", label: "Team Building" },
         { value: "market_research", label: "Market Research" },
         { value: "fundraising_strategy", label: "Fundraising Strategy" },
-    ];
+    ] as const;
 
     const timeCommitments = [
         {
@@ -118,7 +157,7 @@
             label: "20+ hours per week",
             description: "Full-time engagement",
         },
-    ];
+    ] as const;
 
     const handleSpecificNeedToggle = (need: string) => {
         if (formData.specificNeeds.includes(need)) {
@@ -131,7 +170,7 @@
     };
 
     const handleNext = () => {
-        if (isValid) {
+        if (validateForm()) {
             // Save form data before moving to next step
             onboardingState.updateFormData({
                 primaryGoal: formData.primaryGoal,
@@ -140,6 +179,9 @@
                 additionalGoals: formData.additionalGoals,
             });
             onboardingState.nextStep();
+            toast.success("Goals saved successfully!");
+        } else {
+            toast.error("Please fix the errors before continuing.");
         }
     };
 </script>
@@ -169,7 +211,8 @@
         <CardContent>
             <RadioGroup
                 value={formData.primaryGoal}
-                onValueChange={(value) => (formData.primaryGoal = value)}
+                onValueChange={(value) =>
+                    (formData.primaryGoal = value as Goals["primaryGoal"])}
                 class="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
                 {#each primaryGoals as goal}
@@ -192,6 +235,11 @@
                     </div>
                 {/each}
             </RadioGroup>
+            {#if getFieldError("primaryGoal")}
+                <p class="text-sm text-destructive mt-2">
+                    {getFieldError("primaryGoal")}
+                </p>
+            {/if}
         </CardContent>
     </Card>
 
@@ -223,6 +271,11 @@
                     </div>
                 {/each}
             </div>
+            {#if getFieldError("specificNeeds")}
+                <p class="text-sm text-destructive mt-2">
+                    {getFieldError("specificNeeds")}
+                </p>
+            {/if}
         </CardContent>
     </Card>
 
@@ -240,7 +293,9 @@
         <CardContent>
             <RadioGroup
                 value={formData.timeCommitment}
-                onValueChange={(value) => (formData.timeCommitment = value)}
+                onValueChange={(value) =>
+                    (formData.timeCommitment =
+                        value as Goals["timeCommitment"])}
                 class="space-y-3"
             >
                 {#each timeCommitments as commitment}
@@ -265,6 +320,11 @@
                     </div>
                 {/each}
             </RadioGroup>
+            {#if getFieldError("timeCommitment")}
+                <p class="text-sm text-destructive mt-2">
+                    {getFieldError("timeCommitment")}
+                </p>
+            {/if}
         </CardContent>
     </Card>
 
@@ -284,8 +344,13 @@
                 maxlength={300}
             />
             <p class="text-xs text-muted-foreground mt-2">
-                {formData.additionalGoals.length}/300 characters
+                {formData.additionalGoals?.length || 0}/300 characters
             </p>
+            {#if getFieldError("additionalGoals")}
+                <p class="text-sm text-destructive mt-2">
+                    {getFieldError("additionalGoals")}
+                </p>
+            {/if}
         </CardContent>
     </Card>
 
@@ -327,6 +392,6 @@
             Back
         </Button>
 
-        <Button onclick={handleNext} disabled={!isValid}>Continue</Button>
+        <Button onclick={handleNext}>Continue</Button>
     </div>
 </div>

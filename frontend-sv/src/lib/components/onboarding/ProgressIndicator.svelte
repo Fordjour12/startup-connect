@@ -1,174 +1,96 @@
 <script lang="ts">
+    import { Progress } from "@/components/ui/progress";
     import { onboardingState } from "@/hooks/onboarding-state.svelte";
-    import { Button } from "@/components/ui/button";
-    import { Check, ChevronRight } from "@lucide/svelte";
-    import { cn } from "@/utils";
 
-    let { showStepNumbers = true, showProgressBar = true } = $props();
+    // Get progress from onboarding state
+    let progressPercentage = $derived(onboardingState.progressPercentage);
+    let currentStep = $derived(onboardingState.currentStep());
+    let totalSteps = $derived(onboardingState.totalSteps);
+    let currentStepIndex = $derived(onboardingState.currentStepIndex);
+
+    // Step labels for display
+    const stepLabels = [
+        "Welcome",
+        "Role Selection",
+        "Basic Info",
+        "Goals",
+        "Skills",
+        "Preferences",
+        "Role Details",
+        "Verification",
+    ];
 </script>
 
 <div class="w-full space-y-4">
-    <!-- Progress Bar -->
-    {#if showProgressBar}
-        <div class="w-full">
-            <div
-                class="flex justify-between text-sm text-muted-foreground mb-2"
-            >
-                <span
-                    >Step {onboardingState.currentStepIndex + 1} of {onboardingState.steps()
-                        .length}</span
-                >
-                <span
-                    >{Math.round(
-                        (onboardingState.currentStepIndex /
-                            (onboardingState.steps().length - 1)) *
-                            100,
-                    )}% Complete</span
-                >
-            </div>
-
-            <div class="w-full bg-muted rounded-full h-2">
-                <div
-                    class="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
-                    style="width: {onboardingState.progressPercentage}%"
-                    role="progressbar"
-                    aria-valuenow={Math.round(
-                        onboardingState.progressPercentage,
-                    )}
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    aria-label="Onboarding progress"
-                ></div>
-            </div>
+    <!-- Progress Header -->
+    <div class="flex items-center justify-between">
+        <div class="space-y-1">
+            <h2 class="text-lg font-semibold text-foreground">
+                {currentStep?.title || "Onboarding"}
+            </h2>
+            <p class="text-sm text-muted-foreground">
+                {currentStep?.description || "Complete your profile setup"}
+            </p>
         </div>
-    {/if}
+        <div class="text-right">
+            <p class="text-sm font-medium text-foreground">
+                Step {currentStepIndex + 1} of {totalSteps}
+            </p>
+            <p class="text-xs text-muted-foreground">
+                {progressPercentage}% complete
+            </p>
+        </div>
+    </div>
 
-    <!-- Step Indicators (Collapsed) -->
-    {#if showStepNumbers}
-        <div class="flex items-center justify-between w-full">
-            {#each onboardingState.steps() as step, index}
-                <div class="flex items-center flex-1">
-                    <!-- Step Circle -->
-                    <button
-                        class={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200 flex-shrink-0",
-                            {
-                                "bg-primary text-primary-foreground":
-                                    index === onboardingState.currentStepIndex,
-                                "bg-muted text-muted-foreground":
-                                    index < onboardingState.currentStepIndex &&
-                                    !onboardingState.isStepCompleted(step.id),
-                                "bg-green-500 text-white":
-                                    onboardingState.isStepCompleted(step.id),
-                                "bg-muted/50 text-muted-foreground":
-                                    index > onboardingState.currentStepIndex,
-                            },
-                        )}
-                        onclick={() => {
-                            if (
-                                index <= onboardingState.currentStepIndex ||
-                                onboardingState.isStepCompleted(step.id)
-                            ) {
-                                onboardingState.goToStep(index);
-                            }
-                        }}
-                        disabled={index > onboardingState.currentStepIndex &&
-                            !onboardingState.isStepCompleted(step.id)}
-                    >
-                        {#if onboardingState.isStepCompleted(step.id)}
-                            <Check class="w-4 h-4" />
-                        {:else}
-                            {index + 1}
-                        {/if}
-                    </button>
+    <!-- Progress Bar -->
+    <div class="space-y-2">
+        <Progress value={progressPercentage} class="h-2" />
 
-                    <!-- Step Title (only show for current step) -->
-                    {#if index === onboardingState.currentStepIndex}
-                        <div class="ml-2 hidden sm:block">
-                            <div class="text-sm font-medium">
-                                {step.title}
-                            </div>
-                            <div class="text-xs text-muted-foreground">
-                                {step.description}
-                            </div>
-                        </div>
-                    {/if}
-
-                    <!-- Connector Line -->
-                    {#if index < onboardingState.steps().length - 1}
-                        <div
-                            class={cn(
-                                "flex-1 h-0.5 mx-2 transition-all duration-200",
-                                {
-                                    "bg-primary":
-                                        onboardingState.isStepCompleted(
-                                            step.id,
-                                        ),
-                                    "bg-muted":
-                                        !onboardingState.isStepCompleted(
-                                            step.id,
-                                        ),
-                                },
-                            )}
-                        ></div>
-                    {/if}
+        <!-- Step Indicators -->
+        <div class="flex justify-between text-xs text-muted-foreground">
+            {#each stepLabels.slice(0, totalSteps) as step, index}
+                <div class="flex flex-col items-center space-y-1">
+                    <div
+                        class="w-2 h-2 rounded-full transition-colors {index <
+                        currentStepIndex
+                            ? 'bg-primary'
+                            : index === currentStepIndex
+                              ? 'bg-primary ring-2 ring-primary/20'
+                              : 'bg-muted'}"
+                    ></div>
+                    <span class="hidden sm:block text-center max-w-16 truncate">
+                        {step}
+                    </span>
                 </div>
             {/each}
         </div>
-    {/if}
-
-    <!-- Current Step Info (Prominent) -->
-    <div class="text-center space-y-2 py-4">
-        <h2 class="text-2xl font-semibold">
-            {onboardingState.currentStep()?.title}
-        </h2>
-        <p class="text-base text-muted-foreground max-w-md mx-auto">
-            {onboardingState.currentStep()?.description}
-        </p>
     </div>
 
-    <!-- Navigation Buttons -->
-    <div class="flex justify-between items-center pt-4">
-        <Button
-            variant="outline"
-            onclick={() => onboardingState.previousStep()}
-            disabled={!onboardingState.canGoPrevious}
-        >
-            Previous
-        </Button>
-
-        <div class="flex items-center space-x-2">
-            {#if onboardingState.currentStep()?.canSkip}
-                <Button
-                    variant="ghost"
-                    onclick={() => onboardingState.nextStep()}
+    <!-- Current Step Info -->
+    {#if currentStep}
+        <div class="mt-4 p-4 bg-muted/50 rounded-lg">
+            <div class="flex items-center space-x-2">
+                <div
+                    class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center"
                 >
-                    Skip for now
-                </Button>
-            {/if}
-
-            <Button
-                onclick={() => onboardingState.nextStep()}
-                disabled={!onboardingState.canGoNext}
-            >
-                {#if onboardingState.isComplete}
-                    Complete Setup
-                {:else}
-                    Continue
-                    <ChevronRight class="w-4 h-4 ml-2" />
+                    <span class="text-sm font-medium text-primary">
+                        {currentStepIndex + 1}
+                    </span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-medium text-foreground">
+                        {currentStep.title}
+                    </h3>
+                    <p class="text-xs text-muted-foreground">
+                        {currentStep.description}
+                    </p>
+                </div>
+                {#if currentStep.estimatedMinutes}
+                    <div class="text-xs text-muted-foreground">
+                        ~{currentStep.estimatedMinutes} min
+                    </div>
                 {/if}
-            </Button>
-        </div>
-    </div>
-
-    <!-- Error Display -->
-    {#if onboardingState.errors.general}
-        <div
-            class="bg-destructive/10 border border-destructive/20 rounded-md p-3"
-        >
-            <p class="text-sm text-destructive">
-                {onboardingState.errors.general}
-            </p>
+            </div>
         </div>
     {/if}
 </div>
