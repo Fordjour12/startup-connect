@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "start": "bun run ./build --host 0.0.0.0 --port 8080",
+    "start": "export PORT=8080 && bun run ./build",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
