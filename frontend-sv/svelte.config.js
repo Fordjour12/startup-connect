@@ -4,7 +4,13 @@ import adapter from 'svelte-adapter-bun';
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    adapter: adapter(),
+    adapter: adapter({
+      out: 'build',
+      server: {
+        port: 8080,
+        host: '0.0.0.0'
+      }
+    }),
     alias: {
       "@/*": "./src/lib/*",
     }

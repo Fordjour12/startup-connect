@@ -19,9 +19,13 @@ COPY --from=install /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/build ./build
 COPY --from=build /usr/src/app/package.json ./
 
-# Expose port 8080 for SvelteKit preview
+# Expose port 8080 for SvelteKit
 EXPOSE 8080
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
 
 # Run the SvelteKit application
 USER bun
-CMD ["bun", "start"]
+CMD ["bun", "run", "start"]

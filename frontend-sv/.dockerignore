@@ -15,3 +15,10 @@ helm-charts
 coverage*
 .cursor
 docs
+.svelte-kit
+build
+dist
+*.log
+.env.local
+.env.development
+.env.production
