@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
    import { page } from "$app/state";
    import LoginForm from "@/components/auth/LoginForm.svelte";
    import { CheckCircle } from "@lucide/svelte";
@@ -43,14 +43,14 @@
                Enter your email below to login to your account
             </p>
          </div>
-         <!-- {#if successMessage}
+         {#if successMessage}
                 <div
                     class="p-3 rounded-md border border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2"
                 >
                     <CheckCircle class="h-4 w-4" />
                     {successMessage}
                 </div>
-            {/if} -->
+            {/if}
 
          <LoginForm {data} />
 
@@ -65,4 +65,4 @@
          </p>
       </div>
    </div>
-</div>
+</div> -->

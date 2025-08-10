@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
     import RegisterForm from "@/components/auth/RegisterForm.svelte";
     import type { PageProps } from "./$types";
     import { Github } from "@lucide/svelte";
@@ -71,4 +71,4 @@
             </p>
         </div>
     </div>
-</div>
+</div> -->

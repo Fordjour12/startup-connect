@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
    import ForgotPasswordForm from "$lib/components/ForgotPasswordForm.svelte";
    import type { PageProps } from "./$types";
 
@@ -52,4 +52,4 @@
          </p>
       </div>
    </div>
-</div>
+</div> -->

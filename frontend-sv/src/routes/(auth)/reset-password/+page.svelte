@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import ResetPasswordForm from "$lib/components/ResetPasswordForm.svelte";
 	import type { PageData } from "./$types";
 
@@ -52,4 +52,4 @@
 			</p>
 		</div>
 	</div>
-</div>
+</div> -->

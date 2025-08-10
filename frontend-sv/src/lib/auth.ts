@@ -30,8 +30,8 @@ export const auth = betterAuth({
   plugins: [
     sveltekitCookies(() => Promise.resolve(getRequestEvent())),
     admin({
-      defaultRole: "user", // Set a default role for new users
-      adminRoles: [USER_ROLES.MODERATOR, USER_ROLES.ADMIN],
+      // defaultRole: "user", // Set a default role for new users
+      // adminRoles: [USER_ROLES.MODERATOR, USER_ROLES.ADMIN],
     }),
   ],
   secret: env.SECRET_KEY

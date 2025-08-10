@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Header from "@/components/Header.svelte";
+    import Header from "@/components/header.svelte";
     import { Badge } from "@/components/ui/badge";
     import { Button } from "@/components/ui/button";
     import * as Card from "@/components/ui/card";
@@ -30,11 +30,7 @@
         testimonials,
         features,
         stats,
-    } from "@/data/featured";
-
-    /*
-    import type { LayoutProps } from "./$types";
-    let { data }: LayoutProps = $props(); */
+    } from "@/mc-data/featured";
 
     let activeSection = $state("home");
     let isScrolled = $state(false);
@@ -692,22 +688,23 @@
                         <Card.Root
                             class="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card border border-border/50"
                         >
-                            <Card.Header class="flex items-start gap-4 p-6">
+                            <!-- flex items-start gap-4 p-6 -->
+                            <Card.Header class="">
                                 <div
-                                    class={`size-14 rounded-lg flex items-center justify-center ${feature.color} transition-transform group-hover:scale-110`}
+                                    class={`size-6 rounded-lg flex items-center justify-center ${feature.color} transition-transform group-hover:scale-110`}
                                 >
                                     {#if feature.icon === SparklesIcon}
-                                        <SparklesIcon class="h-6 w-6" />
+                                        <SparklesIcon class="size-6" />
                                     {:else if feature.icon === BarChartIcon}
-                                        <BarChartIcon class="h-6 w-6" />
+                                        <BarChartIcon class="size-6" />
                                     {:else if feature.icon === ShieldCheckIcon}
-                                        <ShieldCheckIcon class="h-6 w-6" />
+                                        <ShieldCheckIcon class="size-6" />
                                     {:else if feature.icon === UsersIcon}
-                                        <UsersIcon class="h-6 w-6" />
+                                        <UsersIcon class="size-6" />
                                     {:else if feature.icon === MessageSquareIcon}
-                                        <MessageSquareIcon class="h-6 w-6" />
+                                        <MessageSquareIcon class="size-6" />
                                     {:else if feature.icon === FileTextIcon}
-                                        <FileTextIcon class="h-6 w-6" />
+                                        <FileTextIcon class="size-6" />
                                     {/if}
                                 </div>
                                 <div>
@@ -744,7 +741,7 @@
 
         <div class="container mx-auto px-4 sm:px-6 relative">
             <div class="max-w-3xl mx-auto text-center">
-                <RocketIcon class="h-16 w-16 mx-auto mb-8 animate-float" />
+                <!-- <RocketIcon class="h-16 w-16 mx-auto mb-8 animate-float" /> -->
 
                 <h2 class="text-4xl lg:text-6xl font-bold mb-6">
                     Ready to Scale Your Success?
@@ -787,13 +784,12 @@
             >
                 <!-- Brand Column -->
                 <div class="lg:col-span-1">
-                    <a
-                        href="/"
-                        class="flex items-center text-xl font-bold mb-4"
-                    >
-                        <RocketIcon class="h-6 w-6 mr-2 text-primary" />
-                        <span class="text-primary">Startup</span>Connect
-                    </a>
+                    <div class="mr-4 flex items-center">
+                        <a href="/" class="flex items-center space-x-2">
+                            <img src="/logo.svg" alt="Logo" class="size-6" />
+                            <span class="font-bold">Startup Connect</span>
+                        </a>
+                    </div>
                     <p class="text-sm text-muted-foreground mb-6">
                         Connecting visionary startups with strategic investors.
                         Building the future of innovation together.
@@ -828,7 +824,7 @@
                 </div>
 
                 <div>
-                    <h4 class="font-semibold mb-4">Company</h4>
+                    <h4 class="font-semibold mb-4">Startup Connect</h4>
                     <ul class="space-y-2">
                         {#each ["About Us", "Careers", "Blog", "Press", "Contact"] as item}
                             <li>
