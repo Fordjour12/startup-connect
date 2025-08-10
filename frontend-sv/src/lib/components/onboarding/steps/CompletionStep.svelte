@@ -10,6 +10,7 @@
     import { Check, PartyPopper, Users, Globe, Target } from "@lucide/svelte";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import { onboardingState } from "@/hooks/onboarding-state.svelte";
 
     // Auto-redirect after 5 seconds
     let countdown = $state(5);
@@ -143,6 +144,10 @@
     </Card>
 
     <!-- Action Buttons -->
+    <Button variant="outline" onclick={() => onboardingState.previousStep()}>
+        Back
+    </Button>
+
     <div class="flex justify-center space-x-4">
         <Button variant="outline" onclick={goToDashboard}>
             Go to Dashboard
