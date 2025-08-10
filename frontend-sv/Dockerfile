@@ -24,4 +24,4 @@ EXPOSE 8080
 
 # Run the SvelteKit application
 USER bun
-CMD ["bun", "start", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["bun", "start"]
