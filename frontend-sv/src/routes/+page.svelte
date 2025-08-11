@@ -24,6 +24,7 @@
         TwitterIcon,
         ChevronRightIcon,
     } from "@lucide/svelte";
+    import { MetaTags } from "svelte-meta-tags";
 
     import {
         featuredStartups,
@@ -111,6 +112,32 @@
     });
 </script>
 
+<MetaTags
+    title="Startup Connect - Connecting Visionary Startups with Strategic Investors"
+    description="Join our platform to connect with the right investors, streamline your fundraising, and accelerate your startup's growth with our AI-powered tools."
+    openGraph={{
+        title: "Startup Connect - Connecting Visionary Startups with Strategic Investors",
+        description:
+            "Join our platform to connect with the right investors, streamline your fundraising, and accelerate your startup's growth with our AI-powered tools.",
+        type: "website",
+        url: "/",
+        images: [
+            {
+                url: "/logo.svg",
+                alt: "Startup Connect Logo",
+            },
+        ],
+    }}
+    twitter={{
+        title: "Startup Connect - Connecting Visionary Startups with Strategic Investors",
+        description:
+            "Join our platform to connect with the right investors, streamline your fundraising, and accelerate your startup's growth with our AI-powered tools.",
+        image: "/logo.svg",
+        imageAlt: "Startup Connect Logo",
+        cardType: "summary_large_image",
+    }}
+/>
+
 <!-- class=" container mx-auto min-h-screen flex flex-col bg-background text-foreground antialiased overflow-x-hidden" -->
 <div>
     <Header />
@@ -157,7 +184,7 @@
 
                         <!-- Main Heading -->
                         <h1
-                            class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight animate-fadeInUp animation-delay-200"
+                            class="text-4xl font-head sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight animate-fadeInUp animation-delay-200"
                         >
                             Where <span class="text-primary bg-primary/5 px-2"
                                 >Innovation</span
@@ -170,7 +197,7 @@
 
                         <!-- Description -->
                         <p
-                            class="text-lg sm:text-xl text-muted-foreground animate-fadeInUp animation-delay-400 max-w-xl mx-auto lg:mx-0"
+                            class="text-lg sm:text-xl font-body text-muted-foreground animate-fadeInUp animation-delay-400 max-w-xl mx-auto lg:mx-0"
                         >
                             Connect with the right investors, streamline your
                             fundraising, and accelerate your startup's growth

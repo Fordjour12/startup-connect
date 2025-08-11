@@ -1,12 +1,13 @@
 import { betterAuth } from "better-auth";
 import { admin } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "@/db"; // your drizzle instance
+import { db } from "@/db";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { env } from "$env/dynamic/private";
 import { USER_ROLES } from "@/db/schema/auth-schema";
 import * as schema from "@/db/schema/auth-schema"
+import { organization } from "better-auth/plugins";
 
 
 export const auth = betterAuth({
@@ -29,9 +30,10 @@ export const auth = betterAuth({
   // },
   plugins: [
     sveltekitCookies(() => Promise.resolve(getRequestEvent())),
+    organization(),
     admin({
-      // defaultRole: "user", // Set a default role for new users
-      // adminRoles: [USER_ROLES.MODERATOR, USER_ROLES.ADMIN],
+      defaultRole: USER_ROLES.USER,
+      adminRoles: [USER_ROLES.ADMIN],
     }),
   ],
   secret: env.SECRET_KEY

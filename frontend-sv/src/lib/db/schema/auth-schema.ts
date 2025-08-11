@@ -3,8 +3,6 @@ import {
   text,
   timestamp,
   boolean,
-  integer,
-  pgEnum,
   check
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -12,11 +10,12 @@ import { createId } from "@paralleldrive/cuid2";
 
 // Define user roles as a const object for better type safety and maintainability
 export const USER_ROLES = {
+  USER: "user",
   FOUNDER: "founder",
   INVESTOR: "investor",
   SUPPORT: "support",
-  MODERATOR: "755940",
-  ADMIN: "6203875"
+  MODERATOR: "moderator",
+  ADMIN: "admin"
 } as const;
 
 // Type for user roles
@@ -33,7 +32,7 @@ export const user = pgTable("user", {
     .$defaultFn(() => false)
     .notNull(),
   image: text("image"),
-  role: text("role").notNull(),
+  role: text("role").notNull().$defaultFn(() => USER_ROLES.USER),
   banned: boolean("banned").$defaultFn(() => false).notNull(),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
@@ -45,7 +44,6 @@ export const user = pgTable("user", {
     .$onUpdateFn(() => /* @__PURE__ */ new Date())
     .notNull(),
 }, (table) => [
-  //check("role_check", sql`${table.role} IN (${sql.join(VALID_USER_ROLES.map(role => sql`${role}`), sql`, `)})`),
   check('ban_constraint', sql`
       (${table.banned} = false) OR (${table.banned} = true AND ${table.banReason} IS NOT NULL)`
   ),
@@ -55,12 +53,6 @@ export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
   token: text("token").notNull().unique(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  impersonatedBy: text("impersonated_by"),
   createdAt: timestamp("created_at")
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),
@@ -68,6 +60,13 @@ export const session = pgTable("session", {
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .$onUpdateFn(() => /* @__PURE__ */ new Date())
     .notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  activeOrganizationId: text("active_organization_id"),
+  impersonatedBy: text("impersonated_by"),
 });
 
 export const account = pgTable("account", {
@@ -107,11 +106,56 @@ export const verification = pgTable("verification", {
     .notNull(),
 });
 
+export const organization = pgTable("organization", {
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  name: text("name").notNull(),
+  slug: text("slug").unique(),
+  logo: text("logo"),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .$onUpdateFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  metadata: text("metadata"),
+});
 
+export const member = pgTable("member", {
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: text("role").default("member").notNull(),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .$onUpdateFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
 
-
-// roleCheck: check("role_check", sql`${table.role} IN (${sql.join(VALID_USER_ROLES.map(role => sql`${role}`), sql`, `)})`),
-// banConstraint: check("ban_constraint", sql`
-//       (${table.banned} = false) OR
-//       (${table.banned} = true AND ${table.banReason} IS NOT NULL)
-//     `)
+export const invitation = pgTable("invitation", {
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  role: text("role"),
+  status: text("status").default("pending").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  inviterId: text("inviter_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  updatedAt: timestamp("updated_at")
+    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .$onUpdateFn(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});

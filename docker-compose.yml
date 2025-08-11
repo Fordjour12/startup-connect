@@ -1,41 +1,40 @@
-
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: startup_connect_backend
-    ports:
-      - "8000:8000"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_DB=startup_connect
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin123
-      - MINIO_SECURE=false
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: startup_connect_backend
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_PORT=5432
+  #     - POSTGRES_DB=startup_connect
+  #     - MINIO_ENDPOINT=minio:9000
+  #     - MINIO_ACCESS_KEY=minioadmin
+  #     - MINIO_SECRET_KEY=minioadmin123
+  #     - MINIO_SECURE=false
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     minio:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
   postgres:
-    image: postgres:latest
+    image: postgres
     container_name: startup_connect_db
     environment:
       POSTGRES_DB: startup_connect
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres  # Change this in production
+      POSTGRES_PASSWORD: postgres # Change this in production
     ports:
       - "5432:5432"
     volumes:
@@ -47,48 +46,48 @@ services:
       timeout: 5s
       retries: 5
 
-  minio:
-    image: minio/minio:latest
-    container_name: startup_connect_minio
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123  # Change this in production
-      MINIO_DEFAULT_BUCKETS: startup-connect-files
-    ports:
-      - "9000:9000"    # MinIO API
-      - "9001:9001"    # MinIO Console
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: startup_connect_minio
+  #   environment:
+  #     MINIO_ROOT_USER: minioadmin
+  #     MINIO_ROOT_PASSWORD: minioadmin123  # Change this in production
+  #     MINIO_DEFAULT_BUCKETS: startup-connect-files
+  #   ports:
+  #     - "9000:9000"    # MinIO API
+  #     - "9001:9001"    # MinIO Console
+  #   volumes:
+  #     - minio_data:/data
+  #   command: server /data --console-address ":9001"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
-  mc:
-    image: alpine:latest
-    container_name: startup_connect_mc
-    depends_on:
-      - minio
-    environment:
-      MC_HOST_local: http://minioadmin:minioadmin123@minio:9000
-    volumes:
-      - mc_config:/root/.mc
-    restart: unless-stopped
-    command: >
-      sh -c "
-        wget -O /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc &&
-        chmod +x /usr/local/bin/mc &&
-        mc alias set local http://minio:9000 minioadmin minioadmin123 &&
-        tail -f /dev/null
-      "
+  # mc:
+  #   image: alpine:latest
+  #   container_name: startup_connect_mc
+  #   depends_on:
+  #     - minio
+  #   environment:
+  #     MC_HOST_local: http://minioadmin:minioadmin123@minio:9000
+  #   volumes:
+  #     - mc_config:/root/.mc
+  #   restart: unless-stopped
+  #   command: >
+  #     sh -c "
+  #       wget -O /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc &&
+  #       chmod +x /usr/local/bin/mc &&
+  #       mc alias set local http://minio:9000 minioadmin minioadmin123 &&
+  #       tail -f /dev/null
+  #     "
 
 volumes:
   postgres_data:
     name: startup_connect_postgres_data
-  minio_data:
-    name: startup_connect_minio_data
-  mc_config:
-    name: startup_connect_mc_config 
+  # minio_data:
+  # name: startup_connect_minio_data
+  # mc_config:
+  # name: startup_connect_mc_config

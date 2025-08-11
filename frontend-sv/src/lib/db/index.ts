@@ -1,7 +1,7 @@
+import { env } from '$env/dynamic/private';
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import ws from "ws";
-import { env } from '$env/dynamic/private';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -9,9 +9,21 @@ neonConfig.webSocketConstructor = ws;
 // neonConfig.poolQueryViaFetch = true
 
 const databaseUrl = env.DATABASE_URL;
-// if (!databaseUrl) {
-//   throw new Error("DATABASE_URL environment variable is not set");
-// }
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
 
 const sql = neon(databaseUrl);
 export const db = drizzle(sql);
+/*
+
+import { env } from '$env/dynamic/private';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+if (!env.DATABASE_URL) {
+  throw new Error("Failed to create database client");
+}
+const client = postgres(env.DATABASE_URL!);
+export const db = drizzle({ client });
+*/

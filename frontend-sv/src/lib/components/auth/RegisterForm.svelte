@@ -8,7 +8,7 @@
     import {
         type RegisterSchema,
         registerSchema,
-    } from "@/schemas/register-schema";
+    } from "@/z-schema/register-schema";
     import * as Form from "@/components/ui/form";
     import { Input } from "@/components/ui/input";
     import { cn } from "@/utils";

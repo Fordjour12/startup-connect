@@ -5,7 +5,6 @@
     import Logo from "@lucide/svelte/icons/aperture";
     import UserIcon from "@lucide/svelte/icons/user";
     import Menu from "@lucide/svelte/icons/menu";
-    import X from "@lucide/svelte/icons/x";
     import LogOut from "@lucide/svelte/icons/log-out";
     import {
         Sheet,
@@ -14,9 +13,21 @@
         SheetClose,
     } from "$lib/components/ui/sheet";
     import ModeToggle from "./ModeToggle.svelte";
-    // import UserDropdown from "./UserDropdown.svelte";
+    import UserDropdown from "./UserDropdown.svelte";
+    import AuthButtons from "./AuthButtons.svelte";
 
-    // let { data } = $props();
+    interface User {
+        id: string;
+        name: string;
+        email: string;
+        image?: string;
+        role?: string;
+    }
+
+    let { user, isLoggedIn } = $props<{
+        user: User | null;
+        isLoggedIn: boolean;
+    }>();
 
     // App name - modify this to match your application name
     const appName = $state("StartupConnect");
@@ -87,7 +98,11 @@
 
             <div class="flex items-center gap-4">
                 <ModeToggle />
-                <!-- <UserDropdown {isLoggedIn} user={data.user} />-->
+                {#if isLoggedIn && user}
+                    <UserDropdown {user} />
+                {:else}
+                    <AuthButtons />
+                {/if}
             </div>
         </nav>
 
@@ -103,21 +118,7 @@
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="right" class="flex flex-col">
-                    <div
-                        class="flex justify-between items-center border-b pb-4"
-                    >
-                        <a href="/" class="flex items-center gap-2">
-                            <Logo class="h-5 w-5" />
-                            <span class="font-bold">{appName}</span>
-                        </a>
-                        <SheetClose>
-                            <Button variant="ghost" size="icon">
-                                <X class="h-5 w-5" />
-                                <span class="sr-only">Close menu</span>
-                            </Button>
-                        </SheetClose>
-                    </div>
-                    <nav class="flex flex-col gap-4 mt-8">
+                    <nav class="flex flex-col gap-4 m-8">
                         {#each navItems as item}
                             <a
                                 href={item.href}
@@ -131,43 +132,68 @@
                             </a>
                         {/each}
                     </nav>
-                    <!-- <div class="mt-auto pt-4 border-t space-y-2">
-                  {#if isLoggedIn && data.user}
-                     <div class="flex items-center gap-2 px-4 py-2">
-                         <img
-                                    src={data.user.avatarUrl || ""}
-                                    alt=""
-                                    class="h-10 w-10 rounded-full bg-muted"
-                                />
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-medium"
-                                        >{data.user.name || "User"}</span
-                                    >
-                                    <span class="text-xs text-muted-foreground"
-                                        >{data.user.email || ""}</span
-                                    >
+
+                    <!-- Mobile Authentication Section -->
+                    <div class="mt-auto pt-4 border-y space-y-2">
+                        {#if isLoggedIn && user}
+                            <div class="flex items-center gap-2 px-4 py-2">
+                                <div
+                                    class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-medium"
+                                >
+                                    {#if user.image}
+                                        <img
+                                            src={user.image}
+                                            alt=""
+                                            class="h-10 w-10 rounded-full"
+                                        />
+                                    {:else}
+                                        {user.name
+                                            .split(" ")
+                                            .map((word: string) =>
+                                                word.charAt(0),
+                                            )
+                                            .join("")
+                                            .toUpperCase()
+                                            .slice(0, 2)}
+                                    {/if}
                                 </div>
-                     </div>
-                     <Button
-                        variant="ghost"
-                        class="w-full justify-start text-destructive"
-                        onclick={handleLogout}
-                     >
-                        <LogOut class="mr-2 h-4 w-4" />
-                        Log out
-                     </Button>
-                  {:else}
-                     <a href="/login" class="w-full">
-                        <Button variant="outline" class="w-full justify-start">
-                           <UserIcon class="mr-2 h-4 w-4" />
-                           Login
-                        </Button>
-                     </a>
-                     <a href="/register" class="w-full">
-                        <Button class="w-full justify-start">Sign Up</Button>
-                     </a>
-                  {/if}
-               </div> -->
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-medium">
+                                        {user.name || "User"}
+                                    </span>
+                                    <span class="text-xs text-muted-foreground">
+                                        {user.email || ""}
+                                    </span>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                class="w-full justify-start text-destructive"
+                                onclick={() => {
+                                    // Handle logout
+                                    window.location.href = "/logout";
+                                }}
+                            >
+                                <LogOut class="mr-2 h-4 w-4" />
+                                Log out
+                            </Button>
+                        {:else}
+                            <a href="/login" class="w-full">
+                                <Button
+                                    variant="outline"
+                                    class="w-full justify-start"
+                                >
+                                    <UserIcon class="mr-2 h-4 w-4" />
+                                    Login
+                                </Button>
+                            </a>
+                            <a href="/register" class="w-full">
+                                <Button class="w-full justify-start"
+                                    >Sign Up</Button
+                                >
+                            </a>
+                        {/if}
+                    </div>
                 </SheetContent>
             </Sheet>
         </div>
