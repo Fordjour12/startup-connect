@@ -10,7 +10,7 @@ neonConfig.webSocketConstructor = ws;
 
 
 const sql = neon(env.DEPLOYMENT_DATABASE_URL!);
-export const db = drizzle(sql);
+export const db = drizzle({client: sql});
 /*
 
 import { env } from '$env/dynamic/private';
