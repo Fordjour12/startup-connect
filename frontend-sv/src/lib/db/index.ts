@@ -1,6 +1,7 @@
 import { env } from '$env/dynamic/private';
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import * as schema from './schema';
+import { neon, neonConfig, Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 
 neonConfig.webSocketConstructor = ws;
@@ -9,10 +10,11 @@ neonConfig.webSocketConstructor = ws;
 // neonConfig.poolQueryViaFetch = true
 
 
-const sql = neon(env.DEPLOYMENT_DATABASE_URL!);
-export const db = drizzle({client: sql});
-/*
+const pool = new Pool({ connectionString: env.DEPLOYMENT_DATABASE_URL });
 
+export const db = drizzle({ client: pool, schema });
+
+/*
 import { env } from '$env/dynamic/private';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
