@@ -32,7 +32,7 @@ async function handleOnboardingProtection(event: RequestEvent<Partial<Record<str
   }
 }
 
-export async function handle({ event, resolve }) {
+export async function handle({ event, resolve }: { event: any; resolve: any }) {
   // Handle Better Auth first
   const response = await svelteKitHandler({ event, resolve, auth, building });
 
