@@ -69,8 +69,12 @@ export interface Goals {
 }
 
 export interface Skills {
-   selectedSkills: string[];
-   customSkills: string[];
+   skills: string[];
+   experienceLevel: "beginner" | "intermediate" | "expert" | "";
+   industries?: string[];
+   achievements?: string;
+   expertiseAreas?: string;
+   certifications?: string;
 }
 
 export interface Preferences {
@@ -166,8 +170,12 @@ class OnboardingState {
          additionalGoals: ""
       },
       skills: {
-         selectedSkills: [],
-         customSkills: []
+         skills: [],
+         experienceLevel: "",
+         industries: [],
+         achievements: "",
+         expertiseAreas: "",
+         certifications: "",
       },
       preferences: {
          communicationFrequency: "",
@@ -254,8 +262,12 @@ class OnboardingState {
             additionalGoals: "",
          },
          skills: {
-            selectedSkills: [],
-            customSkills: []
+            skills: [],
+            experienceLevel: "",
+            industries: [],
+            achievements: "",
+            expertiseAreas: "",
+            certifications: "",
          },
          preferences: {
             communicationFrequency: "",

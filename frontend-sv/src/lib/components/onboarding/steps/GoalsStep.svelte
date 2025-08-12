@@ -19,28 +19,16 @@
 
    // Form data with proper typing
    let formData = $state<Goals>({
-      personalGoals: [],
-      platformGoals: [],
-      primaryGoal: "",
-      specificNeeds: [],
-      timeCommitment: "",
-      additionalGoals: "",
+      personalGoals: onboardingState.formData.goals.personalGoals ?? [],
+      platformGoals: onboardingState.formData.goals.platformGoals ?? [],
+      primaryGoal: onboardingState.formData.goals.primaryGoal ?? "",
+      specificNeeds: onboardingState.formData.goals.specificNeeds ?? [],
+      timeCommitment: onboardingState.formData.goals.timeCommitment ?? "",
+      additionalGoals: onboardingState.formData.goals.additionalGoals ?? "",
    });
 
    // Validation state
    let validationErrors = $state<Record<string, string>>({});
-
-   // Initialize form with saved progress
-   $effect(() => {
-      formData = {
-         personalGoals: onboardingState.formData.goals.personalGoals || [],
-         platformGoals: onboardingState.formData.goals.platformGoals || [],
-         primaryGoal: onboardingState.formData.goals.primaryGoal || "",
-         specificNeeds: onboardingState.formData.goals.specificNeeds || [],
-         timeCommitment: onboardingState.formData.goals.timeCommitment || "",
-         additionalGoals: onboardingState.formData.goals.additionalGoals || "",
-      };
-   });
 
    // Validate form using Zod
    function validateForm(): boolean {
@@ -132,6 +120,25 @@
       { value: "fundraising_strategy", label: "Fundraising Strategy" },
    ] as const;
 
+   // Optional: personal and platform goals options
+   const personalGoalsOptions = [
+      { value: "learn_from_others", label: "Learn from others" },
+      { value: "build_network", label: "Build my network" },
+      { value: "find_mentors", label: "Find mentors" },
+      { value: "improve_product", label: "Improve my product" },
+      { value: "grow_users", label: "Grow users" },
+      { value: "career_growth", label: "Career growth" },
+   ] as const;
+
+   const platformGoalsOptions = [
+      { value: "post_opportunities", label: "Post opportunities" },
+      { value: "discover_startups", label: "Discover startups" },
+      { value: "connect_investors", label: "Connect with investors" },
+      { value: "find_talent", label: "Find talent" },
+      { value: "join_events", label: "Join events" },
+      { value: "share_knowledge", label: "Share knowledge" },
+   ] as const;
+
    const timeCommitments = [
       {
          value: "1-5_hours",
@@ -155,7 +162,6 @@
       },
    ] as const;
 
-   /*
    const handleSpecificNeedToggle = (need: string) => {
       if (formData.specificNeeds.includes(need)) {
          formData.specificNeeds = formData.specificNeeds.filter(
@@ -166,18 +172,34 @@
       }
    };
 
+   const handlePersonalGoalToggle = (goal: string) => {
+      const current = formData.personalGoals ?? [];
+      const next = current.includes(goal)
+         ? current.filter((g: string) => g !== goal)
+         : [...current, goal];
+      formData.personalGoals = next;
+   };
+
+   const handlePlatformGoalToggle = (goal: string) => {
+      const current = formData.platformGoals ?? [];
+      const next = current.includes(goal)
+         ? current.filter((g: string) => g !== goal)
+         : [...current, goal];
+      formData.platformGoals = next;
+   };
+
    const handleNext = () => {
       if (validateForm()) {
          // Save form data before moving to next step
          onboardingState.updateFormData({
             goals: {
-               personalGoals: formData.personalGoals,
-               platformGoals: formData.platformGoals,
+               personalGoals: formData.personalGoals ?? [],
+               platformGoals: formData.platformGoals ?? [],
                primaryGoal: formData.primaryGoal,
                specificNeeds: [...formData.specificNeeds],
                timeCommitment: formData.timeCommitment,
                additionalGoals: formData.additionalGoals,
-            }
+            },
          });
          onboardingState.nextStep();
          toast.success("Goals saved successfully!");
@@ -185,7 +207,6 @@
          toast.error("Please fix the errors before continuing.");
       }
    };
-   */
 </script>
 
 <div class="space-y-6">
@@ -245,6 +266,59 @@
       </CardContent>
    </Card>
 
+   <!-- Personal Goals (optional) -->
+   <Card>
+      <CardHeader>
+         <CardTitle>Personal Goals</CardTitle>
+         <CardDescription>
+            What do you personally want to get out of StartupConnect? (Select
+            all that apply)
+         </CardDescription>
+      </CardHeader>
+      <CardContent>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {#each personalGoalsOptions as g}
+               <div class="flex items-center space-x-2">
+                  <Checkbox
+                     id={`pg-${g.value}`}
+                     checked={(formData.personalGoals ?? []).includes(g.value)}
+                     onCheckedChange={() => handlePersonalGoalToggle(g.value)}
+                  />
+                  <Label for={`pg-${g.value}`} class="text-sm cursor-pointer">
+                     {g.label}
+                  </Label>
+               </div>
+            {/each}
+         </div>
+      </CardContent>
+   </Card>
+
+   <!-- Platform Goals (optional) -->
+   <Card>
+      <CardHeader>
+         <CardTitle>Platform Goals</CardTitle>
+         <CardDescription>
+            How do you plan to use the platform? (Select all that apply)
+         </CardDescription>
+      </CardHeader>
+      <CardContent>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {#each platformGoalsOptions as g}
+               <div class="flex items-center space-x-2">
+                  <Checkbox
+                     id={`plg-${g.value}`}
+                     checked={(formData.platformGoals ?? []).includes(g.value)}
+                     onCheckedChange={() => handlePlatformGoalToggle(g.value)}
+                  />
+                  <Label for={`plg-${g.value}`} class="text-sm cursor-pointer">
+                     {g.label}
+                  </Label>
+               </div>
+            {/each}
+         </div>
+      </CardContent>
+   </Card>
+
    <!-- Specific Needs -->
    <Card>
       <CardHeader>
@@ -255,7 +329,7 @@
          </CardDescription>
       </CardHeader>
 
-      <!--<CardContent>
+      <CardContent>
          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             {#each specificNeeds as need}
                <div class="flex items-center space-x-2">
@@ -276,7 +350,7 @@
                {getFieldError("specificNeeds")}
             </p>
          {/if}
-      </CardContent> -->
+      </CardContent>
    </Card>
 
    <!-- Time Commitment -->
@@ -354,17 +428,17 @@
    </Card>
 
    <!-- Tips -->
-   <Card class="border-green-200 bg-green-50/50">
+   <Card class="border-foreground/50 bg-foreground/20">
       <CardContent class="pt-6">
          <div class="flex items-start space-x-3">
             <div
-               class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5"
+               class="size-5 bg-background/50 rounded-full flex items-center justify-center mt-0.5"
             >
                <span class="text-white text-xs">💡</span>
             </div>
             <div class="text-sm">
-               <p class="font-medium text-green-900 mb-1">Matching Tips</p>
-               <ul class="text-green-700 space-y-1">
+               <p class="font-medium mb-1 font-head">Matching Tips</p>
+               <ul class="space-y-1">
                   <li>• Be specific about your needs to get better matches</li>
                   <li>
                      • Your time commitment helps set expectations with
@@ -386,6 +460,6 @@
          Back
       </Button>
 
-      <!-- <Button onclick={handleNext}>Continue</Button> -->
+      <Button onclick={handleNext}>Continue</Button>
    </div>
 </div>

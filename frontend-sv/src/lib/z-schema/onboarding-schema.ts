@@ -72,9 +72,9 @@ export type BasicInfo = z.infer<typeof basicInfoSchema>;
 export const goalsSchema = z.object({
    personalGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
    platformGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
-   primaryGoal: z.string().optional(),
-   specificNeeds: z.array(z.string()).optional(),
-   timeCommitment: z.string().optional(),
+   primaryGoal: z.string().min(1, "Please select your primary goal"),
+   specificNeeds: z.array(z.string()).min(1, "Please select at least one specific need"),
+   timeCommitment: z.string().min(1, "Please select your time commitment"),
    additionalGoals: z.string().max(300, "Additional goals must be less than 300 characters").optional()
 });
 
@@ -82,8 +82,14 @@ export type Goals = z.infer<typeof goalsSchema>;
 
 // Skills schema
 export const skillsSchema = z.object({
-   selectedSkills: z.array(z.string()),
-   customSkills: z.array(z.string())
+   skills: z.array(z.string()),
+   experienceLevel: z.enum(["beginner", "intermediate", "expert"], {
+      required_error: "Please select your experience level"
+   }),
+   industries: z.array(z.string()),
+   achievements: z.string().max(1000).optional(),
+   expertiseAreas: z.string().max(1000).optional(),
+   certifications: z.string().max(1000).optional()
 });
 
 export type Skills = z.infer<typeof skillsSchema>;
