@@ -41,11 +41,22 @@ export const ONBOARDING_ROLES = [
 export interface BasicInfo {
    name: string;
    email: string;
-   profileImage?: string;
-   location?: string;
-   bio?: string;
-   linkedinUrl?: string;
-   website?: string;
+   profileImage?: string | null;
+   location?: string | null;
+   bio?: string | null;
+   linkedinUrl?: string | null;
+   website?: string | null;
+   jobTitle?: string | null;
+   industry?: string | null;
+   education?: string | null;
+   phone?: string | null;
+   twitterHandle?: string | null;
+   githubProfile?: string | null;
+   portfolioWebsite?: string | null;
+   city?: string | null;
+   timezone?: string | null;
+   languages?: string | null;
+   employmentStatus?: string | null;
 }
 
 export interface Goals {
@@ -133,7 +144,18 @@ class OnboardingState {
          location: "",
          bio: "",
          linkedinUrl: "",
-         website: ""
+         website: "",
+         jobTitle: "",
+         industry: "",
+         education: "",
+         phone: "",
+         twitterHandle: "",
+         githubProfile: "",
+         portfolioWebsite: "",
+         city: "",
+         timezone: "",
+         languages: "",
+         employmentStatus: ""
       },
       goals: {
          personalGoals: [],
@@ -209,11 +231,27 @@ class OnboardingState {
             email: "",
             profileImage: "",
             location: "",
-            bio: ""
+            bio: "",
+            website: "",
+            jobTitle: "",
+            industry: "",
+            education: "",
+            phone: "",
+            twitterHandle: "",
+            githubProfile: "",
+            portfolioWebsite: "",
+            city: "",
+            timezone: "",
+            languages: "",
+            employmentStatus: "",
          },
          goals: {
             personalGoals: [],
-            platformGoals: []
+            platformGoals: [],
+            primaryGoal: "",
+            specificNeeds: [],
+            timeCommitment: "",
+            additionalGoals: "",
          },
          skills: {
             selectedSkills: [],

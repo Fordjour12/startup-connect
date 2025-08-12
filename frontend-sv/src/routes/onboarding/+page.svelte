@@ -6,8 +6,8 @@
    import WelcomeStep from "@/components/onboarding/steps/WelcomeStep.svelte";
    import RoleSelection from "@/components/onboarding/steps/RoleSelection.svelte";
    import BasicInfoStep from "@/components/onboarding/steps/BasicInfoStep.svelte";
-   /*
    import GoalsStep from "@/components/onboarding/steps/GoalsStep.svelte";
+   /*
    import SkillsStep from "@/components/onboarding/steps/SkillsStep.svelte";
    import PreferencesStep from "@/components/onboarding/steps/PreferencesStep.svelte";
    import ReviewStep from "@/components/onboarding/steps/ReviewStep.svelte";
@@ -64,9 +64,9 @@
                <RoleSelection data={stepData.roleSelection} />
             {:else if onboardingState.currentStep === "basic-info"}
                <BasicInfoStep data={stepData.basicInfo} />
-               <!--
             {:else if onboardingState.currentStep === "goals"}
                <GoalsStep />
+               <!-- 
             {:else if onboardingState.currentStep === "skills"}
                <SkillsStep />
             {:else if onboardingState.currentStep === "preferences"}

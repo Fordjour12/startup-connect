@@ -49,21 +49,21 @@ export type SupporterInfo = z.infer<typeof supporterSchema>;
 export const basicInfoSchema = z.object({
    name: z.string().min(2, "Name must be at least 2 characters"),
    email: z.string().email("Please enter a valid email address"),
-   profileImage: z.string().optional(),
+   profileImage: z.string().nullable().optional(),
    location: z.string().optional(),
-   bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
-   jobTitle: z.string().min(1, "Job title is required").optional(),
-   industry: z.string().min(1, "Industry is required").optional(),
-   education: z.string().optional(),
-   phone: z.string().optional(),
-   twitterHandle: z.string().optional(),
-   linkedinUrl: z.string().optional(),
-   githubProfile: z.string().optional(),
-   portfolioWebsite: z.string().optional(),
-   city: z.string().optional(),
-   timezone: z.string().optional(),
-   languages: z.array(z.string()).optional(),
-   employmentStatus: z.string().optional(),
+   bio: z.string().max(500, "Bio must be less than 500 characters").transform(val => val === "" ? undefined : val).optional(),
+   jobTitle: z.string().transform(val => val === "" ? undefined : val).optional(),
+   industry: z.string().transform(val => val === "" ? undefined : val).optional(),
+   education: z.string().transform(val => val === "" ? undefined : val).optional(),
+   phone: z.string().transform(val => val === "" ? undefined : val).optional(),
+   twitterHandle: z.string().transform(val => val === "" ? undefined : val).optional(),
+   linkedinUrl: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
+   githubProfile: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
+   portfolioWebsite: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
+   city: z.string().transform(val => val === "" ? undefined : val).optional(),
+   timezone: z.string().transform(val => val === "" ? undefined : val).optional(),
+   languages: z.string().transform(val => val === "" ? [] : val.split(",").map(lang => lang.trim()).filter(lang => lang.length > 0)).optional(),
+   employmentStatus: z.string().transform(val => val === "" ? undefined : val).optional(),
 });
 
 export type BasicInfo = z.infer<typeof basicInfoSchema>;
@@ -71,7 +71,11 @@ export type BasicInfo = z.infer<typeof basicInfoSchema>;
 // Goals schema
 export const goalsSchema = z.object({
    personalGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
-   platformGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional()
+   platformGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
+   primaryGoal: z.string().optional(),
+   specificNeeds: z.array(z.string()).optional(),
+   timeCommitment: z.string().optional(),
+   additionalGoals: z.string().max(300, "Additional goals must be less than 300 characters").optional()
 });
 
 export type Goals = z.infer<typeof goalsSchema>;

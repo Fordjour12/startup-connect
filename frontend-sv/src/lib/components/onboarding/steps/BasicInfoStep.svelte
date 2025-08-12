@@ -13,11 +13,8 @@
    } from "@/components/ui/card";
    import { User, FileText } from "@lucide/svelte";
    import { cn } from "@/utils";
-   import {
-      basicInfoSchema,
-      type BasicInfo,
-   } from "@/z-schema/onboarding-schema";
-   import { onMount } from "svelte";
+   import { basicInfoSchema } from "@/z-schema/onboarding-schema";
+   import type { BasicInfo } from "@/hooks/onboarding-state.svelte";
    import { toast } from "svelte-sonner";
    import { z } from "zod";
 
@@ -25,8 +22,9 @@
 
    // Form data with proper typing
    let formData = $state<BasicInfo>({
-      name: "",
-      email: "",
+      name: data.user.name || "",
+      email: data.user.email || "",
+      profileImage: data.user.image || "",
       location: "",
       bio: "",
       jobTitle: "",
@@ -39,71 +37,12 @@
       portfolioWebsite: "",
       city: "",
       timezone: "",
-      languages: [],
+      languages: "",
       employmentStatus: "",
    });
 
    // Validation state
    let validationErrors = $state<Record<string, string>>({});
-
-   // Initialize form with user data and saved progress
-   /*
-   $effect(() => {
-
-      // Populate with user data if available
-      if (data.user) {
-         formData = {
-            name: data.user.name || "",
-            email: data.user.email || "",
-            location: onboardingState.formData.basicInfo.location || "",
-            bio: onboardingState.formData.basicInfo.bio || "",
-            jobTitle: onboardingState.formData.basicInfo.jobTitle || "",
-            industry: onboardingState.formData.basicInfo.industry || "",
-            education: onboardingState.formData.basicInfo.education || "",
-            phone: onboardingState.formData.basicInfo.phone || "",
-            twitterHandle:
-               onboardingState.formData.basicInfo.twitterHandle || "",
-            linkedinUrl: onboardingState.formData.basicInfo.linkedinUrl || "",
-            githubProfile:
-               onboardingState.formData.basicInfo.githubProfile || "",
-            portfolioWebsite:
-               onboardingState.formData.basicInfo.portfolioWebsite || "",
-            city: onboardingState.formData.basicInfo.city || "",
-            timezone: onboardingState.formData.basicInfo.timezone || "",
-            languages: onboardingState.formData.basicInfo.languages || [],
-            employmentStatus:
-               onboardingState.formData.basicInfo.employmentStatus || "",
-            companyStage: onboardingState.formData.basicInfo.companyStage || "",
-            teamSize: onboardingState.formData.basicInfo.teamSize,
-         };
-      } else {
-         // Use saved progress if no user data
-         formData = {
-            name: onboardingState.formData.basicInfo.name || "",
-            email: onboardingState.formData.basicInfo.email || "",
-            location: onboardingState.formData.basicInfo.location || "",
-            bio: onboardingState.formData.basicInfo.bio || "",
-            jobTitle: onboardingState.formData.basicInfo.jobTitle || "",
-            industry: onboardingState.formData.basicInfo.industry || "",
-            education: onboardingState.formData.basicInfo.education || "",
-            phone: onboardingState.formData.basicInfo.phone || "",
-            twitterHandle:
-               onboardingState.formData.basicInfo.twitterHandle || "",
-            linkedinUrl: onboardingState.formData.basicInfo.linkedinUrl || "",
-            githubProfile:
-               onboardingState.formData.basicInfo.githubProfile || "",
-            portfolioWebsite:
-               onboardingState.formData.basicInfo.portfolioWebsite || "",
-            city: onboardingState.formData.basicInfo.city || "",
-            timezone: onboardingState.formData.basicInfo.timezone || "",
-            languages: onboardingState.formData.basicInfo.languages || [],
-            employmentStatus:
-               onboardingState.formData.basicInfo.employmentStatus || "",
-            companyStage: onboardingState.formData.basicInfo.companyStage || "",
-            teamSize: onboardingState.formData.basicInfo.teamSize,
-         };
-      }
-   }); */
 
    // Validate form using Zod
    function validateForm(): boolean {
