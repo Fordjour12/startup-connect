@@ -1,28 +1,22 @@
 import { z } from "zod";
 import { USER_ROLES } from "@/db/schema/auth-schema";
 
-// Role selection schema
+// =============================================================================
+// ROLE SELECTION
+// =============================================================================
+
 export const roleSelectionSchema = z.object({
-   role: z.enum([USER_ROLES.FOUNDER, USER_ROLES.INVESTOR, USER_ROLES.SUPPORT], {
-      required_error: "Please select a role"
-   })
+  role: z.enum([USER_ROLES.FOUNDER, USER_ROLES.INVESTOR, USER_ROLES.SUPPORT], {
+    required_error: "Please select a role"
+  })
 });
 
 export type RoleSelection = z.infer<typeof roleSelectionSchema>;
 export type UserRole = RoleSelection["role"];
 
-/*
-// Founder specific schema
-export const founderSchema = z.object({
-  startupName: z.string().min(1, "Startup name is required"),
-  startupStage: z.enum(["idea", "pre_seed", "seed", "series_a", "series_b", "growth"]),
-  fundingNeeds: z.number().optional(),
-  teamSize: z.number().min(1, "Team size must be at least 1"),
-  startupDescription: z.string().min(10, "Description must be at least 10 characters").max(1000),
-  equityOffered: z.number().optional()
-});
-
-export type FounderInfo = z.infer<typeof founderSchema>;
+// =============================================================================
+// USER ROLE-SPECIFIC SCHEMAS
+// =============================================================================
 
 // Investor specific schema
 export const investorSchema = z.object({
@@ -44,72 +38,97 @@ export const supporterSchema = z.object({
 });
 
 export type SupporterInfo = z.infer<typeof supporterSchema>;
-*/
-// Basic info schema
+
+// =============================================================================
+// BASIC INFORMATION
+// =============================================================================
+
 export const basicInfoSchema = z.object({
-   name: z.string().min(2, "Name must be at least 2 characters"),
-   email: z.string().email("Please enter a valid email address"),
-   profileImage: z.string().nullable().optional(),
-   location: z.string().optional(),
-   bio: z.string().max(500, "Bio must be less than 500 characters").transform(val => val === "" ? undefined : val).optional(),
-   jobTitle: z.string().transform(val => val === "" ? undefined : val).optional(),
-   industry: z.string().transform(val => val === "" ? undefined : val).optional(),
-   education: z.string().transform(val => val === "" ? undefined : val).optional(),
-   phone: z.string().transform(val => val === "" ? undefined : val).optional(),
-   twitterHandle: z.string().transform(val => val === "" ? undefined : val).optional(),
-   linkedinUrl: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
-   githubProfile: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
-   portfolioWebsite: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
-   city: z.string().transform(val => val === "" ? undefined : val).optional(),
-   timezone: z.string().transform(val => val === "" ? undefined : val).optional(),
-   languages: z.string().transform(val => val === "" ? [] : val.split(",").map(lang => lang.trim()).filter(lang => lang.length > 0)).optional(),
-   employmentStatus: z.string().transform(val => val === "" ? undefined : val).optional(),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  profileImage: z.string().nullable().optional(),
+  location: z.string().optional(),
+  bio: z.string().max(500, "Bio must be less than 500 characters").transform(val => val === "" ? undefined : val).optional(),
+  jobTitle: z.string().transform(val => val === "" ? undefined : val).optional(),
+  industry: z.string().transform(val => val === "" ? undefined : val).optional(),
+  education: z.string().transform(val => val === "" ? undefined : val).optional(),
+  phone: z.string().transform(val => val === "" ? undefined : val).optional(),
+  twitterHandle: z.string().transform(val => val === "" ? undefined : val).optional(),
+  linkedinUrl: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
+  githubProfile: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
+  portfolioWebsite: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
+  city: z.string().transform(val => val === "" ? undefined : val).optional(),
+  timezone: z.string().transform(val => val === "" ? undefined : val).optional(),
+  languages: z.string().transform(val => val === "" ? [] : val.split(",").map(lang => lang.trim()).filter(lang => lang.length > 0)).optional(),
+  employmentStatus: z.string().transform(val => val === "" ? undefined : val).optional(),
 });
 
 export type BasicInfo = z.infer<typeof basicInfoSchema>;
 
-// Goals schema
+// =============================================================================
+// GOALS
+// =============================================================================
+
 export const goalsSchema = z.object({
-   personalGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
-   platformGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
-   primaryGoal: z.string().min(1, "Please select your primary goal"),
-   specificNeeds: z.array(z.string()).min(1, "Please select at least one specific need"),
-   timeCommitment: z.string().min(1, "Please select your time commitment"),
-   additionalGoals: z.string().max(300, "Additional goals must be less than 300 characters").optional()
+  personalGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
+  platformGoals: z.array(z.string().min(1, "Goal cannot be empty")).optional(),
+  primaryGoal: z.string().min(1, "Please select your primary goal"),
+  specificNeeds: z.array(z.string()).min(1, "Please select at least one specific need"),
+  timeCommitment: z.string().min(1, "Please select your time commitment"),
+  additionalGoals: z.string().max(300, "Additional goals must be less than 300 characters").optional()
 });
 
 export type Goals = z.infer<typeof goalsSchema>;
 
-// Skills schema
+// =============================================================================
+// SKILLS
+// =============================================================================
+
 export const skillsSchema = z.object({
-   skills: z.array(z.string()),
-   experienceLevel: z.enum(["beginner", "intermediate", "expert"], {
-      required_error: "Please select your experience level"
-   }),
-   industries: z.array(z.string()),
-   achievements: z.string().max(1000).optional(),
-   expertiseAreas: z.string().max(1000).optional(),
-   certifications: z.string().max(1000).optional()
+  skills: z.array(z.string()),
+  experienceLevel: z.enum(["beginner", "intermediate", "expert"], {
+    required_error: "Please select your experience level"
+  }),
+  industries: z.array(z.string()),
+  achievements: z.string().max(1000).optional(),
+  expertiseAreas: z.string().max(1000).optional(),
+  certifications: z.string().max(1000).optional()
 });
 
 export type Skills = z.infer<typeof skillsSchema>;
 
-// Preferences schema
+// =============================================================================
+// PREFERENCES
+// =============================================================================
+
+export const COMMUNICATION_METHODS = [
+  "video_calls",
+  "email",
+  "in_person",
+  "chat",
+] as const;
+
 export const preferencesSchema = z.object({
-   communicationFrequency: z.string().optional(),
-   notificationTypes: z.array(z.string()),
-   themePreference: z.string().optional()
+  communicationMethods: z
+    .array(z.enum(COMMUNICATION_METHODS))
+    .min(1, "Please select at least one communication method"),
+  communicationFrequency: z.string().optional(),
+  notificationTypes: z.array(z.string()),
+  themePreference: z.string().optional(),
 });
 
 export type Preferences = z.infer<typeof preferencesSchema>;
 
-// Complete onboarding schema
+// =============================================================================
+// COMPLETE ONBOARDING SCHEMA
+// =============================================================================
+
 export const onboardingSchema = z.object({
-   role: roleSelectionSchema.shape.role,
-   basicInfo: basicInfoSchema,
-   goals: goalsSchema,
-   skills: skillsSchema,
-   preferences: preferencesSchema
+  role: roleSelectionSchema.shape.role,
+  basicInfo: basicInfoSchema,
+  goals: goalsSchema,
+  skills: skillsSchema,
+  preferences: preferencesSchema
 });
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;

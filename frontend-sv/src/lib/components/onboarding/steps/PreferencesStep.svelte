@@ -1,430 +1,354 @@
 <script lang="ts">
-   import { onboardingState } from "@/hooks/onboarding-state.svelte";
-   import { Button } from "@/components/ui/button";
-   import {
-      Card,
-      CardContent,
-      CardDescription,
-      CardHeader,
-      CardTitle,
-   } from "@/components/ui/card";
-   import { Label } from "@/components/ui/label";
-   import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-   import { Checkbox } from "@/components/ui/checkbox";
-   import { Badge } from "@/components/ui/badge";
-   import { Separator } from "@/components/ui/separator";
-   import {
-      Users,
-      Globe,
-      MessageSquare,
-      Calendar,
-      MapPin,
-      Settings,
-      Bell,
-      Heart,
-   } from "@lucide/svelte";
-   import {
-      preferencesSchema,
-      type Preferences,
-   } from "@/z-schema/onboarding-schema";
-   import { toast } from "svelte-sonner";
+    import { onboardingState } from "@/hooks/onboarding-state.svelte";
+    import { Button } from "@/components/ui/button";
+    import {
+        Card,
+        CardContent,
+        CardDescription,
+        CardHeader,
+        CardTitle,
+    } from "@/components/ui/card";
+    import { Label } from "@/components/ui/label";
+    import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+    import { Checkbox } from "@/components/ui/checkbox";
+    import { Settings, Bell, Palette, Inbox } from "@lucide/svelte";
+    import { preferencesSchema } from "@/z-schema/onboarding-schema";
+    import type { Preferences as StatePreferences } from "@/hooks/onboarding-state.svelte";
+    import { toast } from "svelte-sonner";
+    import { z } from "zod";
 
-   // Form data with proper typing
-   let formData = $state<Preferences>({
-      geographicPreference: "local" as Preferences["geographicPreference"],
-      communicationStyle: ["email"] as Preferences["communicationStyle"],
-      workingStyle: "collaborative" as Preferences["workingStyle"],
-      diversityPreference: true,
-      notificationFrequency: "weekly" as Preferences["notificationFrequency"],
-   });
+    // Form data (hydrated from onboarding state)
+    let formData = $state<StatePreferences>({
+        communicationMethods:
+            onboardingState.formData.preferences.communicationMethods ?? [],
+        communicationFrequency:
+            onboardingState.formData.preferences.communicationFrequency ?? "",
+        notificationTypes:
+            onboardingState.formData.preferences.notificationTypes ?? [],
+        themePreference:
+            onboardingState.formData.preferences.themePreference ?? "",
+    });
 
-   // Validation state
-   let validationErrors = $state<Record<string, string>>({});
+    // Validation state
+    let validationErrors = $state<Record<string, string>>({});
 
-   // Validate form using Zod
-   function validateForm(): boolean {
-      try {
-         preferencesSchema.parse(formData);
-         validationErrors = {};
-         return true;
-      } catch (error) {
-         if (error instanceof Error && "errors" in error) {
-            const zodErrors = (error as any).errors;
-            const newErrors: Record<string, string> = {};
+    // Validate form using Zod
+    function validateForm(): boolean {
+        try {
+            preferencesSchema.parse(formData);
+            validationErrors = {};
+            return true;
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                const newErrors: Record<string, string> = {};
+                for (const err of error.errors) {
+                    const field = String(err.path[0] ?? "");
+                    if (field) newErrors[field] = err.message;
+                }
+                validationErrors = newErrors;
+            }
+            return false;
+        }
+    }
 
-            zodErrors.forEach((err: any) => {
-               const field = err.path[0];
-               newErrors[field] = err.message;
-            });
+    // Get error for a specific field
+    function getFieldError(field: keyof StatePreferences): string {
+        return validationErrors[field] || "";
+    }
 
-            validationErrors = newErrors;
-         }
-         return false;
-      }
-   }
+    // Notification type options
+    const notificationTypeOptions = [
+        { value: "email", label: "Email" },
+        { value: "in_app", label: "In-app" },
+        { value: "push", label: "Push" },
+    ] as const;
 
-   // Get error for a specific field
-   function getFieldError(field: keyof Preferences): string {
-      return validationErrors[field] || "";
-   }
+    // Frequency options
+    const frequencyOptions = [
+        { value: "daily", label: "Daily", description: "Daily notifications" },
+        { value: "weekly", label: "Weekly", description: "Weekly digest" },
+        { value: "monthly", label: "Monthly", description: "Monthly summary" },
+    ] as const;
 
-   // Communication style options
-   const communicationOptions = [
-      { value: "video_calls", label: "Video Calls", icon: "📹" },
-      { value: "email", label: "Email", icon: "📧" },
-      { value: "in_person", label: "In Person", icon: "🤝" },
-      { value: "chat", label: "Chat", icon: "💬" },
-   ] as const;
+    // Theme options
+    const themeOptions = [
+        { value: "system", label: "System" },
+        { value: "light", label: "Light" },
+        { value: "dark", label: "Dark" },
+    ] as const;
 
-   // Working style options
-   const workingStyleOptions = [
-      {
-         value: "fast_paced",
-         label: "Fast-paced",
-         description: "Quick iterations and rapid progress",
-      },
-      {
-         value: "collaborative",
-         label: "Collaborative",
-         description: "Team-focused approach",
-      },
-      {
-         value: "independent",
-         label: "Independent",
-         description: "Self-directed work style",
-      },
-      {
-         value: "long_term",
-         label: "Long-term focused",
-         description: "Strategic, sustained effort",
-      },
-   ] as const;
+    // Communication method options
+    const communicationMethodOptions = [
+        { value: "video_calls", label: "Video Calls", icon: "📹" },
+        { value: "email", label: "Email", icon: "📧" },
+        { value: "in_person", label: "In Person", icon: "🤝" },
+        { value: "chat", label: "Chat", icon: "💬" },
+    ] as const;
 
-   // Geographic options
-   const geographicOptions = [
-      { value: "local", label: "Local", description: "Same city or region" },
-      {
-         value: "regional",
-         label: "Regional",
-         description: "Same country or continent",
-      },
-      {
-         value: "global",
-         label: "Global",
-         description: "Worldwide connections",
-      },
-   ] as const;
+    function toggleCommunicationMethod(
+        method: (typeof communicationMethodOptions)[number]["value"],
+    ) {
+        if (formData.communicationMethods.includes(method)) {
+            formData.communicationMethods =
+                formData.communicationMethods.filter((m) => m !== method);
+        } else {
+            formData.communicationMethods = [
+                ...formData.communicationMethods,
+                method,
+            ];
+        }
+    }
 
-   // Notification options
-   const notificationOptions = [
-      {
-         value: "daily",
-         label: "Daily",
-         description: "Stay updated with daily notifications",
-      },
-      {
-         value: "weekly",
-         label: "Weekly",
-         description: "Weekly digest of opportunities",
-      },
-      {
-         value: "monthly",
-         label: "Monthly",
-         description: "Monthly summary and highlights",
-      },
-   ] as const;
-
-   function toggleCommunicationStyle(
-      style: Preferences["communicationStyle"][number],
-   ) {
-      if (formData.communicationStyle.includes(style)) {
-         if (formData.communicationStyle.length > 1) {
-            formData.communicationStyle = formData.communicationStyle.filter(
-               (s) => s !== style,
+    function toggleNotificationType(
+        type: (typeof notificationTypeOptions)[number]["value"],
+    ) {
+        if (formData.notificationTypes.includes(type)) {
+            formData.notificationTypes = formData.notificationTypes.filter(
+                (t) => t !== type,
             );
-         }
-      } else {
-         formData.communicationStyle = [...formData.communicationStyle, style];
-      }
-   }
+        } else {
+            formData.notificationTypes = [...formData.notificationTypes, type];
+        }
+    }
 
-   // Debounced effect to reduce update frequency
-   let updateTimeout: ReturnType<typeof setTimeout> | null = null;
+    // Debounced effect to reduce update frequency
+    let updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
-   $effect(() => {
-      // Clear existing timeout
-      if (updateTimeout) {
-         clearTimeout(updateTimeout);
-      }
+    $effect(() => {
+        if (updateTimeout) clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(() => {
+            onboardingState.updateFormData({ preferences: { ...formData } });
+        }, 300);
+    });
 
-      // Debounce the update to avoid excessive API calls
-      updateTimeout = setTimeout(() => {
-         onboardingState.updateFormData(formData);
-      }, 300); // 300ms debounce
-   });
-
-   const handleNext = () => {
-      if (validateForm()) {
-         onboardingState.updateFormData(formData);
-         onboardingState.nextStep();
-         toast.success("Preferences saved successfully!");
-      } else {
-         toast.error("Please fix the errors before continuing.");
-      }
-   };
+    const handleNext = () => {
+        if (validateForm()) {
+            onboardingState.updateFormData({ preferences: { ...formData } });
+            onboardingState.nextStep();
+            toast.success("Preferences saved successfully!");
+        } else {
+            toast.error("Please fix the errors before continuing.");
+        }
+    };
 </script>
 
 <div class="space-y-8">
-   <!-- Header -->
-   <div class="text-center space-y-4">
-      <div
-         class="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center"
-      >
-         <Settings class="w-8 h-8 text-primary" />
-      </div>
-      <h1 class="text-3xl font-bold tracking-tight">Matching Preferences</h1>
-      <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
-         Tell us how you prefer to connect and collaborate. This helps us find
-         the perfect matches for you.
-      </p>
-   </div>
+    <!-- Header -->
+    <div class="text-center space-y-4">
+        <div
+            class="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center"
+        >
+            <Settings class="w-8 h-8 text-primary" />
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">Matching Preferences</h1>
+        <p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Tell us how you prefer to connect and collaborate. This helps us
+            find the perfect matches for you.
+        </p>
+    </div>
 
-   <!-- Communication Preferences -->
-   <Card class="border-2 border-primary/10">
-      <CardHeader>
-         <CardTitle class="flex items-center gap-3 text-xl">
-            <MessageSquare class="w-6 h-6 text-primary" />
-            Communication Style
-         </CardTitle>
-         <CardDescription>
-            How do you prefer to communicate with potential connections? Select
-            all that apply.
-         </CardDescription>
-      </CardHeader>
-      <CardContent class="space-y-6">
-         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {#each communicationOptions as option}
-               <button
-                  onclick={() => toggleCommunicationStyle(option.value)}
-                  class="relative p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md {formData.communicationStyle.includes(
-                     option.value,
-                  )
-                     ? 'border-primary bg-primary/5 shadow-sm'
-                     : 'border-border hover:border-primary/50'}"
-               >
-                  <div class="flex items-center gap-3">
-                     <span class="text-2xl">{option.icon}</span>
-                     <div class="text-left">
-                        <div class="font-medium">{option.label}</div>
-                     </div>
-                     {#if formData.communicationStyle.includes(option.value)}
-                        <div class="ml-auto">
-                           <Badge variant="secondary" class="text-xs">
-                              Selected
-                           </Badge>
-                        </div>
-                     {/if}
-                  </div>
-               </button>
-            {/each}
-         </div>
-         {#if getFieldError("communicationStyle")}
-            <p class="text-sm text-destructive flex items-center gap-2">
-               <MessageSquare class="w-4 h-4" />
-               {getFieldError("communicationStyle")}
-            </p>
-         {/if}
-      </CardContent>
-   </Card>
-
-   <!-- Working Style -->
-   <Card>
-      <CardHeader>
-         <CardTitle class="flex items-center gap-3 text-xl">
-            <Users class="w-6 h-6 text-primary" />
-            Working Style
-         </CardTitle>
-         <CardDescription>
-            What's your preferred approach to collaboration and work?
-         </CardDescription>
-      </CardHeader>
-      <CardContent>
-         <RadioGroup bind:value={formData.workingStyle} class="space-y-4">
-            {#each workingStyleOptions as option}
-               <div
-                  class="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-               >
-                  <RadioGroupItem value={option.value} id={option.value} />
-                  <Label for={option.value} class="flex-1 cursor-pointer">
-                     <div class="font-medium">{option.label}</div>
-                     <div class="text-sm text-muted-foreground">
-                        {option.description}
-                     </div>
-                  </Label>
-               </div>
-            {/each}
-         </RadioGroup>
-         {#if getFieldError("workingStyle")}
-            <p class="text-sm text-destructive mt-2 flex items-center gap-2">
-               <Users class="w-4 h-4" />
-               {getFieldError("workingStyle")}
-            </p>
-         {/if}
-      </CardContent>
-   </Card>
-
-   <!-- Location & Diversity Preferences -->
-   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Geographic Preference -->
-      <Card>
-         <CardHeader>
+    <!-- Communication Methods -->
+    <Card class="border-2 border-primary/10">
+        <CardHeader>
             <CardTitle class="flex items-center gap-3 text-xl">
-               <Globe class="w-6 h-6 text-primary" />
-               Location Preference
+                <Settings class="w-6 h-6 text-primary" />
+                Communication Methods
             </CardTitle>
             <CardDescription>
-               Where are you open to connecting with people?
+                How do you prefer to communicate? Select all that apply.
             </CardDescription>
-         </CardHeader>
-         <CardContent>
-            <RadioGroup
-               bind:value={formData.geographicPreference}
-               class="space-y-4"
-            >
-               {#each geographicOptions as option}
-                  <div
-                     class="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                     <RadioGroupItem value={option.value} id={option.value} />
-                     <Label for={option.value} class="flex-1 cursor-pointer">
+        </CardHeader>
+        <CardContent class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {#each communicationMethodOptions as option}
+                    <label
+                        class="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                    >
+                        <Checkbox
+                            checked={formData.communicationMethods.includes(
+                                option.value,
+                            )}
+                            onCheckedChange={() =>
+                                toggleCommunicationMethod(option.value)}
+                        />
+                        <span class="text-xl">{option.icon}</span>
                         <div class="font-medium">{option.label}</div>
-                        <div class="text-sm text-muted-foreground">
-                           {option.description}
-                        </div>
-                     </Label>
-                  </div>
-               {/each}
-            </RadioGroup>
-            {#if getFieldError("geographicPreference")}
-               <p class="text-sm text-destructive mt-2 flex items-center gap-2">
-                  <Globe class="w-4 h-4" />
-                  {getFieldError("geographicPreference")}
-               </p>
+                    </label>
+                {/each}
+            </div>
+            {#if getFieldError("communicationMethods")}
+                <p class="text-sm text-destructive flex items-center gap-2">
+                    {getFieldError("communicationMethods")}
+                </p>
             {/if}
-         </CardContent>
-      </Card>
+        </CardContent>
+    </Card>
 
-      <!-- Notification Frequency -->
-      <Card>
-         <CardHeader>
+    <!-- Notification Types -->
+    <Card class="border-2 border-primary/10">
+        <CardHeader>
             <CardTitle class="flex items-center gap-3 text-xl">
-               <Bell class="w-6 h-6 text-primary" />
-               Notification Frequency
+                <Inbox class="w-6 h-6 text-primary" />
+                Notification Types
             </CardTitle>
             <CardDescription>
-               How often would you like to receive updates?
+                Choose how you want to receive notifications.
             </CardDescription>
-         </CardHeader>
-         <CardContent>
-            <RadioGroup
-               bind:value={formData.notificationFrequency}
-               class="space-y-4"
-            >
-               {#each notificationOptions as option}
-                  <div
-                     class="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                     <RadioGroupItem value={option.value} id={option.value} />
-                     <Label for={option.value} class="flex-1 cursor-pointer">
+        </CardHeader>
+        <CardContent class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {#each notificationTypeOptions as option}
+                    <label
+                        class="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer"
+                    >
+                        <Checkbox
+                            checked={formData.notificationTypes.includes(
+                                option.value,
+                            )}
+                            onCheckedChange={() =>
+                                toggleNotificationType(option.value)}
+                        />
                         <div class="font-medium">{option.label}</div>
-                        <div class="text-sm text-muted-foreground">
-                           {option.description}
-                        </div>
-                     </Label>
-                  </div>
-               {/each}
-            </RadioGroup>
-            {#if getFieldError("notificationFrequency")}
-               <p class="text-sm text-destructive mt-2 flex items-center gap-2">
-                  <Bell class="w-4 h-4" />
-                  {getFieldError("notificationFrequency")}
-               </p>
+                    </label>
+                {/each}
+            </div>
+            {#if getFieldError("notificationTypes")}
+                <p class="text-sm text-destructive flex items-center gap-2">
+                    {getFieldError("notificationTypes")}
+                </p>
             {/if}
-         </CardContent>
-      </Card>
-   </div>
+        </CardContent>
+    </Card>
 
-   <!-- Diversity Preference -->
-   <Card class="border-2 border-boarder bg-primary/5">
-      <CardHeader>
-         <CardTitle class="flex items-center gap-3 text-xl">
-            <Heart class="w-6 h-6 text-green-600" />
-            Diversity & Inclusion
-         </CardTitle>
-         <CardDescription>
-            Help us create a more inclusive and diverse community
-         </CardDescription>
-      </CardHeader>
-      <CardContent>
-         <label
-            class="flex items-start space-x-3 p-4 rounded-lg border-2 border-border bg-primary/5 hover:bg-green-50/50 transition-colors cursor-pointer"
-         >
-            <Checkbox bind:checked={formData.diversityPreference} />
-            <div class="space-y-1">
-               <div class="font-medium">Value diverse perspectives</div>
-               <div class="text-sm text-muted-foreground">
-                  I appreciate and seek out connections with people from
-                  different backgrounds, experiences, and perspectives.
-               </div>
-            </div>
-         </label>
-      </CardContent>
-   </Card>
-
-   <!-- Tips Section -->
-   <Card class="border-blue-200 bg-blue-50/30">
-      <CardContent class="pt-6">
-         <div class="flex items-start space-x-3">
-            <div
-               class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mt-0.5"
+    <!-- Communication Frequency -->
+    <Card>
+        <CardHeader>
+            <CardTitle class="flex items-center gap-3 text-xl">
+                <Bell class="w-6 h-6 text-primary" />
+                Notification Frequency
+            </CardTitle>
+            <CardDescription>
+                How often would you like to receive updates?
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <RadioGroup
+                bind:value={formData.communicationFrequency}
+                class="space-y-4"
             >
-               <span class="text-white text-sm">💡</span>
-            </div>
-            <div class="space-y-2">
-               <p class="font-medium text-blue-900">Pro Tips</p>
-               <ul class="text-blue-700 space-y-1 text-sm">
-                  <li>
-                     • Be specific about your communication preferences to get
-                     better matches
-                  </li>
-                  <li>
-                     • Your working style helps set expectations with potential
-                     collaborators
-                  </li>
-                  <li>
-                     • You can update these preferences anytime in your profile
-                     settings
-                  </li>
-                  <li>
-                     • Diverse connections often lead to more innovative
-                     collaborations
-                  </li>
-               </ul>
-            </div>
-         </div>
-      </CardContent>
-   </Card>
+                {#each frequencyOptions as option}
+                    <div
+                        class="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                        <RadioGroupItem
+                            value={option.value}
+                            id={option.value}
+                        />
+                        <Label for={option.value} class="flex-1 cursor-pointer">
+                            <div class="font-medium">{option.label}</div>
+                            <div class="text-sm text-muted-foreground">
+                                {option.description}
+                            </div>
+                        </Label>
+                    </div>
+                {/each}
+            </RadioGroup>
+            {#if getFieldError("communicationFrequency")}
+                <p
+                    class="text-sm text-destructive mt-2 flex items-center gap-2"
+                >
+                    {getFieldError("communicationFrequency")}
+                </p>
+            {/if}
+        </CardContent>
+    </Card>
 
-   <!-- Action Buttons -->
-   <div class="flex justify-between items-center pt-6">
-      <Button
-         variant="outline"
-         onclick={() => onboardingState.previousStep()}
-         class="px-8"
-      >
-         Back
-      </Button>
+    <!-- Theme Preference -->
+    <Card>
+        <CardHeader>
+            <CardTitle class="flex items-center gap-3 text-xl">
+                <Palette class="w-6 h-6 text-primary" />
+                Theme Preference
+            </CardTitle>
+            <CardDescription>Choose your display theme.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <RadioGroup bind:value={formData.themePreference} class="space-y-3">
+                {#each themeOptions as option}
+                    <div
+                        class="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                        <RadioGroupItem
+                            value={option.value}
+                            id={`theme-${option.value}`}
+                        />
+                        <Label
+                            for={`theme-${option.value}`}
+                            class="flex-1 cursor-pointer"
+                        >
+                            <div class="font-medium">{option.label}</div>
+                        </Label>
+                    </div>
+                {/each}
+            </RadioGroup>
+            {#if getFieldError("themePreference")}
+                <p
+                    class="text-sm text-destructive mt-2 flex items-center gap-2"
+                >
+                    {getFieldError("themePreference")}
+                </p>
+            {/if}
+        </CardContent>
+    </Card>
 
-      <Button onclick={handleNext} class="px-8">Continue</Button>
-   </div>
+    <!-- Tips Section -->
+    <Card class="border-2 border-border bg-primary/5">
+        <CardHeader>
+            <CardTitle class="flex items-center gap-3 text-xl">
+                <Settings class="w-6 h-6 text-primary" />
+                Preferences
+            </CardTitle>
+            <CardDescription>
+                Configure how and when we reach you, plus your visual theme.
+            </CardDescription>
+        </CardHeader>
+    </Card>
+
+    <Card class="border-foreground bg-foreground/30">
+        <CardContent class="pt-6">
+            <div class="flex items-start space-x-3">
+                <div
+                    class="w-8 h-8 bg-foreground rounded-full flex items-center justify-center mt-0.5"
+                >
+                    <span class="text-white text-sm">💡</span>
+                </div>
+                <div class="space-y-2">
+                    <p class="font-medium font-head">Pro Tips</p>
+                    <ul class="space-y-1 text-sm">
+                        <li>
+                            • Select at least one notification type to stay
+                            informed
+                        </li>
+                        <li>
+                            • Pick a frequency that matches your inbox tolerance
+                        </li>
+                        <li>• Theme can be changed anytime in settings</li>
+                    </ul>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-between items-center pt-6">
+        <Button
+            variant="outline"
+            onclick={() => onboardingState.previousStep()}
+            class="px-8"
+        >
+            Back
+        </Button>
+
+        <Button onclick={handleNext} class="px-8">Continue</Button>
+    </div>
 </div>

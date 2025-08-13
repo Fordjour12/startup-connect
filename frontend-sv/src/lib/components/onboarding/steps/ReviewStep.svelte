@@ -29,12 +29,9 @@
     import { cn } from "@/utils";
     import {
         type OnboardingData,
-        type UserRole,
-        type FounderInfo,
-        type InvestorInfo,
-        type SupporterInfo,
-        type VerificationInfo,
-    } from "@/schemas/onboarding-schema";
+        ONBOARDING_STEPS,
+    } from "@/hooks/onboarding-state.svelte";
+    import { type UserRole, USER_ROLES } from "@/db/schema/auth-schema";
     import { toast } from "svelte-sonner";
 
     // Get current form data
@@ -48,21 +45,23 @@
     // Helper function to get role display name
     function getRoleDisplayName(role: UserRole): string {
         const roleNames = {
-            founder: "Founder",
-            investor: "Investor",
-            support: "Supporter",
+            [USER_ROLES.FOUNDER]: "Founder",
+            [USER_ROLES.INVESTOR]: "Investor",
+            [USER_ROLES.SUPPORT]: "Supporter",
+            [USER_ROLES.USER]: "User",
         };
-        return roleNames[role];
+        return roleNames[role] || "Unknown";
     }
 
     // Helper function to get role icon
     function getRoleIcon(role: UserRole) {
         const icons = {
-            founder: Building2,
-            investor: TrendingUp,
-            support: Users,
+            [USER_ROLES.FOUNDER]: Building2,
+            [USER_ROLES.INVESTOR]: TrendingUp,
+            [USER_ROLES.SUPPORT]: Users,
+            [USER_ROLES.USER]: User,
         };
-        return icons[role];
+        return icons[role] || User;
     }
 
     // Helper function to format data for display
@@ -89,18 +88,18 @@
         editingSection = section;
         // Navigate to the appropriate step
         const stepMap = {
-            basic: "basicInfo",
+            basic: "basic-info",
             goals: "goals",
             skills: "skills",
             preferences: "preferences",
-            role: "roleSpecific",
-            verification: "verification",
+            role: "role-selection",
         };
         const targetStep = stepMap[section as keyof typeof stepMap];
         if (targetStep) {
-            onboardingState.goToStep(
-                onboardingState.steps().findIndex((s) => s.id === targetStep),
-            );
+            const stepIndex = ONBOARDING_STEPS.indexOf(targetStep as any);
+            if (stepIndex !== -1) {
+                onboardingState.goToStep(targetStep as any);
+            }
         }
     }
 
@@ -121,25 +120,16 @@
     }
 
     // Get completion percentage
-    // let completionPercentage = $derived(() => {
-    //     const totalSteps = onboardingState.steps().length;
-    //     const completedSteps = onboardingState.completedSteps.size;
-    //     return Math.round((completedSteps / totalSteps) * 100);
-    // });
-
     let completionPercentage = $derived(() => {
-        // Use getStepProgress() to consider only required steps
-        const { completed, total } = onboardingState.getStepProgress();
-        return total > 0 ? Math.round((completed / total) * 100) : 0;
+        const currentIndex = ONBOARDING_STEPS.indexOf(
+            onboardingState.currentStep,
+        );
+        return Math.round((currentIndex / (ONBOARDING_STEPS.length - 1)) * 100);
     });
 
     // Check if all required fields are filled
     let isComplete = $derived(() => {
-        return (
-            completionPercentage() >= 100 &&
-            formData.termsAccepted &&
-            formData.privacyAccepted
-        );
+        return completionPercentage() >= 100;
     });
 </script>
 
@@ -220,12 +210,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label
-                        for="fullName"
+                        for="name"
                         class="text-sm font-medium text-muted-foreground"
                         >Full Name</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.fullName, "string")}
+                        {formatValue(formData.basicInfo.name, "string")}
                     </p>
                 </div>
                 <div>
@@ -235,7 +225,7 @@
                         >Email</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.email, "string")}
+                        {formatValue(formData.basicInfo.email, "string")}
                     </p>
                 </div>
                 <div>
@@ -245,7 +235,7 @@
                         >Location</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.location, "string")}
+                        {formatValue(formData.basicInfo.location, "string")}
                     </p>
                 </div>
                 <div>
@@ -254,7 +244,9 @@
                         class="text-sm font-medium text-muted-foreground"
                         >Bio</label
                     >
-                    <p class="text-sm">{formatValue(formData.bio, "string")}</p>
+                    <p class="text-sm">
+                        {formatValue(formData.basicInfo.bio, "string")}
+                    </p>
                 </div>
             </div>
         </CardContent>
@@ -466,7 +458,7 @@
                         >Primary Goal</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.primaryGoal, "string")}
+                        {formatValue(formData.goals.primaryGoal, "string")}
                     </p>
                 </div>
                 <div>
@@ -476,7 +468,7 @@
                         >Time Commitment</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.timeCommitment, "string")}
+                        {formatValue(formData.goals.timeCommitment, "string")}
                     </p>
                 </div>
                 <div class="md:col-span-2">
@@ -486,7 +478,7 @@
                         >Specific Needs</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.specificNeeds, "array")}
+                        {formatValue(formData.goals.specificNeeds, "array")}
                     </p>
                 </div>
             </div>
@@ -520,7 +512,7 @@
                         >Experience Level</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.experienceLevel, "string")}
+                        {formatValue(formData.skills.experienceLevel, "string")}
                     </p>
                 </div>
                 <div>
@@ -530,17 +522,17 @@
                         >Industries</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.industries, "array")}
+                        {formatValue(formData.skills.industries, "array")}
                     </p>
                 </div>
                 <div class="md:col-span-2">
                     <label
-                        for="specificNeeds"
+                        for="skills"
                         class="text-sm font-medium text-muted-foreground"
                         >Skills</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.skills, "array")}
+                        {formatValue(formData.skills.skills, "array")}
                     </p>
                 </div>
             </div>
@@ -569,60 +561,72 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label
-                        for="geographicPreference"
+                        for="communicationMethods"
                         class="text-sm font-medium text-muted-foreground"
-                        >Geographic Preference</label
+                        >Communication Methods</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.geographicPreference, "string")}
+                        {formatValue(
+                            formData.preferences.communicationMethods,
+                            "array",
+                        )}
                     </p>
                 </div>
                 <div>
                     <label
-                        for="workingStyle"
+                        for="communicationFrequency"
                         class="text-sm font-medium text-muted-foreground"
-                        >Working Style</label
+                        >Communication Frequency</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.workingStyle, "string")}
+                        {formatValue(
+                            formData.preferences.communicationFrequency,
+                            "string",
+                        )}
                     </p>
                 </div>
                 <div>
                     <label
-                        for="communicationStyle"
+                        for="notificationTypes"
                         class="text-sm font-medium text-muted-foreground"
-                        >Communication Style</label
+                        >Notification Types</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.communicationStyle, "array")}
+                        {formatValue(
+                            formData.preferences.notificationTypes,
+                            "array",
+                        )}
                     </p>
                 </div>
                 <div>
                     <label
-                        for="notificationFrequency"
+                        for="themePreference"
                         class="text-sm font-medium text-muted-foreground"
-                        >Notification Frequency</label
+                        >Theme Preference</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.notificationFrequency, "string")}
+                        {formatValue(
+                            formData.preferences.themePreference,
+                            "string",
+                        )}
                     </p>
                 </div>
             </div>
         </CardContent>
     </Card>
 
-    <!-- Verification -->
+    <!-- Additional Basic Info -->
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <Shield class="w-5 h-5" />
-                    <span>Verification & Terms</span>
+                    <FileText class="w-5 h-5" />
+                    <span>Additional Information</span>
                 </div>
                 <Button
                     variant="outline"
                     size="sm"
-                    onclick={() => editSection("verification")}
+                    onclick={() => editSection("basic")}
                 >
                     <Edit class="w-4 h-4 mr-1" />
                     Edit
@@ -633,76 +637,46 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label
-                        for="phoneNumber"
+                        for="jobTitle"
                         class="text-sm font-medium text-muted-foreground"
-                        >Phone Number</label
+                        >Job Title</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.verification?.phone, "string")}
+                        {formatValue(formData.basicInfo.jobTitle, "string")}
                     </p>
                 </div>
                 <div>
                     <label
-                        for="linkedin"
+                        for="industry"
+                        class="text-sm font-medium text-muted-foreground"
+                        >Industry</label
+                    >
+                    <p class="text-sm">
+                        {formatValue(formData.basicInfo.industry, "string")}
+                    </p>
+                </div>
+                <div>
+                    <label
+                        for="linkedinUrl"
                         class="text-sm font-medium text-muted-foreground"
                         >LinkedIn</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.verification?.linkedin, "url")}
+                        {formatValue(formData.basicInfo.linkedinUrl, "url")}
                     </p>
                 </div>
                 <div>
                     <label
-                        for="notificationFrequency"
+                        for="portfolioWebsite"
                         class="text-sm font-medium text-muted-foreground"
-                        >Website</label
+                        >Portfolio Website</label
                     >
                     <p class="text-sm">
-                        {formatValue(formData.verification?.website, "url")}
+                        {formatValue(
+                            formData.basicInfo.portfolioWebsite,
+                            "url",
+                        )}
                     </p>
-                </div>
-                <div>
-                    <label
-                        for="timezone"
-                        class="text-sm font-medium text-muted-foreground"
-                        >Timezone</label
-                    >
-                    <p class="text-sm">
-                        {formatValue(formData.verification?.timezone, "string")}
-                    </p>
-                </div>
-            </div>
-            <Separator />
-            <div class="space-y-2">
-                <div class="flex items-center space-x-2">
-                    {#if formData.termsAccepted}
-                        <Check class="w-4 h-4 text-green-500" />
-                    {:else}
-                        <div
-                            class="w-4 h-4 border-2 border-muted rounded-full"
-                        ></div>
-                    {/if}
-                    <span class="text-sm">Terms and Conditions Accepted</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    {#if formData.privacyAccepted}
-                        <Check class="w-4 h-4 text-green-500" />
-                    {:else}
-                        <div
-                            class="w-4 h-4 border-2 border-muted rounded-full"
-                        ></div>
-                    {/if}
-                    <span class="text-sm">Privacy Policy Accepted</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    {#if formData.marketingEmails}
-                        <Check class="w-4 h-4 text-green-500" />
-                    {:else}
-                        <div
-                            class="w-4 h-4 border-2 border-muted rounded-full"
-                        ></div>
-                    {/if}
-                    <span class="text-sm">Marketing Communications</span>
                 </div>
             </div>
         </CardContent>
@@ -733,25 +707,19 @@
 
     <!-- Completion Requirements -->
     {#if !isComplete()}
-        <Card class="border-yellow-200 bg-yellow-50/50">
+        <Card class="border-foreground bg-foreground/30">
             <CardContent class="pt-6">
                 <div class="flex items-start space-x-3">
                     <div
-                        class="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center mt-0.5"
+                        class="size-6 bg-background rounded-full flex items-center justify-center mt-0.5"
                     >
                         <span class="text-white text-xs">⚠️</span>
                     </div>
                     <div class="text-sm">
-                        <p class="font-medium text-yellow-900 mb-1">
+                        <p class="font-medium mb-1 font-head">
                             Complete Required Fields
                         </p>
-                        <ul class="text-yellow-700 space-y-1">
-                            {#if !formData.termsAccepted}
-                                <li>• Accept the Terms and Conditions</li>
-                            {/if}
-                            {#if !formData.privacyAccepted}
-                                <li>• Accept the Privacy Policy</li>
-                            {/if}
+                        <ul class="space-y-1">
                             {#if completionPercentage() < 100}
                                 <li>• Complete all required sections</li>
                             {/if}

@@ -1,4 +1,4 @@
-/*import { env } from '$env/dynamic/private';
+import { env } from '$env/dynamic/private';
 import * as schema from './schema';
 import { neon, neonConfig, Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
@@ -13,8 +13,8 @@ neonConfig.webSocketConstructor = ws;
 const pool = new Pool({ connectionString: env.DEPLOYMENT_DATABASE_URL });
 
 export const db = drizzle({ client: pool, schema });
-*/
 
+/*
 
 
 import { env } from '$env/dynamic/private';
@@ -26,3 +26,4 @@ if (!env.DATABASE_URL) {
 }
 const client = postgres(env.DATABASE_URL!);
 export const db = drizzle({ client });
+*/

@@ -78,6 +78,7 @@ export interface Skills {
 }
 
 export interface Preferences {
+   communicationMethods: string[];
    communicationFrequency: string;
    notificationTypes: string[];
    themePreference: string;
@@ -178,30 +179,12 @@ class OnboardingState {
          certifications: "",
       },
       preferences: {
+         communicationMethods: [],
          communicationFrequency: "",
          notificationTypes: [],
          themePreference: ""
       },
-      // Founder fields
-      /*
-      startupName: "",
-      startupStage: undefined,
-      fundingNeeds: undefined,
-      teamSize: undefined,
-      startupDescription: "",
-      equityOffered: undefined,
-      // Investor fields
-      investmentSize: undefined,
-      preferredStages: [],
-      investmentHistory: "",
-      riskAppetite: undefined,
-      portfolioCompanies: undefined,
-      // Supporter fields
-      supportType: [],
-      availability: undefined,
-      hourlyRate: undefined,
-      expertise: ""
-      */
+      
    });
    visitedSteps = $state<Set<OnboardingStep>>(new Set(["welcome"]));
 
@@ -270,6 +253,7 @@ class OnboardingState {
             certifications: "",
          },
          preferences: {
+            communicationMethods: [],
             communicationFrequency: "",
             notificationTypes: [],
             themePreference: ""
