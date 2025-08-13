@@ -43,6 +43,8 @@
 
    // Validation state
    let validationErrors = $state<Record<string, string>>({});
+   let isSubmitting = $state(false);
+   let hasSubmitted = $state(false);
 
    // Validate form using Zod
    function validateForm(): boolean {
@@ -67,10 +69,47 @@
    }
 
    const handleNext = () => {
+      // Prevent multiple submissions
+      if (isSubmitting || hasSubmitted) return;
+
+      // Additional safeguard: check if we're already past this step
+      if (onboardingState.currentStep !== "basic-info") {
+         console.log("Already past basic-info step, skipping submission");
+         return;
+      }
+
       if (validateForm()) {
-         onboardingState.updateFormData({ basicInfo: formData });
-         onboardingState.nextStep();
-         toast.success("Basic information saved successfully!");
+         isSubmitting = true;
+         hasSubmitted = true;
+
+         try {
+            // Log to debug duplicate submissions
+            console.log("Submitting basic info form...");
+
+            onboardingState.updateFormData({ basicInfo: formData });
+
+            // Mark this step as complete before moving to next
+            onboardingState.markStepComplete("basic-info");
+
+            onboardingState.nextStep();
+
+            // Use a more specific toast message to avoid duplicates
+            toast.success("Basic information saved successfully!", {
+               id: "basic-info-saved", // Prevent duplicate toasts
+               duration: 3000,
+            });
+
+            console.log("Basic info saved and toast shown");
+         } catch (error) {
+            console.error("Error saving basic info:", error);
+            toast.error("Failed to save information. Please try again.");
+            hasSubmitted = false; // Reset on error
+         } finally {
+            // Reset submission state after a short delay
+            setTimeout(() => {
+               isSubmitting = false;
+            }, 1000);
+         }
       } else {
          toast.error("Please fix the errors before continuing.");
       }
@@ -423,6 +462,8 @@
          Back
       </Button>
 
-      <Button onclick={handleNext}>Continue</Button>
+      <Button onclick={handleNext} disabled={isSubmitting}>
+         {isSubmitting ? "Saving..." : "Continue"}
+      </Button>
    </div>
 </div>
