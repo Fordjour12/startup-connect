@@ -1,3 +1,4 @@
+/*
 import { env } from '$env/dynamic/private';
 import * as schema from './schema';
 import { neon, neonConfig, Pool } from '@neondatabase/serverless';
@@ -14,7 +15,11 @@ const pool = new Pool({ connectionString: env.DEPLOYMENT_DATABASE_URL });
 
 export const db = drizzle({ client: pool, schema });
 
-/*
+export * from "./schema";
+export * from "./utils/user-profile-operations";
+export * from "./utils/onboarding-transformer";
+
+*/
 
 
 import { env } from '$env/dynamic/private';
@@ -26,4 +31,3 @@ if (!env.DATABASE_URL) {
 }
 const client = postgres(env.DATABASE_URL!);
 export const db = drizzle({ client });
-*/

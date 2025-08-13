@@ -1,27 +1,44 @@
-import { auth } from '@/auth';
 import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-import { USER_ROLES } from '@/db/schema/auth-schema';
+import { auth } from '$lib/auth';
+import { isOnboardingComplete } from '$lib/db/utils/user-profile-operations';
 
-export const load: PageServerLoad = async ({ url, request }) => {
-	// Get session from Better Auth
-	const session = await auth.api.getSession({
-		headers: request.headers
-	});
+export const load = async ({ request, url }) => {
+  // Check if user is authenticated
+  const session = await auth.api.getSession({
+    headers: request.headers
+  });
 
-	// Redirect to login if not authenticated
-	if (!session?.user) {
-		throw redirect(302, `/login?redirectTo=${url.pathname}`);
-	}
+  if (!session?.user) {
+    // Redirect to login with return URL
+    throw redirect(302, `/login?redirect=${encodeURIComponent(url.pathname)}`);
+  }
 
-	// Redirect investors and supporters to role-specific onboarding
-	if (session.user.role === USER_ROLES.INVESTOR) {
-		throw redirect(302, '/onboarding/investor');
-	} else if (session.user.role === USER_ROLES.SUPPORT) {
-		throw redirect(302, '/onboarding/support');
-	}
+  // Check if user has already completed onboarding
+  const onboardingStatus = await isOnboardingComplete(session.user.id);
 
-	return {
-		user: session.user
-	};
+  if (onboardingStatus.success && onboardingStatus.isComplete) {
+    // User has already completed onboarding, redirect to role-specific dashboard
+    const role = session.user.role;
+    let dashboardRoute = '/dashboard';
+
+    switch (role) {
+      case 'investor':
+        dashboardRoute = '/investor-dashboard';
+        break;
+      case 'founder':
+        dashboardRoute = '/founder-dashboard';
+        break;
+      case 'support':
+        dashboardRoute = '/support-dashboard';
+        break;
+      default:
+        dashboardRoute = '/dashboard';
+    }
+
+    throw redirect(302, dashboardRoute);
+  }
+
+  return {
+    user: session.user
+  };
 };
