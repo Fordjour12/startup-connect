@@ -681,6 +681,8 @@ class OnboardingState {
 // SINGLETON INSTANCE & EXPORT
 // =============================================================================
 
+export { OnboardingState };
+
 let onboardingState: OnboardingState;
 
 export function getOnboardingState(initialUserData?: { name?: string; email?: string }): OnboardingState {

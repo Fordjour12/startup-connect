@@ -283,8 +283,7 @@
     }
 </script>
 
-<div class="space-y-8">{@const StepComponent = getStepComponent(
-    </div>
+<div class="space-y-8">
 
     <!-- Experience Level -->
     <Card>

@@ -13,9 +13,10 @@
         MessageCircle,
         DollarSign,
     } from "@lucide/svelte";
+    import type { OnboardingState } from "@/hooks/onboarding-state.svelte";
 
     interface Props {
-        onboarding: any;
+        onboarding: OnboardingState;
     }
 
     let { onboarding }: Props = $props();
@@ -203,11 +204,10 @@
     <div class="text-center pt-6">
         <Button
             onclick={handleGetStarted}
-            size="lg"
-            class="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg"
+            class="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
             Let's Get Started
-            <ArrowRight class="w-5 h-5 ml-2" />
+            <ArrowRight class="size-5 ml-2" />
         </Button>
 
         <p class="text-xs text-muted-foreground mt-3">
