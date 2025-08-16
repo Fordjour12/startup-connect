@@ -3,6 +3,7 @@ import { svelteKitHandler } from "better-auth/svelte-kit";
 import { building } from "$app/environment";
 import { redirect } from "@sveltejs/kit";
 import { type RequestEvent } from '@sveltejs/kit'
+import { isOnboardingComplete } from "$lib/db/utils/user-profile-operations";
 
 async function handleOnboardingProtection(event: RequestEvent<Partial<Record<string, string>>, string | null>) {
   // Skip onboarding protection for auth routes and onboarding itself
@@ -25,9 +26,15 @@ async function handleOnboardingProtection(event: RequestEvent<Partial<Record<str
     return;
   }
 
-  // If user doesn't have a specific role (founder, investor, supporter), redirect to onboarding
+  // Check if user has completed onboarding
+  const onboardingStatus = await isOnboardingComplete(session.user.id);
+
+  // If user doesn't have a specific role OR hasn't completed onboarding, redirect to onboarding
   const specificRoles = ['founder', 'investor', 'support'];
-  if ((!session.user.role || session.user.role === null || !specificRoles.includes(session.user.role)) && !event.url.pathname.startsWith('/onboarding')) {
+  const hasValidRole = session.user.role && specificRoles.includes(session.user.role);
+  const hasCompletedOnboarding = onboardingStatus.success && onboardingStatus.isComplete;
+
+  if ((!hasValidRole || !hasCompletedOnboarding) && !event.url.pathname.startsWith('/onboarding')) {
     redirect(302, '/onboarding');
   }
 }
