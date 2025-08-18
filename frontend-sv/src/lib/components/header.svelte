@@ -9,7 +9,7 @@
    import ModeToggle from "./ModeToggle.svelte";
    import UserDropdown from "@/components/UserDropdown.svelte";
    import AuthButtons from "@/components/AuthButtons.svelte";
-   import RoleSpecificOnboardingBanner from "./onboarding/RoleSpecificOnboardingBanner.svelte";
+   // import RoleSpecificOnboardingBanner from "./onboarding/RoleSpecificOnboardingBanner.svelte";
 
    interface User {
       id: string;
@@ -60,7 +60,7 @@
 <header
    class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
 >
-   <RoleSpecificOnboardingBanner {user} {isLoggedIn} />
+   <!-- <RoleSpecificOnboardingBanner {user} {isLoggedIn} /> -->
    <div class="container flex h-16 items-center mx-auto">
       <div class="mr-4 flex items-center">
          <a href="/" class="flex items-center space-x-2">

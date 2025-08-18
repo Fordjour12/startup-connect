@@ -44,8 +44,8 @@ export type SupporterInfo = z.infer<typeof supporterSchema>;
 // =============================================================================
 
 export const basicInfoSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
+  name: z.string().min(2, "Name must be at least 2 characters").optional(),
+  email: z.string().email("Please enter a valid email address").optional(),
   profileImage: z.string().nullable().optional(),
   location: z.string().optional(),
   bio: z.string().max(500, "Bio must be less than 500 characters").transform(val => val === "" ? undefined : val).optional(),
@@ -125,10 +125,16 @@ export type Preferences = z.infer<typeof preferencesSchema>;
 
 export const onboardingSchema = z.object({
   role: roleSelectionSchema.shape.role,
-  basicInfo: basicInfoSchema,
+  basicInfo: basicInfoSchema.refine(
+    (data) => data.name && data.email,
+    "Name and email are required"
+  ),
   goals: goalsSchema,
   skills: skillsSchema,
-  preferences: preferencesSchema
+  preferences: preferencesSchema,
+  // Add role-specific data
+  investorInfo: investorSchema.optional(),
+  supporterInfo: supporterSchema.optional(),
 });
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;
