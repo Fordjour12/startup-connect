@@ -24,10 +24,10 @@
         Monitor,
         Smartphone,
     } from "@lucide/svelte";
-    import { COMMUNICATION_METHODS } from "@/z-schema/onboarding-schema";
+    import type { OnboardingState } from "@/hooks/onboarding-state.svelte";
 
     interface Props {
-        onboarding: any;
+        onboarding: OnboardingState;
     }
 
     let { onboarding }: Props = $props();
@@ -68,7 +68,13 @@
     }
 
     // Communication method options with descriptions
-    const communicationMethodOptions = [
+
+    const communicationMethodOptions: Array<{
+        value: "video_calls" | "email" | "in_person" | "chat";
+        label: string;
+        description: string;
+        icon: any;
+    }> = [
         {
             value: "video_calls",
             label: "Video Calls",
@@ -190,10 +196,12 @@
         return () => clearTimeout(timeoutId);
     });
 
-    function toggleCommunicationMethod(method: string) {
+    function toggleCommunicationMethod(
+        method: "email" | "video_calls" | "in_person" | "chat",
+    ) {
         if (formData.communicationMethods.includes(method)) {
             formData.communicationMethods =
-                formData.communicationMethods.filter((m) => m !== method);
+                formData.communicationMethods.filter((m: any) => m !== method);
         } else {
             formData.communicationMethods = [
                 ...formData.communicationMethods,
@@ -205,7 +213,7 @@
     function toggleNotificationType(type: string) {
         if (formData.notificationTypes.includes(type)) {
             formData.notificationTypes = formData.notificationTypes.filter(
-                (t) => t !== type,
+                (t: any) => t !== type,
             );
         } else {
             formData.notificationTypes = [...formData.notificationTypes, type];
@@ -245,7 +253,7 @@
         <CardContent class="space-y-4">
             <div class="grid gap-4">
                 {#each communicationMethodOptions as method}
-                    <div
+                    <button
                         class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                         onclick={() => toggleCommunicationMethod(method.value)}
                     >
@@ -258,10 +266,7 @@
                         />
                         <div class="flex items-start gap-3 flex-1">
                             <div class="p-2 bg-blue-50 rounded-lg">
-                                <svelte:component
-                                    this={method.icon}
-                                    class="w-4 h-4 text-blue-600"
-                                />
+                                <method.icon class="size-4 text-blue-600" />
                             </div>
                             <div>
                                 <div class="font-medium">{method.label}</div>
@@ -270,7 +275,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </button>
                 {/each}
             </div>
             {#if errors.communicationMethods}
@@ -328,7 +333,7 @@
         <CardContent class="space-y-4">
             <div class="grid gap-3">
                 {#each notificationTypeOptions as notification}
-                    <div
+                    <button
                         class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                         onclick={() =>
                             toggleNotificationType(notification.value)}
@@ -342,9 +347,8 @@
                         />
                         <div class="flex items-start gap-3 flex-1">
                             <div class="p-2 bg-purple-50 rounded-lg">
-                                <svelte:component
-                                    this={notification.icon}
-                                    class="w-4 h-4 text-purple-600"
+                                <notification.icon
+                                    class="size-4 text-purple-600"
                                 />
                             </div>
                             <div>
@@ -356,7 +360,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </button>
                 {/each}
             </div>
 
@@ -412,7 +416,7 @@
                             } else {
                                 formData.notificationTypes =
                                     formData.notificationTypes.filter(
-                                        (t) =>
+                                        (t: any) =>
                                             ![
                                                 "messages",
                                                 "connection_requests",
@@ -451,9 +455,8 @@
                         <Label for={theme.value} class="flex-1 cursor-pointer">
                             <div class="flex items-start gap-3">
                                 <div class="p-2 bg-orange-50 rounded-lg">
-                                    <svelte:component
-                                        this={theme.icon}
-                                        class="w-4 h-4 text-orange-600"
+                                    <theme.icon
+                                        class="size-4 text-orange-600"
                                     />
                                 </div>
                                 <div>

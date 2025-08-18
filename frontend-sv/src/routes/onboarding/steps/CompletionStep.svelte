@@ -22,9 +22,10 @@
         Bell,
         Settings,
     } from "@lucide/svelte";
+    import type { OnboardingState } from "@/hooks/onboarding-state.svelte";
 
     interface Props {
-        onboarding: any;
+        onboarding: OnboardingState;
     }
 
     let { onboarding }: Props = $props();
@@ -33,9 +34,9 @@
     const userName = onboarding.formData.basicInfo?.name || "there";
 
     // Get role-specific information
-    function getRoleInfo(role: string) {
+    function getRoleInfo(role: string|undefined) {
         switch (role) {
-            case "FOUNDER":
+            case "founder":
                 return {
                     label: "Founder",
                     icon: Rocket,
@@ -70,7 +71,7 @@
                     ],
                     dashboardUrl: "/founder-dashboard",
                 };
-            case "INVESTOR":
+            case "investor":
                 return {
                     label: "Investor",
                     icon: TrendingUp,
@@ -105,7 +106,7 @@
                     ],
                     dashboardUrl: "/investor-dashboard",
                 };
-            case "SUPPORT":
+            case "support":
                 return {
                     label: "Supporter",
                     icon: Users,
@@ -206,10 +207,7 @@
                 <div
                     class="{roleInfo.bgColor} p-8 rounded-full {roleInfo.borderColor} border-2"
                 >
-                    <svelte:component
-                        this={roleInfo.icon}
-                        class="w-16 h-16 {roleInfo.color}"
-                    />
+                    <roleInfo.icon class="size-16 {roleInfo.color}" />
                 </div>
                 <div
                     class="absolute -top-2 -right-2 bg-green-500 p-2 rounded-full"
@@ -233,10 +231,7 @@
         <!-- Role Badge -->
         <div class="flex justify-center">
             <Badge variant="secondary" class="text-lg px-6 py-2">
-                <svelte:component
-                    this={roleInfo.icon}
-                    class="w-5 h-5 mr-2 {roleInfo.color}"
-                />
+                <roleInfo.icon class="size-5 mr-2 {roleInfo.color}" />
                 {roleInfo.label}
             </Badge>
         </div>
@@ -261,10 +256,7 @@
                         class="flex items-start gap-4 p-4 bg-white rounded-lg border hover:shadow-md transition-shadow"
                     >
                         <div class="p-3 {roleInfo.bgColor} rounded-lg">
-                            <svelte:component
-                                this={step.icon}
-                                class="w-5 h-5 {roleInfo.color}"
-                            />
+                            <step.icon class="size-5 {roleInfo.color}" />
                         </div>
                         <div class="flex-1">
                             <h4 class="font-semibold text-gray-900 mb-1">
@@ -295,10 +287,7 @@
                 {#each platformFeatures as feature}
                     <div class="flex items-start gap-3 p-3">
                         <div class="p-2 bg-gray-100 rounded-lg">
-                            <svelte:component
-                                this={feature.icon}
-                                class="w-5 h-5 text-gray-600"
-                            />
+                            <feature.icon class="size-5 text-gray-600" />
                         </div>
                         <div>
                             <h4 class="font-medium text-gray-900">

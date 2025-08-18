@@ -59,7 +59,7 @@ export const basicInfoSchema = z.object({
   portfolioWebsite: z.string().refine(val => val === "" || /^https?:\/\/.+/.test(val), "Please enter a valid URL").transform(val => val === "" ? undefined : val).optional(),
   city: z.string().transform(val => val === "" ? undefined : val).optional(),
   timezone: z.string().transform(val => val === "" ? undefined : val).optional(),
-  languages: z.string().transform(val => val === "" ? [] : val.split(",").map(lang => lang.trim()).filter(lang => lang.length > 0)).optional(),
+  languages: z.array(z.string()).optional(),
   employmentStatus: z.string().transform(val => val === "" ? undefined : val).optional(),
 });
 
