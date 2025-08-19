@@ -40,9 +40,9 @@
                 return {
                     label: "Founder",
                     icon: Rocket,
-                    color: "text-green-600",
-                    bgColor: "bg-green-50",
-                    borderColor: "border-green-200",
+                    color: "text-success",
+                    bgColor: "bg-success",
+                    borderColor: "border-success",
                     nextSteps: [
                         {
                             title: "Create your startup profile",
@@ -75,8 +75,8 @@
                 return {
                     label: "Investor",
                     icon: TrendingUp,
-                    color: "text-purple-600",
-                    bgColor: "bg-purple-50",
+                    color: "text-highlight",
+                    bgColor: "bg-highlight",
                     borderColor: "border-purple-200",
                     nextSteps: [
                         {
@@ -110,9 +110,9 @@
                 return {
                     label: "Supporter",
                     icon: Users,
-                    color: "text-blue-600",
-                    bgColor: "bg-blue-50",
-                    borderColor: "border-blue-200",
+                    color: "text-info",
+                    bgColor: "bg-info",
+                    borderColor: "border-info",
                     nextSteps: [
                         {
                             title: "Browse startup projects",
@@ -145,8 +145,8 @@
                 return {
                     label: "User",
                     icon: Users,
-                    color: "text-gray-600",
-                    bgColor: "bg-gray-50",
+                    color: "text-body",
+                    bgColor: "bg-muted",
                     borderColor: "border-gray-200",
                     nextSteps: [],
                     dashboardUrl: "/dashboard",
@@ -210,7 +210,7 @@
                     <roleInfo.icon class="size-16 {roleInfo.color}" />
                 </div>
                 <div
-                    class="absolute -top-2 -right-2 bg-green-500 p-2 rounded-full"
+                    class="absolute -top-2 -right-2 bg-success0 p-2 rounded-full"
                 >
                     <CheckCircle class="w-6 h-6 text-white" />
                 </div>
@@ -219,10 +219,10 @@
 
         <!-- Welcome Message -->
         <div class="space-y-4">
-            <h1 class="text-4xl font-bold text-gray-900">
+            <h1 class="text-4xl font-bold text-heading">
                 Welcome to Startup Connect, {userName}! 🎉
             </h1>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p class="text-xl text-body max-w-2xl mx-auto">
                 Your profile is complete and you're ready to start connecting
                 with the startup ecosystem as a {roleInfo.label.toLowerCase()}.
             </p>
@@ -243,7 +243,7 @@
             <CardTitle class="text-center text-2xl {roleInfo.color}">
                 What's next for you?
             </CardTitle>
-            <p class="text-center text-gray-600">
+            <p class="text-center text-body">
                 Here are some recommended next steps to get the most out of
                 Startup Connect
             </p>
@@ -259,10 +259,10 @@
                             <step.icon class="size-5 {roleInfo.color}" />
                         </div>
                         <div class="flex-1">
-                            <h4 class="font-semibold text-gray-900 mb-1">
+                            <h4 class="font-semibold text-heading mb-1">
                                 {step.title}
                             </h4>
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-body">
                                 {step.description}
                             </p>
                         </div>
@@ -278,7 +278,7 @@
             <CardTitle class="text-center text-xl">
                 Explore Platform Features
             </CardTitle>
-            <p class="text-center text-gray-600">
+            <p class="text-center text-body">
                 Discover what makes Startup Connect special
             </p>
         </CardHeader>
@@ -287,13 +287,13 @@
                 {#each platformFeatures as feature}
                     <div class="flex items-start gap-3 p-3">
                         <div class="p-2 bg-gray-100 rounded-lg">
-                            <feature.icon class="size-5 text-gray-600" />
+                            <feature.icon class="size-5 text-body" />
                         </div>
                         <div>
-                            <h4 class="font-medium text-gray-900">
+                            <h4 class="font-medium text-heading">
                                 {feature.title}
                             </h4>
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-body">
                                 {feature.description}
                             </p>
                         </div>
@@ -304,37 +304,37 @@
     </Card>
 
     <!-- Pro Tips -->
-    <Card class="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+    <Card class="bg-gradient-to-r from-blue-50 to-purple-50 border-info">
         <CardHeader>
-            <CardTitle class="flex items-center gap-2 text-blue-900">
+            <CardTitle class="flex items-center gap-2 text-info">
                 <Star class="w-5 h-5 text-yellow-500" />
                 Pro Tips for Success
             </CardTitle>
         </CardHeader>
-        <CardContent class="space-y-3 text-sm text-blue-800">
+        <CardContent class="space-y-3 text-sm text-info">
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     <strong>Complete your profile:</strong> Add a profile photo and
                     detailed bio to increase connection rates by 3x
                 </p>
             </div>
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     <strong>Be active:</strong> Regular engagement helps our matching
                     algorithm find better connections for you
                 </p>
             </div>
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     <strong>Quality over quantity:</strong> Focus on meaningful connections
                     rather than connecting with everyone
                 </p>
             </div>
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     <strong>Update regularly:</strong> Keep your goals and availability
                     current as your situation evolves
@@ -378,20 +378,20 @@
     </div>
 
     <!-- Welcome Stats -->
-    <Card class="bg-gray-50">
+    <Card class="bg-muted">
         <CardContent class="pt-6">
             <div class="grid grid-cols-3 gap-6 text-center">
                 <div>
-                    <div class="text-2xl font-bold text-blue-600">10,000+</div>
-                    <div class="text-sm text-gray-600">Active Members</div>
+                    <div class="text-2xl font-bold text-info">10,000+</div>
+                    <div class="text-sm text-body">Active Members</div>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-green-600">2,500+</div>
-                    <div class="text-sm text-gray-600">Startups</div>
+                    <div class="text-2xl font-bold text-success">2,500+</div>
+                    <div class="text-sm text-body">Startups</div>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold text-purple-600">$50M+</div>
-                    <div class="text-sm text-gray-600">Funding Raised</div>
+                    <div class="text-2xl font-bold text-highlight">$50M+</div>
+                    <div class="text-sm text-body">Funding Raised</div>
                 </div>
             </div>
         </CardContent>
@@ -399,26 +399,26 @@
 
     <!-- Footer Message -->
     <div class="text-center space-y-4 pt-8">
-        <p class="text-gray-600">
+        <p class="text-body">
             Thank you for joining our community! We're excited to see what
             you'll build and achieve.
         </p>
-        <p class="text-sm text-gray-500">
+        <p class="text-sm text-muted">
             If you need any help getting started, don't hesitate to reach out to
             our support team.
         </p>
 
         <!-- Contact Links -->
         <div class="flex justify-center gap-4 text-sm">
-            <a href="/help" class="text-blue-600 hover:underline">
+            <a href="/help" class="text-info hover:underline">
                 Help Center
             </a>
             <span class="text-gray-300">•</span>
-            <a href="/contact" class="text-blue-600 hover:underline">
+            <a href="/contact" class="text-info hover:underline">
                 Contact Support
             </a>
             <span class="text-gray-300">•</span>
-            <a href="/community" class="text-blue-600 hover:underline">
+            <a href="/community" class="text-info hover:underline">
                 Join Community
             </a>
         </div>

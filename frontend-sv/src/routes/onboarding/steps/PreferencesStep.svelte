@@ -231,10 +231,10 @@
 <div class="space-y-8">
     <!-- Header -->
     <div class="text-center space-y-2">
-        <h2 class="text-2xl font-bold text-gray-900">
+        <h2 class="text-2xl font-bold text-heading">
             Communication Preferences
         </h2>
-        <p class="text-gray-600">
+        <p class="text-body">
             Let us know how you prefer to communicate and stay updated
         </p>
     </div>
@@ -243,10 +243,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <MessageCircle class="w-5 h-5 text-blue-600" />
+                <MessageCircle class="w-5 h-5 text-info" />
                 Preferred Communication Methods *
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 How would you like others to reach out to you? (Select multiple)
             </p>
         </CardHeader>
@@ -254,7 +254,7 @@
             <div class="grid gap-4">
                 {#each communicationMethodOptions as method}
                     <button
-                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                         onclick={() => toggleCommunicationMethod(method.value)}
                     >
                         <Checkbox
@@ -265,12 +265,12 @@
                                 toggleCommunicationMethod(method.value)}
                         />
                         <div class="flex items-start gap-3 flex-1">
-                            <div class="p-2 bg-blue-50 rounded-lg">
-                                <method.icon class="size-4 text-blue-600" />
+                            <div class="p-2 bg-info rounded-lg">
+                                <method.icon class="size-4 text-info" />
                             </div>
                             <div>
                                 <div class="font-medium">{method.label}</div>
-                                <div class="text-sm text-gray-500 mt-1">
+                                <div class="text-sm text-muted mt-1">
                                     {method.description}
                                 </div>
                             </div>
@@ -279,7 +279,7 @@
                 {/each}
             </div>
             {#if errors.communicationMethods}
-                <p class="text-sm text-red-500">
+                <p class="text-sm text-error">
                     {errors.communicationMethods}
                 </p>
             {/if}
@@ -290,10 +290,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Bell class="w-5 h-5 text-green-600" />
+                <Bell class="w-5 h-5 text-success" />
                 Response Time Preference
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 How quickly do you typically respond to messages?
             </p>
         </CardHeader>
@@ -308,7 +308,7 @@
                         <Label for={option.value} class="flex-1 cursor-pointer">
                             <div class="flex flex-col">
                                 <span class="font-medium">{option.label}</span>
-                                <span class="text-sm text-gray-500"
+                                <span class="text-sm text-muted"
                                     >{option.description}</span
                                 >
                             </div>
@@ -323,10 +323,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Smartphone class="w-5 h-5 text-purple-600" />
+                <Smartphone class="w-5 h-5 text-highlight" />
                 Notification Preferences
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 Choose what notifications you'd like to receive
             </p>
         </CardHeader>
@@ -334,7 +334,7 @@
             <div class="grid gap-3">
                 {#each notificationTypeOptions as notification}
                     <button
-                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                         onclick={() =>
                             toggleNotificationType(notification.value)}
                     >
@@ -346,16 +346,16 @@
                                 toggleNotificationType(notification.value)}
                         />
                         <div class="flex items-start gap-3 flex-1">
-                            <div class="p-2 bg-purple-50 rounded-lg">
+                            <div class="p-2 bg-highlight rounded-lg">
                                 <notification.icon
-                                    class="size-4 text-purple-600"
+                                    class="size-4 text-highlight"
                                 />
                             </div>
                             <div>
                                 <div class="font-medium">
                                     {notification.label}
                                 </div>
-                                <div class="text-sm text-gray-500 mt-1">
+                                <div class="text-sm text-muted mt-1">
                                     {notification.description}
                                 </div>
                             </div>
@@ -369,7 +369,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <Label class="font-medium">Email Notifications</Label>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-sm text-muted">
                             Receive notifications via email
                         </p>
                     </div>
@@ -389,7 +389,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <Label class="font-medium">Push Notifications</Label>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-sm text-muted">
                             Receive browser push notifications
                         </p>
                     </div>
@@ -437,7 +437,7 @@
                 <Palette class="w-5 h-5 text-orange-600" />
                 Theme Preference
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 Choose your preferred interface theme
             </p>
         </CardHeader>
@@ -445,7 +445,7 @@
             <RadioGroup bind:value={formData.themePreference}>
                 {#each themeOptions as theme}
                     <div
-                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50"
+                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted"
                     >
                         <RadioGroupItem
                             value={theme.value}
@@ -461,7 +461,7 @@
                                 </div>
                                 <div>
                                     <div class="font-medium">{theme.label}</div>
-                                    <div class="text-sm text-gray-500 mt-1">
+                                    <div class="text-sm text-muted mt-1">
                                         {theme.description}
                                     </div>
                                 </div>
@@ -474,27 +474,27 @@
     </Card>
 
     <!-- Privacy & Communication Guidelines -->
-    <Card class="bg-blue-50 border-blue-200">
+    <Card class="bg-info border-info">
         <CardHeader>
-            <CardTitle class="text-blue-900">Privacy & Communication</CardTitle>
+            <CardTitle class="text-info">Privacy & Communication</CardTitle>
         </CardHeader>
-        <CardContent class="space-y-3 text-sm text-blue-800">
+        <CardContent class="space-y-3 text-sm text-info">
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     Your contact information is only shared when you choose to
                     connect with someone
                 </p>
             </div>
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     You can update these preferences anytime in your profile
                     settings
                 </p>
             </div>
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     We respect your communication boundaries and will never spam
                     you
@@ -516,7 +516,7 @@
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-gray-500 space-y-2">
+    <div class="text-center text-sm text-muted space-y-2">
         <p>These settings help us communicate with you effectively</p>
         <p>
             You can always change these preferences later in your account

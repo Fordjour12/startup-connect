@@ -2,8 +2,6 @@
 
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
     --radius: 0.46rem;
 
@@ -84,9 +82,44 @@
     --tracking-normal: 0em;
     --spacing: 0.25rem;
 
+    /* Semantic Colors - Text */
+    --text-heading: var(--foreground);
+    --text-body: var(--foreground);
+    --text-muted: var(--muted-foreground);
+    --text-success: oklch(0.4 0.15 160);
+    --text-warning: oklch(0.6 0.15 80);
+    --text-error: var(--destructive);
+    --text-info: oklch(0.6 0.15 220);
+    --text-highlight: var(--accent);
+
+    /* Semantic Colors - Backgrounds */
+    --bg-success: oklch(0.95 0.05 160);
+    --bg-warning: oklch(0.95 0.05 80);
+    --bg-error: oklch(0.95 0.05 30);
+    --bg-info: oklch(0.95 0.05 220);
+    --bg-highlight: oklch(0.95 0.05 100);
+
+    /* Semantic Colors - Borders */
+    --border-success: oklch(0.8 0.1 160);
+    --border-warning: oklch(0.8 0.1 80);
+    --border-error: oklch(0.8 0.1 30);
+    --border-info: oklch(0.8 0.1 220);
+    --border-highlight: oklch(0.8 0.1 100);
+
+    /* Role-specific colors */
+    --role-investor: var(--accent2);
+    --role-founder: var(--accent);
+    --role-support: oklch(0.6 0.15 220);
+    --role-admin: var(--primary);
+
+    /* Radius */
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
 }
 
-
+/* Dark mode using CSS custom properties */
 .dark {
     --background: oklch(0.18 0.02 180);
     --foreground: oklch(0.88 0.05 180);
@@ -143,7 +176,6 @@
     --font-body: var(--font-open-sans);
 
     /* shadows */
-
     --shadow-2xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
     --shadow-xs: 1px 2px 5px 1px hsl(0 0% 0% / 0.03);
     --shadow-sm: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 1px 2px 0px hsl(0 0% 0% / 0.06);
@@ -153,8 +185,36 @@
     --shadow-xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.06), 1px 8px 10px 0px hsl(0 0% 0% / 0.06);
     --shadow-2xl: 1px 2px 5px 1px hsl(0 0% 0% / 0.15);
 
-}
+    /* Semantic Colors - Text (Dark mode) */
+    --text-heading: var(--foreground);
+    --text-body: var(--foreground);
+    --text-muted: var(--muted-foreground);
+    --text-success: oklch(0.6 0.15 160);
+    --text-warning: oklch(0.7 0.15 80);
+    --text-error: oklch(0.7 0.15 30);
+    --text-info: oklch(0.7 0.15 220);
+    --text-highlight: oklch(0.8 0.15 100);
 
+    /* Semantic Colors - Backgrounds (Dark mode) */
+    --bg-success: oklch(0.2 0.05 160);
+    --bg-warning: oklch(0.2 0.05 80);
+    --bg-error: oklch(0.2 0.05 30);
+    --bg-info: oklch(0.2 0.05 220);
+    --bg-highlight: oklch(0.2 0.05 100);
+
+    /* Semantic Colors - Borders (Dark mode) */
+    --border-success: oklch(0.4 0.1 160);
+    --border-warning: oklch(0.4 0.1 80);
+    --border-error: oklch(0.4 0.1 30);
+    --border-info: oklch(0.4 0.1 220);
+    --border-highlight: oklch(0.4 0.1 100);
+
+    /* Role-specific colors (Dark mode) */
+    --role-investor: oklch(0.7 0.15 30);
+    --role-founder: oklch(0.8 0.15 100);
+    --role-support: oklch(0.7 0.15 220);
+    --role-admin: oklch(0.8 0.15 180);
+}
 
 @theme inline {
     --color-background: var(--background);
@@ -210,6 +270,7 @@
     --shadow-2xl: var(--shadow-2xl);
 
 }
+
 
 @layer base {
     * {
@@ -383,5 +444,150 @@
         .animation-delay-800 {
             animation-delay: 0.1s;
         }
+    }
+}
+
+/* Semantic Color Utility Classes using @utility directive */
+@utility text-heading {
+    color: var(--text-heading);
+}
+
+@utility text-body {
+    color: var(--text-body);
+}
+
+@utility text-muted {
+    color: var(--text-muted);
+}
+
+@utility text-success {
+    color: var(--text-success);
+}
+
+@utility text-warning {
+    color: var(--text-warning);
+}
+
+@utility text-error {
+    color: var(--text-error);
+}
+
+@utility text-info {
+    color: var(--text-info);
+}
+
+@utility text-highlight {
+    color: var(--text-highlight);
+}
+
+/* Background Colors */
+@utility bg-success {
+    background-color: var(--bg-success);
+}
+
+@utility bg-warning {
+    background-color: var(--bg-warning);
+}
+
+@utility bg-error {
+    background-color: var(--bg-error);
+}
+
+@utility bg-info {
+    background-color: var(--bg-info);
+}
+
+@utility bg-highlight {
+    background-color: var(--bg-highlight);
+}
+
+/* Border Colors */
+@utility border-success {
+    border-color: var(--border-success);
+}
+
+@utility border-warning {
+    border-color: var(--border-warning);
+}
+
+@utility border-error {
+    border-color: var(--border-error);
+}
+
+@utility border-info {
+    border-color: var(--border-info);
+}
+
+@utility border-highlight {
+    border-color: var(--border-highlight);
+}
+
+/* Role-specific Colors */
+@utility text-role-investor {
+    color: var(--role-investor);
+}
+
+@utility text-role-founder {
+    color: var(--role-founder);
+}
+
+@utility text-role-support {
+    color: var(--role-support);
+}
+
+@utility text-role-admin {
+    color: var(--role-admin);
+}
+
+@utility bg-role-investor {
+    background-color: var(--role-investor);
+}
+
+@utility bg-role-founder {
+    background-color: var(--role-founder);
+}
+
+@utility bg-role-support {
+    background-color: var(--role-support);
+}
+
+@utility bg-role-admin {
+    background-color: var(--role-admin);
+}
+
+/* Hover States */
+@utility hover-bg-muted {
+    @variant hover {
+        background-color: var(--muted);
+    }
+}
+
+@utility hover-bg-success {
+    @variant hover {
+        background-color: var(--bg-success);
+    }
+}
+
+@utility hover-bg-warning {
+    @variant hover {
+        background-color: var(--bg-warning);
+    }
+}
+
+@utility hover-bg-error {
+    @variant hover {
+        background-color: var(--bg-error);
+    }
+}
+
+@utility hover-bg-info {
+    @variant hover {
+        background-color: var(--bg-info);
+    }
+}
+
+@utility hover-bg-highlight {
+    @variant hover {
+        background-color: var(--bg-highlight);
     }
 }
