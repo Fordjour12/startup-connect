@@ -57,7 +57,8 @@
     ];
 
     async function handleGetStarted() {
-        onboarding.markStepComplete("welcome");
+        // Mark welcome step as complete
+        await onboarding.markStepComplete("welcome");
         await onboarding.goNext();
     }
 </script>
@@ -65,12 +66,6 @@
 <div class="space-y-4">
     <!-- Hero Section -->
     <div class="text-center space-y-4">
-        <div class="flex justify-center mb-6">
-            <div class="p-4 bg-primary/10 rounded-full">
-                <Rocket class="w-12 h-12 text-primary" />
-            </div>
-        </div>
-
         <h2 class="text-3xl font-bold text-foreground">
             Welcome to Startup Connect!
         </h2>

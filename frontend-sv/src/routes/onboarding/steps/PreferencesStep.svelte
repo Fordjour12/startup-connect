@@ -70,31 +70,31 @@
     // Communication method options with descriptions
 
     const communicationMethodOptions: Array<{
-        value: "video_calls" | "email" | "in_person" | "chat";
+        value: "Video Calls" | "Email" | "In Person" | "Chat";
         label: string;
         description: string;
         icon: any;
     }> = [
         {
-            value: "video_calls",
+            value: "Video Calls",
             label: "Video Calls",
             description: "Face-to-face meetings via Zoom, Meet, etc.",
             icon: Video,
         },
         {
-            value: "email",
+            value: "Email",
             label: "Email",
             description: "Traditional email communication",
             icon: Mail,
         },
         {
-            value: "in_person",
+            value: "In Person",
             label: "In-Person",
             description: "Meet face-to-face when possible",
             icon: Users,
         },
         {
-            value: "chat",
+            value: "Chat",
             label: "Chat/Messaging",
             description: "Instant messaging and chat platforms",
             icon: MessageCircle,
@@ -197,7 +197,7 @@
     });
 
     function toggleCommunicationMethod(
-        method: "email" | "video_calls" | "in_person" | "chat",
+        method: "Video Calls" | "Email" | "In Person" | "Chat",
     ) {
         if (formData.communicationMethods.includes(method)) {
             formData.communicationMethods =
@@ -222,7 +222,8 @@
 
     async function handleContinue() {
         if (validateForm()) {
-            onboarding.markStepComplete("preferences");
+            // Mark preferences step as complete
+            await onboarding.markStepComplete("preferences");
             await onboarding.goNext();
         }
     }
@@ -243,7 +244,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <MessageCircle class="w-5 h-5 text-info" />
+                <MessageCircle class="size-5 text-info" />
                 Preferred Communication Methods *
             </CardTitle>
             <p class="text-sm text-body">
@@ -253,9 +254,8 @@
         <CardContent class="space-y-4">
             <div class="grid gap-4">
                 {#each communicationMethodOptions as method}
-                    <button
+                    <Label
                         class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                        onclick={() => toggleCommunicationMethod(method.value)}
                     >
                         <Checkbox
                             checked={formData.communicationMethods.includes(
@@ -265,17 +265,17 @@
                                 toggleCommunicationMethod(method.value)}
                         />
                         <div class="flex items-start gap-3 flex-1">
-                            <div class="p-2 bg-info rounded-lg">
+                            <div class="p-2 bg-muted rounded-lg">
                                 <method.icon class="size-4 text-info" />
                             </div>
                             <div>
                                 <div class="font-medium">{method.label}</div>
-                                <div class="text-sm text-muted mt-1">
+                                <div class="text-sm text-accent mt-1">
                                     {method.description}
                                 </div>
                             </div>
                         </div>
-                    </button>
+                    </Label>
                 {/each}
             </div>
             {#if errors.communicationMethods}
@@ -308,9 +308,9 @@
                         <Label for={option.value} class="flex-1 cursor-pointer">
                             <div class="flex flex-col">
                                 <span class="font-medium">{option.label}</span>
-                                <span class="text-sm text-muted"
-                                    >{option.description}</span
-                                >
+                                <span class="text-sm text-accent">
+                                    {option.description}
+                                </span>
                             </div>
                         </Label>
                     </div>
@@ -323,7 +323,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Smartphone class="w-5 h-5 text-highlight" />
+                <Smartphone class="size-5 text-highlight" />
                 Notification Preferences
             </CardTitle>
             <p class="text-sm text-body">
@@ -333,10 +333,8 @@
         <CardContent class="space-y-4">
             <div class="grid gap-3">
                 {#each notificationTypeOptions as notification}
-                    <button
+                    <Label
                         class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                        onclick={() =>
-                            toggleNotificationType(notification.value)}
                     >
                         <Checkbox
                             checked={formData.notificationTypes.includes(
@@ -346,7 +344,7 @@
                                 toggleNotificationType(notification.value)}
                         />
                         <div class="flex items-start gap-3 flex-1">
-                            <div class="p-2 bg-highlight rounded-lg">
+                            <div class="p-2 bg-muted rounded-lg">
                                 <notification.icon
                                     class="size-4 text-highlight"
                                 />
@@ -355,12 +353,12 @@
                                 <div class="font-medium">
                                     {notification.label}
                                 </div>
-                                <div class="text-sm text-muted mt-1">
+                                <div class="text-sm text-accent mt-1">
                                     {notification.description}
                                 </div>
                             </div>
                         </div>
-                    </button>
+                    </Label>
                 {/each}
             </div>
 
@@ -369,7 +367,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <Label class="font-medium">Email Notifications</Label>
-                        <p class="text-sm text-muted">
+                        <p class="text-sm text-accent">
                             Receive notifications via email
                         </p>
                     </div>
@@ -389,7 +387,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <Label class="font-medium">Push Notifications</Label>
-                        <p class="text-sm text-muted">
+                        <p class="text-sm text-accent">
                             Receive browser push notifications
                         </p>
                     </div>
@@ -434,7 +432,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Palette class="w-5 h-5 text-orange-600" />
+                <Palette class="size-5 text-orange-600" />
                 Theme Preference
             </CardTitle>
             <p class="text-sm text-body">
@@ -454,14 +452,14 @@
                         />
                         <Label for={theme.value} class="flex-1 cursor-pointer">
                             <div class="flex items-start gap-3">
-                                <div class="p-2 bg-orange-50 rounded-lg">
+                                <div class="p-2 bg-muted rounded-lg">
                                     <theme.icon
                                         class="size-4 text-orange-600"
                                     />
                                 </div>
                                 <div>
                                     <div class="font-medium">{theme.label}</div>
-                                    <div class="text-sm text-muted mt-1">
+                                    <div class="text-sm mt-1">
                                         {theme.description}
                                     </div>
                                 </div>
@@ -480,21 +478,21 @@
         </CardHeader>
         <CardContent class="space-y-3 text-sm text-info">
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
+                <div class="size-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     Your contact information is only shared when you choose to
                     connect with someone
                 </p>
             </div>
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
+                <div class="size-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     You can update these preferences anytime in your profile
                     settings
                 </p>
             </div>
             <div class="flex items-start gap-2">
-                <div class="w-1.5 h-1.5 bg-info rounded-full mt-2"></div>
+                <div class="size-1.5 bg-info rounded-full mt-2"></div>
                 <p>
                     We respect your communication boundaries and will never spam
                     you
@@ -505,18 +503,13 @@
 
     <!-- Continue Button -->
     <div class="flex justify-center pt-6">
-        <Button
-            onclick={handleContinue}
-            disabled={!isFormValid}
-            size="lg"
-            class="px-8"
-        >
+        <Button onclick={handleContinue} disabled={!isFormValid} class="px-8">
             Continue to Review
         </Button>
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-muted space-y-2">
+    <div class="text-center text-sm space-y-2">
         <p>These settings help us communicate with you effectively</p>
         <p>
             You can always change these preferences later in your account

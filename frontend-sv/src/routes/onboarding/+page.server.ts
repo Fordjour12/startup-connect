@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
-import { auth } from '$lib/auth';
-import { isOnboardingComplete } from '$lib/db/utils/user-profile-operations';
+import { auth } from '@/auth';
+import { isOnboardingComplete } from '@/db/utils/user-profile-operations';
 
 export const load = async ({ request, url }) => {
   // Check if user is authenticated
@@ -21,19 +21,8 @@ export const load = async ({ request, url }) => {
     const role = session.user.role;
     let dashboardRoute = '/dashboard';
 
-    switch (role) {
-      case 'investor':
-        dashboardRoute = '/investor-dashboard';
-        break;
-      case 'founder':
-        dashboardRoute = '/founder-dashboard';
-        break;
-      case 'support':
-        dashboardRoute = '/support-dashboard';
-        break;
-      default:
-        dashboardRoute = '/dashboard';
-    }
+    // All roles use the same dashboard route - role-based content is handled dynamically
+    dashboardRoute = '/dashboard';
 
     throw redirect(302, dashboardRoute);
   }
