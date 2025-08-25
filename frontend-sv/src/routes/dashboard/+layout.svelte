@@ -6,13 +6,16 @@
     // import SectionCards from "$lib/components/section-cards.svelte";
     // import ChartAreaInteractive from "$lib/components/chart-area-interactive.svelte";
     // import DataTable from "$lib/components/data-table.svelte";
-    let { children } = $props();
+    import type { PageProps } from "./$types";
+    import type { Snippet } from "svelte";
+
+    let { children, data }: { children: Snippet, data: PageProps } = $props();
 </script>
 
 <Sidebar.Provider
     style="--sidebar-width: calc(var(--spacing) * 72); --header-height: calc(var(--spacing) * 12);"
 >
-    <AppSidebar variant="inset" />
+    <AppSidebar variant="inset" {data} />
     <Sidebar.Inset>
         <SiteHeader />
         <main>
