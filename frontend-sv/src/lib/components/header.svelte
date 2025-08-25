@@ -13,10 +13,16 @@
 
    interface User {
       id: string;
-      name: string;
       email: string;
-      image?: string;
-      role?: string;
+      emailVerified: boolean;
+      name: string;
+      createdAt: Date;
+      updatedAt: Date;
+      image?: string | null | undefined | undefined;
+      banned: boolean | null | undefined;
+      role?: string | null | undefined;
+      banReason?: string | null | undefined;
+      banExpires?: Date | null | undefined;
    }
 
    let { user, isLoggedIn } = $props<{
