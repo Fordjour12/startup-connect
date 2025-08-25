@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as Form from "@/components/ui/form";
     import { Input } from "@/components/ui/input";
-    import { type LoginSchema, loginSchema } from "@/schemas/login-schema";
+    import { type LoginSchema, loginSchema } from "@/z-schema/login-schema";
     import { cn } from "@/utils";
     import LoaderCircle from "@lucide/svelte/icons/loader-circle";
     import {
