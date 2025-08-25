@@ -314,10 +314,10 @@
                             >
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="w-8 h-8 bg-green-500/10 rounded-full flex items-center justify-center"
+                                        class="w-8 h-8 bg-success0/10 rounded-full flex items-center justify-center"
                                     >
                                         <TrendingUpIcon
-                                            class="h-5 w-5 text-green-500"
+                                            class="h-5 w-5 text-success"
                                         />
                                     </div>
                                     <div>
@@ -338,10 +338,10 @@
                             >
                                 <div class="flex items-center gap-3">
                                     <div
-                                        class="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center"
+                                        class="w-8 h-8 bg-info0/10 rounded-full flex items-center justify-center"
                                     >
                                         <UsersIcon
-                                            class="h-5 w-5 text-blue-500"
+                                            class="h-5 w-5 text-info"
                                         />
                                     </div>
                                     <div>

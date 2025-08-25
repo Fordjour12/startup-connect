@@ -54,29 +54,29 @@
                 return {
                     label: "Founder",
                     icon: Rocket,
-                    color: "text-green-600",
-                    bgColor: "bg-green-50",
+                    color: "text-success",
+                    bgColor: "bg-success",
                 };
             case "investor":
                 return {
                     label: "Investor",
                     icon: DollarSign,
-                    color: "text-purple-600",
-                    bgColor: "bg-purple-50",
+                    color: "text-highlight",
+                    bgColor: "bg-highlight",
                 };
             case "support":
                 return {
                     label: "Supporter",
                     icon: Users,
-                    color: "text-blue-600",
-                    bgColor: "bg-blue-50",
+                    color: "text-info",
+                    bgColor: "bg-info",
                 };
             default:
                 return {
                     label: "Unknown",
                     icon: User,
-                    color: "text-gray-600",
-                    bgColor: "bg-gray-50",
+                    color: "text-body",
+                    bgColor: "bg-muted",
                 };
         }
     }
@@ -167,8 +167,8 @@
                 <roleInfo.icon class="size-8 {roleInfo.color}" />
             </div>
         </div>
-        <h2 class="text-2xl font-bold text-gray-900">Review Your Profile</h2>
-        <p class="text-gray-600 max-w-2xl mx-auto">
+        <h2 class="text-2xl font-bold text-heading">Review Your Profile</h2>
+        <p class="text-body max-w-2xl mx-auto">
             Please review all the information below. You can edit any section by
             clicking the edit button. Once you submit, we'll create your profile
             and get you started!
@@ -196,7 +196,7 @@
                 <Badge variant="secondary" class="text-base px-4 py-2">
                     {roleInfo.label}
                 </Badge>
-                <CheckCircle class="w-5 h-5 text-green-500" />
+                <CheckCircle class="w-5 h-5 text-success" />
             </div>
         </CardContent>
     </Card>
@@ -205,7 +205,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <User class="w-5 h-5 text-blue-600" />
+                <User class="w-5 h-5 text-info" />
                 Basic Information
             </CardTitle>
             <Button
@@ -221,12 +221,12 @@
             <div class="grid md:grid-cols-2 gap-6">
                 <!-- Essential Info -->
                 <div class="space-y-3">
-                    <h4 class="font-medium text-gray-900">
+                    <h4 class="font-medium text-heading">
                         Essential Information
                     </h4>
                     <div class="space-y-2 text-sm">
                         <div class="flex items-center gap-2">
-                            <User class="w-4 h-4 text-gray-500" />
+                            <User class="w-4 h-4 text-muted" />
                             <span class="font-medium">Name:</span>
                             <span
                                 >{formData.basicInfo?.name ||
@@ -234,7 +234,7 @@
                             >
                         </div>
                         <div class="flex items-center gap-2">
-                            <Mail class="w-4 h-4 text-gray-500" />
+                            <Mail class="w-4 h-4 text-muted" />
                             <span class="font-medium">Email:</span>
                             <span
                                 >{formData.basicInfo?.email ||
@@ -244,11 +244,11 @@
                         {#if formData.basicInfo?.bio}
                             <div class="flex items-start gap-2">
                                 <MessageCircle
-                                    class="w-4 h-4 text-gray-500 mt-0.5"
+                                    class="w-4 h-4 text-muted mt-0.5"
                                 />
                                 <div>
                                     <span class="font-medium">Bio:</span>
-                                    <p class="text-gray-600 mt-1">
+                                    <p class="text-body mt-1">
                                         {formData.basicInfo.bio}
                                     </p>
                                 </div>
@@ -259,13 +259,13 @@
 
                 <!-- Location & Professional -->
                 <div class="space-y-3">
-                    <h4 class="font-medium text-gray-900">
+                    <h4 class="font-medium text-heading">
                         Location & Professional
                     </h4>
                     <div class="space-y-2 text-sm">
                         {#if formData.basicInfo?.location || formData.basicInfo?.city}
                             <div class="flex items-center gap-2">
-                                <MapPin class="w-4 h-4 text-gray-500" />
+                                <MapPin class="w-4 h-4 text-muted" />
                                 <span class="font-medium">Location:</span>
                                 <span>
                                     {[
@@ -279,14 +279,14 @@
                         {/if}
                         {#if formData.basicInfo?.jobTitle}
                             <div class="flex items-center gap-2">
-                                <Briefcase class="w-4 h-4 text-gray-500" />
+                                <Briefcase class="w-4 h-4 text-muted" />
                                 <span class="font-medium">Position:</span>
                                 <span>{formData.basicInfo.jobTitle}</span>
                             </div>
                         {/if}
                         {#if formData.basicInfo?.industry}
                             <div class="flex items-center gap-2">
-                                <TrendingUp class="w-4 h-4 text-gray-500" />
+                                <TrendingUp class="w-4 h-4 text-muted" />
                                 <span class="font-medium">Industry:</span>
                                 <span>{formData.basicInfo.industry}</span>
                             </div>
@@ -294,7 +294,7 @@
                         {#if formData.basicInfo?.languages && formData.basicInfo.languages.length > 0}
                             <div class="flex items-start gap-2">
                                 <Languages
-                                    class="w-4 h-4 text-gray-500 mt-0.5"
+                                    class="w-4 h-4 text-muted mt-0.5"
                                 />
                                 <div>
                                     <span class="font-medium">Languages:</span>
@@ -318,23 +318,23 @@
             {#if formData.basicInfo?.phone || formData.basicInfo?.linkedinUrl || formData.basicInfo?.githubProfile || formData.basicInfo?.portfolioWebsite}
                 <Separator />
                 <div class="space-y-3">
-                    <h4 class="font-medium text-gray-900">
+                    <h4 class="font-medium text-heading">
                         Contact & Social Links
                     </h4>
                     <div class="grid md:grid-cols-2 gap-3 text-sm">
                         {#if formData.basicInfo?.phone}
                             <div class="flex items-center gap-2">
-                                <Phone class="w-4 h-4 text-gray-500" />
+                                <Phone class="w-4 h-4 text-muted" />
                                 <span>{formData.basicInfo.phone}</span>
                             </div>
                         {/if}
                         {#if formData.basicInfo?.linkedinUrl}
                             <div class="flex items-center gap-2">
-                                <Linkedin class="w-4 h-4 text-gray-500" />
+                                <Linkedin class="w-4 h-4 text-muted" />
                                 <a
                                     href={formData.basicInfo.linkedinUrl}
                                     target="_blank"
-                                    class="text-blue-600 hover:underline"
+                                    class="text-info hover:underline"
                                 >
                                     LinkedIn Profile
                                 </a>
@@ -342,11 +342,11 @@
                         {/if}
                         {#if formData.basicInfo?.githubProfile}
                             <div class="flex items-center gap-2">
-                                <Github class="w-4 h-4 text-gray-500" />
+                                <Github class="w-4 h-4 text-muted" />
                                 <a
                                     href={formData.basicInfo.githubProfile}
                                     target="_blank"
-                                    class="text-blue-600 hover:underline"
+                                    class="text-info hover:underline"
                                 >
                                     GitHub Profile
                                 </a>
@@ -354,11 +354,11 @@
                         {/if}
                         {#if formData.basicInfo?.portfolioWebsite}
                             <div class="flex items-center gap-2">
-                                <Globe class="w-4 h-4 text-gray-500" />
+                                <Globe class="w-4 h-4 text-muted" />
                                 <a
                                     href={formData.basicInfo.portfolioWebsite}
                                     target="_blank"
-                                    class="text-blue-600 hover:underline"
+                                    class="text-info hover:underline"
                                 >
                                     Portfolio Website
                                 </a>
@@ -392,7 +392,7 @@
                     <div class="grid md:grid-cols-2 gap-6 text-sm">
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <DollarSign class="w-4 h-4 text-gray-500" />
+                                <DollarSign class="w-4 h-4 text-muted" />
                                 <span class="font-medium">Investment Size:</span
                                 >
                                 <Badge variant="outline"
@@ -401,7 +401,7 @@
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <Target class="w-4 h-4 text-gray-500" />
+                                <Target class="w-4 h-4 text-muted" />
                                 <span class="font-medium">Risk Appetite:</span>
                                 <Badge variant="outline"
                                     >{formData.investorInfo.riskAppetite}</Badge
@@ -409,7 +409,7 @@
                             </div>
                             {#if formData.investorInfo.portfolioCompanies}
                                 <div class="flex items-center gap-2">
-                                    <TrendingUp class="w-4 h-4 text-gray-500" />
+                                    <TrendingUp class="w-4 h-4 text-muted" />
                                     <span class="font-medium"
                                         >Portfolio Companies:</span
                                     >
@@ -424,7 +424,7 @@
                             {#if formData.investorInfo.preferredStages?.length > 0}
                                 <div class="flex items-start gap-2">
                                     <TrendingUp
-                                        class="w-4 h-4 text-gray-500 mt-0.5"
+                                        class="w-4 h-4 text-muted mt-0.5"
                                     />
                                     <div>
                                         <span class="font-medium"
@@ -450,7 +450,7 @@
                             <span class="font-medium text-sm"
                                 >Investment History:</span
                             >
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-body">
                                 {formData.investorInfo.investmentHistory}
                             </p>
                         </div>
@@ -459,7 +459,7 @@
                     <div class="grid md:grid-cols-2 gap-6 text-sm">
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <Clock class="size-4 text-gray-500" />
+                                <Clock class="size-4 text-muted" />
                                 <span class="font-medium">Availability:</span>
                                 <Badge variant="outline"
                                     >{formData.supporterInfo
@@ -468,7 +468,7 @@
                             </div>
                             {#if formData.supporterInfo.hourlyRate}
                                 <div class="flex items-center gap-2">
-                                    <DollarSign class="w-4 h-4 text-gray-500" />
+                                    <DollarSign class="w-4 h-4 text-muted" />
                                     <span class="font-medium">Hourly Rate:</span
                                     >
                                     <span
@@ -482,7 +482,7 @@
                             {#if formData.supporterInfo.supportType?.length > 0}
                                 <div class="flex items-start gap-2">
                                     <Users
-                                        class="size-4 text-gray-500 mt-0.5"
+                                        class="size-4 text-muted mt-0.5"
                                     />
                                     <div>
                                         <span class="font-medium"
@@ -508,7 +508,7 @@
                             <span class="font-medium text-sm"
                                 >Areas of Expertise:</span
                             >
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-body">
                                 {formData.supporterInfo.expertise}
                             </p>
                         </div>
@@ -522,7 +522,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <Target class="size-5 text-green-600" />
+                <Target class="size-5 text-success" />
                 Goals & Objectives
             </CardTitle>
             <Button
@@ -538,14 +538,14 @@
             <div class="grid md:grid-cols-2 gap-6 text-sm">
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <Target class="size-4 text-gray-500" />
+                        <Target class="size-4 text-muted" />
                         <span class="font-medium">Primary Goal:</span>
                         <Badge variant="default"
                             >{formData.goals?.primaryGoal || "Not set"}</Badge
                         >
                     </div>
                     <div class="flex items-center gap-2">
-                        <Clock class="size-4 text-gray-500" />
+                        <Clock class="size-4 text-muted" />
                         <span class="font-medium">Time Commitment:</span>
                         <span
                             >{formatTimeCommitment(
@@ -557,7 +557,7 @@
                 <div class="space-y-3">
                     {#if formData.goals?.specificNeeds?.length > 0}
                         <div class="flex items-start gap-2">
-                            <Users class="size-4 text-gray-500 mt-0.5" />
+                            <Users class="size-4 text-muted mt-0.5" />
                             <div>
                                 <span class="font-medium">Specific Needs:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
@@ -611,7 +611,7 @@
                 <Separator />
                 <div class="space-y-2">
                     <span class="font-medium text-sm">Additional Goals:</span>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-body">
                         {formData.goals.additionalGoals}
                     </p>
                 </div>
@@ -623,7 +623,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <Award class="size-5 text-purple-600" />
+                <Award class="size-5 text-highlight" />
                 Skills & Experience
             </CardTitle>
             <Button
@@ -639,7 +639,7 @@
             <div class="grid md:grid-cols-2 gap-6 text-sm">
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <Award class="size-4 text-gray-500" />
+                        <Award class="size-4 text-muted" />
                         <span class="font-medium">Experience Level:</span>
                         <Badge variant="outline"
                             >{formatExperienceLevel(
@@ -651,7 +651,7 @@
                 <div class="space-y-3">
                     {#if formData.skills?.industries?.length > 0}
                         <div class="flex items-start gap-2">
-                            <TrendingUp class="size-4 text-gray-500 mt-0.5" />
+                            <TrendingUp class="size-4 text-muted mt-0.5" />
                             <div>
                                 <span class="font-medium">Industries:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
@@ -689,7 +689,7 @@
                             <span class="font-medium text-sm"
                                 >Areas of Expertise:</span
                             >
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-body">
                                 {formData.skills.expertiseAreas}
                             </p>
                         </div>
@@ -699,7 +699,7 @@
                             <span class="font-medium text-sm"
                                 >Achievements:</span
                             >
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-body">
                                 {formData.skills.achievements}
                             </p>
                         </div>
@@ -709,7 +709,7 @@
                             <span class="font-medium text-sm"
                                 >Certifications:</span
                             >
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-body">
                                 {formData.skills.certifications}
                             </p>
                         </div>
@@ -741,7 +741,7 @@
                     {#if formData.preferences?.communicationMethods?.length > 0}
                         <div class="flex items-start gap-2">
                             <MessageCircle
-                                class="size-4 text-gray-500 mt-0.5"
+                                class="size-4 text-muted mt-0.5"
                             />
                             <div>
                                 <span class="font-medium"
@@ -761,7 +761,7 @@
                     {/if}
                     {#if formData.preferences?.themePreference}
                         <div class="flex items-center gap-2">
-                            <Palette class="size-4 text-gray-500" />
+                            <Palette class="size-4 text-muted" />
                             <span class="font-medium">Theme:</span>
                             <Badge variant="outline"
                                 >{formatTheme(
@@ -774,7 +774,7 @@
                 <div class="space-y-3">
                     {#if formData.preferences?.notificationTypes?.length > 0}
                         <div class="flex items-start gap-2">
-                            <Bell class="size-4 text-gray-500 mt-0.5" />
+                            <Bell class="size-4 text-muted mt-0.5" />
                             <div>
                                 <span class="font-medium">Notifications:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
@@ -795,14 +795,14 @@
     </Card>
 
     <!-- Submit Section -->
-    <Card class="border-green-200 bg-green-50">
+    <Card class="border-success bg-success">
         <CardContent class="pt-6">
             <div class="text-center space-y-6">
                 <div class="space-y-2">
-                    <h3 class="text-lg font-semibold text-green-900">
+                    <h3 class="text-lg font-semibold text-success">
                         Ready to Join Startup Connect?
                     </h3>
-                    <p class="text-sm text-green-700">
+                    <p class="text-sm text-success">
                         By submitting, you agree to our Terms of Service and
                         Privacy Policy. You can always update your profile
                         information later.
@@ -811,7 +811,7 @@
 
                 {#if submitError}
                     <div
-                        class="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg border border-red-200"
+                        class="flex items-center gap-2 text-error bg-error p-3 rounded-lg border border-error"
                     >
                         <AlertCircle class="w-5 h-5" />
                         <span class="text-sm">{submitError}</span>
@@ -822,7 +822,7 @@
                     onclick={handleSubmit}
                     disabled={isSubmitting}
                     size="lg"
-                    class="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+                    class="bg-success hover:bg-success text-white px-8 py-3"
                 >
                     {#if isSubmitting}
                         <div
@@ -835,7 +835,7 @@
                     {/if}
                 </Button>
 
-                <p class="text-xs text-green-600">
+                <p class="text-xs text-success">
                     This will create your profile and give you access to the
                     full platform
                 </p>
@@ -844,7 +844,7 @@
     </Card>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-gray-500 space-y-2">
+    <div class="text-center text-sm text-muted space-y-2">
         <p>
             Need to make changes? Click any "Edit" button above to go back to
             that step

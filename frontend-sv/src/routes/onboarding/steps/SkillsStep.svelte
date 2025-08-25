@@ -277,7 +277,7 @@
                 <Star class="size-5 text-yellow-600" />
                 Experience Level *
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 How would you describe your overall professional experience?
             </p>
         </CardHeader>
@@ -285,7 +285,7 @@
             <RadioGroup bind:value={formData.experienceLevel}>
                 {#each experienceLevels as level}
                     <div
-                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50"
+                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted"
                     >
                         <RadioGroupItem
                             value={level.value}
@@ -297,7 +297,7 @@
                                 <span class="text-2xl">{level.icon}</span>
                                 <div>
                                     <div class="font-medium">{level.label}</div>
-                                    <div class="text-sm text-gray-500 mt-1">
+                                    <div class="text-sm text-muted mt-1">
                                         {level.description}
                                     </div>
                                 </div>
@@ -307,7 +307,7 @@
                 {/each}
             </RadioGroup>
             {#if errors.experienceLevel}
-                <p class="text-sm text-red-500">{errors.experienceLevel}</p>
+                <p class="text-sm text-error">{errors.experienceLevel}</p>
             {/if}
         </CardContent>
     </Card>
@@ -316,10 +316,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Code class="size-5 text-blue-600" />
+                <Code class="size-5 text-info" />
                 Skills & Expertise *
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 Add your key skills, both technical and soft skills
             </p>
         </CardHeader>
@@ -387,7 +387,7 @@
                         <Plus class="w-4 h-4" />
                     </Button>
                 </div>
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted">
                     Press Enter or comma to add multiple skills quickly
                 </p>
             </div>
@@ -400,7 +400,7 @@
                         {#each formData.skills as skill}
                             <Badge
                                 variant="secondary"
-                                class="cursor-pointer hover:bg-red-100 transition-colors"
+                                class="cursor-pointer hover:bg-error transition-colors"
                                 onclick={() => removeSkill(skill)}
                             >
                                 {skill}
@@ -412,7 +412,7 @@
             {/if}
 
             {#if errors.skills}
-                <p class="text-sm text-red-500">{errors.skills}</p>
+                <p class="text-sm text-error">{errors.skills}</p>
             {/if}
         </CardContent>
     </Card>
@@ -421,10 +421,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <TrendingUp class="size-5 text-green-600" />
+                <TrendingUp class="size-5 text-success" />
                 Industry Experience
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 Which industries have you worked in or have experience with?
                 (Optional)
             </p>
@@ -478,7 +478,7 @@
                         {#each formData.industries as industry}
                             <Badge
                                 variant="outline"
-                                class="cursor-pointer hover:bg-red-100 transition-colors"
+                                class="cursor-pointer hover:bg-error transition-colors"
                                 onclick={() => removeIndustry(industry)}
                             >
                                 {industry}
@@ -495,10 +495,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Target class="size-5 text-purple-600" />
+                <Target class="size-5 text-highlight" />
                 Areas of Expertise
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 Describe your specific areas of expertise in more detail
                 (Optional)
             </p>
@@ -512,7 +512,7 @@
                     rows={4}
                     maxlength={1000}
                 />
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted">
                     {formData.expertiseAreas.length}/1000 characters
                 </p>
             </div>
@@ -526,7 +526,7 @@
                 <Award class="size-5 text-yellow-600" />
                 Notable Achievements
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 Share any significant accomplishments, awards, or milestones
                 (Optional)
             </p>
@@ -540,7 +540,7 @@
                     rows={4}
                     maxlength={1000}
                 />
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted">
                     {formData.achievements.length}/1000 characters
                 </p>
             </div>
@@ -554,7 +554,7 @@
                 <Briefcase class="size-5 text-indigo-600" />
                 Certifications & Credentials
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 List any relevant certifications, licenses, or credentials
                 (Optional)
             </p>
@@ -568,7 +568,7 @@
                     rows={3}
                     maxlength={1000}
                 />
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted">
                     {formData.certifications.length}/1000 characters
                 </p>
             </div>
@@ -588,7 +588,7 @@
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-gray-500 space-y-2">
+    <div class="text-center text-sm text-muted space-y-2">
         <p>
             Your skills help us match you with relevant opportunities and
             connections

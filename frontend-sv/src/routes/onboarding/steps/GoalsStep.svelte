@@ -384,8 +384,8 @@
 <div class="space-y-8">
     <!-- Header -->
     <div class="text-center space-y-2">
-        <h2 class="text-2xl font-bold text-gray-900">What are your goals?</h2>
-        <p class="text-gray-600">
+        <h2 class="text-2xl font-bold text-heading">What are your goals?</h2>
+        <p class="text-body">
             Help us understand what you want to achieve on Startup Connect
         </p>
     </div>
@@ -394,10 +394,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Target class="w-5 h-5 text-blue-600" />
+                <Target class="w-5 h-5 text-info" />
                 Personal Goals
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 What do you personally hope to achieve? (Optional but
                 recommended)
             </p>
@@ -457,7 +457,7 @@
                         {#each formData.personalGoals as goal}
                             <Badge
                                 variant="secondary"
-                                class="cursor-pointer hover:bg-red-100 transition-colors"
+                                class="cursor-pointer hover:bg-error transition-colors"
                                 onclick={() => removePersonalGoal(goal)}
                             >
                                 {goal}
@@ -474,10 +474,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Rocket class="w-5 h-5 text-blue-600" />
+                <Rocket class="w-5 h-5 text-info" />
                 Platform Goals
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 What do you want to accomplish on Startup Connect? (Optional)
             </p>
         </CardHeader>
@@ -536,7 +536,7 @@
                         {#each formData.platformGoals as goal}
                             <Badge
                                 variant="secondary"
-                                class="cursor-pointer hover:bg-red-100 transition-colors"
+                                class="cursor-pointer hover:bg-error transition-colors"
                                 onclick={() => removePlatformGoal(goal)}
                             >
                                 {goal}
@@ -553,10 +553,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <TrendingUp class="w-5 h-5 text-green-600" />
+                <TrendingUp class="w-5 h-5 text-success" />
                 Primary Goal *
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 What's the most important thing you want to achieve right now?
             </p>
         </CardHeader>
@@ -564,7 +564,7 @@
             <RadioGroup bind:value={formData.primaryGoal}>
                 {#each (currentRole && primaryGoalOptions[currentRole]) || [] as option}
                     <div
-                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50"
+                        class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted"
                     >
                         <RadioGroupItem
                             value={option.value}
@@ -574,13 +574,13 @@
                         <Label for={option.value} class="flex-1 cursor-pointer">
                             <div class="flex items-start gap-3">
                                 <div class="p-2 bg-gray-100 rounded-lg">
-                                    <option.icon class="size-4 text-gray-600" />
+                                    <option.icon class="size-4 text-body" />
                                 </div>
                                 <div>
                                     <div class="font-medium">
                                         {option.label}
                                     </div>
-                                    <div class="text-sm text-gray-500 mt-1">
+                                    <div class="text-sm text-muted mt-1">
                                         {option.description}
                                     </div>
                                 </div>
@@ -590,7 +590,7 @@
                 {/each}
             </RadioGroup>
             {#if errors.primaryGoal}
-                <p class="text-sm text-red-500">{errors.primaryGoal}</p>
+                <p class="text-sm text-error">{errors.primaryGoal}</p>
             {/if}
         </CardContent>
     </Card>
@@ -599,10 +599,10 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Users class="w-5 h-5 text-purple-600" />
+                <Users class="w-5 h-5 text-highlight" />
                 Specific Needs *
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 What specific help or support are you looking for? (Select
                 multiple)
             </p>
@@ -611,7 +611,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {#each (currentRole && specificNeedsOptions[currentRole]) || [] as need}
                     <button
-                        class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                        class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-muted cursor-pointer"
                         onclick={() => toggleSpecificNeed(need)}
                     >
                         <Checkbox
@@ -625,7 +625,7 @@
                 {/each}
             </div>
             {#if errors.specificNeeds}
-                <p class="text-sm text-red-500">{errors.specificNeeds}</p>
+                <p class="text-sm text-error">{errors.specificNeeds}</p>
             {/if}
         </CardContent>
     </Card>
@@ -637,7 +637,7 @@
                 <Clock class="w-5 h-5 text-orange-600" />
                 Time Commitment *
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 How much time can you dedicate to your startup activities?
             </p>
         </CardHeader>
@@ -652,7 +652,7 @@
                         <Label for={option.value} class="flex-1 cursor-pointer">
                             <div class="flex flex-col">
                                 <span class="font-medium">{option.label}</span>
-                                <span class="text-sm text-gray-500"
+                                <span class="text-sm text-muted"
                                     >{option.description}</span
                                 >
                             </div>
@@ -661,7 +661,7 @@
                 {/each}
             </RadioGroup>
             {#if errors.timeCommitment}
-                <p class="text-sm text-red-500">{errors.timeCommitment}</p>
+                <p class="text-sm text-error">{errors.timeCommitment}</p>
             {/if}
         </CardContent>
     </Card>
@@ -673,7 +673,7 @@
                 <Lightbulb class="w-5 h-5 text-yellow-600" />
                 Additional Goals & Notes
             </CardTitle>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-body">
                 Anything else you'd like to share about your goals? (Optional)
             </p>
         </CardHeader>
@@ -686,7 +686,7 @@
                     rows={4}
                     maxlength={300}
                 />
-                <p class="text-xs text-gray-500">
+                <p class="text-xs text-muted">
                     {formData.additionalGoals.length}/300 characters
                 </p>
             </div>
@@ -706,7 +706,7 @@
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-gray-500">
+    <div class="text-center text-sm text-muted">
         <p>
             Your goals help us personalize your experience and show you relevant
             matches

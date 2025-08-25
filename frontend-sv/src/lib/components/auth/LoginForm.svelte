@@ -29,7 +29,7 @@
     <form method="POST" use:enhance>
         <!-- {#if successMessage}
             <div
-                class="mb-4 p-3 rounded-md border border-green-500 bg-green-50 text-green-700 text-sm flex items-center gap-2"
+                class="mb-4 p-3 rounded-md border border-success bg-success text-success text-sm flex items-center gap-2"
             >
                 <CheckCircle class="h-4 w-4" />
                 {successMessage}

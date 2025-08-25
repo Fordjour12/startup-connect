@@ -306,12 +306,12 @@
 <div class="space-y-8">
     <!-- Header -->
     <div class="text-center space-y-2">
-        <h2 class="text-2xl font-bold text-gray-900">
+        <h2 class="text-2xl font-bold text-heading">
             Tell us more about your {currentRole === "support"
                 ? "expertise"
                 : currentRole.toLowerCase()} interests
         </h2>
-        <p class="text-gray-600">
+        <p class="text-muted">
             This helps us match you with the most relevant opportunities
         </p>
     </div>
@@ -323,10 +323,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <DollarSign class="w-5 h-5 text-purple-600" />
+                        <DollarSign class="w-5 h-5 text-role-investor" />
                         Investment Size
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         What's your typical investment range?
                     </p>
                 </CardHeader>
@@ -346,7 +346,7 @@
                                         <span class="font-medium"
                                             >{option.label}</span
                                         >
-                                        <span class="text-sm text-gray-500"
+                                        <span class="text-sm text-muted"
                                             >{option.description}</span
                                         >
                                     </div>
@@ -355,7 +355,7 @@
                         {/each}
                     </RadioGroup>
                     {#if errors.investmentSize}
-                        <p class="text-sm text-red-500">
+                        <p class="text-sm text-error">
                             {errors.investmentSize}
                         </p>
                     {/if}
@@ -366,10 +366,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <TrendingUp class="w-5 h-5 text-purple-600" />
+                        <TrendingUp class="w-5 h-5 text-role-investor" />
                         Preferred Investment Stages
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         Which stages are you most interested in? (Select
                         multiple)
                     </p>
@@ -378,7 +378,7 @@
                     <div class="grid gap-3">
                         {#each investmentStages as stage}
                             <button
-                                class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                                class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                                 onclick={() =>
                                     toggleInvestmentStage(stage.value)}
                             >
@@ -391,7 +391,7 @@
                                 />
                                 <div class="flex-1">
                                     <div class="font-medium">{stage.label}</div>
-                                    <div class="text-sm text-gray-500">
+                                    <div class="text-sm text-muted">
                                         {stage.description}
                                     </div>
                                 </div>
@@ -399,7 +399,7 @@
                         {/each}
                     </div>
                     {#if errors.preferredStages}
-                        <p class="text-sm text-red-500">
+                        <p class="text-sm text-error">
                             {errors.preferredStages}
                         </p>
                     {/if}
@@ -410,10 +410,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Target class="w-5 h-5 text-purple-600" />
+                        <Target class="w-5 h-5 text-role-investor" />
                         Risk Appetite
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         How would you describe your investment risk tolerance?
                     </p>
                 </CardHeader>
@@ -433,7 +433,7 @@
                                         <span class="font-medium"
                                             >{option.label}</span
                                         >
-                                        <span class="text-sm text-gray-500"
+                                        <span class="text-sm text-muted"
                                             >{option.description}</span
                                         >
                                     </div>
@@ -442,7 +442,7 @@
                         {/each}
                     </RadioGroup>
                     {#if errors.riskAppetite}
-                        <p class="text-sm text-red-500">
+                        <p class="text-sm text-error">
                             {errors.riskAppetite}
                         </p>
                     {/if}
@@ -453,10 +453,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Building class="w-5 h-5 text-purple-600" />
+                        <Building class="w-5 h-5 text-role-investor" />
                         Portfolio Companies
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         How many companies are currently in your portfolio?
                     </p>
                 </CardHeader>
@@ -478,10 +478,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Star class="w-5 h-5 text-purple-600" />
+                        <Star class="w-5 h-5 text-role-investor" />
                         Investment History
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         Tell us about your investment experience and track
                         record
                     </p>
@@ -493,7 +493,7 @@
                         maxlength={500}
                         rows={4}
                     />
-                    <p class="text-sm text-gray-500 mt-2">
+                    <p class="text-sm text-muted mt-2">
                         {investorData.investmentHistory.length}/500
                     </p>
                 </CardContent>
@@ -506,10 +506,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <HandHeart class="w-5 h-5 text-blue-600" />
+                        <HandHeart class="w-5 h-5 text-role-support" />
                         Types of Support You Offer
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         Select all the types of support you can provide
                     </p>
                 </CardHeader>
@@ -517,7 +517,7 @@
                     <div class="grid gap-3">
                         {#each supportTypes as type}
                             <button
-                                class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                                class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                                 onclick={() => toggleSupportType(type)}
                             >
                                 <Checkbox
@@ -534,7 +534,7 @@
                         {/each}
                     </div>
                     {#if errors.supportType}
-                        <p class="text-sm text-red-500">{errors.supportType}</p>
+                        <p class="text-sm text-error">{errors.supportType}</p>
                     {/if}
                 </CardContent>
             </Card>
@@ -543,10 +543,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Clock class="w-5 h-5 text-blue-600" />
+                        <Clock class="w-5 h-5 text-role-support" />
                         Availability
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         How would you prefer to work with startups?
                     </p>
                 </CardHeader>
@@ -566,7 +566,7 @@
                                         <span class="font-medium"
                                             >{option.label}</span
                                         >
-                                        <span class="text-sm text-gray-500"
+                                        <span class="text-sm text-muted"
                                             >{option.description}</span
                                         >
                                     </div>
@@ -575,7 +575,7 @@
                         {/each}
                     </RadioGroup>
                     {#if errors.availability}
-                        <p class="text-sm text-red-500">
+                        <p class="text-sm text-error">
                             {errors.availability}
                         </p>
                     {/if}
@@ -586,10 +586,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <DollarSign class="w-5 h-5 text-blue-600" />
+                        <DollarSign class="w-5 h-5 text-role-support" />
                         Hourly Rate
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         What's your typical hourly rate? (Optional)
                     </p>
                 </CardHeader>
@@ -612,10 +612,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Lightbulb class="w-5 h-5 text-blue-600" />
+                        <Lightbulb class="w-5 h-5 text-role-support" />
                         Expertise
                     </CardTitle>
-                    <p class="text-sm text-gray-600">
+                    <p class="text-sm text-muted">
                         Tell us about your specific expertise and experience
                     </p>
                 </CardHeader>
@@ -626,7 +626,7 @@
                         maxlength={500}
                         rows={4}
                     />
-                    <p class="text-sm text-gray-500 mt-2">
+                    <p class="text-sm text-muted mt-2">
                         {supporterData.expertise.length}/500 characters
                     </p>
                 </CardContent>
@@ -637,10 +637,10 @@
         <Card>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
-                    <Rocket class="w-5 h-5 text-green-600" />
+                    <Rocket class="w-5 h-5 text-role-founder" />
                     Founder Details
                 </CardTitle>
-                <p class="text-sm text-gray-600">
+                <p class="text-sm text-muted">
                     Founder-specific questions will be available soon. For now,
                     you can proceed to the next step.
                 </p>
@@ -661,7 +661,7 @@
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-gray-500">
+    <div class="text-center text-sm text-muted">
         <p>This information helps us show you the most relevant matches</p>
         <p>You can always update these preferences later in your profile</p>
     </div>
