@@ -26,8 +26,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const onboardingData = result.data;
 
+    console.log("onboardingData:", onboardingData);
+
     // Check if user already has a profile
     const existingProfile = await getUserProfile(userId);
+
+    console.log("existingProfile:", existingProfile);
 
     if (existingProfile.success && existingProfile.profile) {
       // Update existing profile

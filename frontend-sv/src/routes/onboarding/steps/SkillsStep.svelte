@@ -22,35 +22,19 @@
         Briefcase,
     } from "@lucide/svelte";
 
-    interface SkillsFormData {
-        skills: string[];
-        experienceLevel: string;
-        industries: string[];
-        achievements: string;
-        expertiseAreas: string;
-        certifications: string;
-    }
-
-    interface OnboardingData {
-        formData: {
-            skills?: SkillsFormData;
-            role: string;
-        };
-        updateFormData: (data: { skills: SkillsFormData }) => void;
-        markStepComplete: (step: string) => void;
-        goNext: () => Promise<void>;
-    }
+    import type { OnboardingState } from "@/hooks/onboarding-state.svelte";
 
     interface Props {
-        onboarding: OnboardingData;
+        onboarding: OnboardingState;
     }
 
     let { onboarding }: Props = $props();
 
     // Form data binding
-    let formData = $state<SkillsFormData>({
+    let formData = $state({
         skills: onboarding.formData.skills?.skills || [],
-        experienceLevel: onboarding.formData.skills?.experienceLevel || "",
+        experienceLevel:
+            onboarding.formData.skills?.experienceLevel || "beginner",
         industries: onboarding.formData.skills?.industries || [],
         achievements: onboarding.formData.skills?.achievements || "",
         expertiseAreas: onboarding.formData.skills?.expertiseAreas || "",
@@ -116,7 +100,7 @@
 
     // Suggested skills based on role
     const suggestedSkills: Record<string, string[]> = {
-        FOUNDER: [
+        founder: [
             "Leadership",
             "Strategic Planning",
             "Product Management",
@@ -134,7 +118,7 @@
             "Decision Making",
             "Communication",
         ],
-        INVESTOR: [
+        investor: [
             "Due Diligence",
             "Financial Analysis",
             "Market Research",
@@ -152,7 +136,7 @@
             "Trend Analysis",
             "Investment Strategy",
         ],
-        SUPPORT: [
+        support: [
             "Consulting",
             "Project Management",
             "Strategic Advisory",
@@ -242,11 +226,13 @@
     }
 
     function removeSkill(skill: string): void {
-        formData.skills = formData.skills.filter((s) => s !== skill);
+        formData.skills = formData.skills.filter((s: string) => s !== skill);
     }
 
     function removeIndustry(industry: string): void {
-        formData.industries = formData.industries.filter((i) => i !== industry);
+        formData.industries = formData.industries.filter(
+            (i: string) => i !== industry,
+        );
     }
 
     function addSuggestedSkill(skill: string): void {
@@ -284,12 +270,11 @@
 </script>
 
 <div class="space-y-8">
-
     <!-- Experience Level -->
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Star class="w-5 h-5 text-yellow-600" />
+                <Star class="size-5 text-yellow-600" />
                 Experience Level *
             </CardTitle>
             <p class="text-sm text-gray-600">
@@ -331,7 +316,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Code class="w-5 h-5 text-blue-600" />
+                <Code class="size-5 text-blue-600" />
                 Skills & Expertise *
             </CardTitle>
             <p class="text-sm text-gray-600">
@@ -354,7 +339,7 @@
                                 disabled={formData.skills.includes(skill)}
                                 class="text-xs h-8"
                             >
-                                <Plus class="w-3 h-3 mr-1" />
+                                <Plus class="size-3 mr-1" />
                                 {skill}
                             </Button>
                         {/each}
@@ -419,7 +404,7 @@
                                 onclick={() => removeSkill(skill)}
                             >
                                 {skill}
-                                <X class="w-3 h-3 ml-1" />
+                                <X class="size-3 ml-1" />
                             </Badge>
                         {/each}
                     </div>
@@ -436,7 +421,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <TrendingUp class="w-5 h-5 text-green-600" />
+                <TrendingUp class="size-5 text-green-600" />
                 Industry Experience
             </CardTitle>
             <p class="text-sm text-gray-600">
@@ -457,7 +442,7 @@
                             disabled={formData.industries.includes(industry)}
                             class="text-xs h-8"
                         >
-                            <Plus class="w-3 h-3 mr-1" />
+                            <Plus class="size-3 mr-1" />
                             {industry}
                         </Button>
                     {/each}
@@ -480,7 +465,7 @@
                         onclick={addIndustry}
                         disabled={!industryInput.trim()}
                     >
-                        <Plus class="w-4 h-4" />
+                        <Plus class="size-4" />
                     </Button>
                 </div>
             </div>
@@ -497,7 +482,7 @@
                                 onclick={() => removeIndustry(industry)}
                             >
                                 {industry}
-                                <X class="w-3 h-3 ml-1" />
+                                <X class="size-3 ml-1" />
                             </Badge>
                         {/each}
                     </div>
@@ -510,7 +495,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Target class="w-5 h-5 text-purple-600" />
+                <Target class="size-5 text-purple-600" />
                 Areas of Expertise
             </CardTitle>
             <p class="text-sm text-gray-600">
@@ -538,7 +523,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Award class="w-5 h-5 text-yellow-600" />
+                <Award class="size-5 text-yellow-600" />
                 Notable Achievements
             </CardTitle>
             <p class="text-sm text-gray-600">
@@ -566,7 +551,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Briefcase class="w-5 h-5 text-indigo-600" />
+                <Briefcase class="size-5 text-indigo-600" />
                 Certifications & Credentials
             </CardTitle>
             <p class="text-sm text-gray-600">

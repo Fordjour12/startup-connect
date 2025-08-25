@@ -50,21 +50,21 @@
     // Get role display info
     function getRoleInfo(role: string) {
         switch (role) {
-            case "FOUNDER":
+            case "founder":
                 return {
                     label: "Founder",
                     icon: Rocket,
                     color: "text-green-600",
                     bgColor: "bg-green-50",
                 };
-            case "INVESTOR":
+            case "investor":
                 return {
                     label: "Investor",
                     icon: DollarSign,
                     color: "text-purple-600",
                     bgColor: "bg-purple-50",
                 };
-            case "SUPPORT":
+            case "support":
                 return {
                     label: "Supporter",
                     icon: Users,
@@ -164,10 +164,7 @@
     <div class="text-center space-y-4">
         <div class="flex justify-center mb-4">
             <div class="{roleInfo.bgColor} p-4 rounded-full">
-                <svelte:component
-                    this={roleInfo.icon}
-                    class="w-8 h-8 {roleInfo.color}"
-                />
+                <roleInfo.icon class="size-8 {roleInfo.color}" />
             </div>
         </div>
         <h2 class="text-2xl font-bold text-gray-900">Review Your Profile</h2>
@@ -182,10 +179,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <svelte:component
-                    this={roleInfo.icon}
-                    class="w-5 h-5 {roleInfo.color}"
-                />
+                <roleInfo.icon class="size-5 {roleInfo.color}" />
                 Role Selection
             </CardTitle>
             <Button
@@ -377,14 +371,11 @@
     </Card>
 
     <!-- Role-Specific Details Review -->
-    {#if (currentRole === "INVESTOR" && formData.investorInfo) || (currentRole === "SUPPORT" && formData.supporterInfo)}
+    {#if (currentRole === "investor" && formData.investorInfo) || (currentRole === "support" && formData.supporterInfo)}
         <Card>
             <CardHeader class="flex flex-row items-center justify-between">
                 <CardTitle class="flex items-center gap-2">
-                    <svelte:component
-                        this={roleInfo.icon}
-                        class="w-5 h-5 {roleInfo.color}"
-                    />
+                    <roleInfo.icon class="size-5 {roleInfo.color}" />
                     {roleInfo.label} Details
                 </CardTitle>
                 <Button
@@ -397,7 +388,7 @@
                 </Button>
             </CardHeader>
             <CardContent class="space-y-4">
-                {#if currentRole === "INVESTOR" && formData.investorInfo}
+                {#if currentRole === "investor" && formData.investorInfo}
                     <div class="grid md:grid-cols-2 gap-6 text-sm">
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
@@ -464,11 +455,11 @@
                             </p>
                         </div>
                     {/if}
-                {:else if currentRole === "SUPPORT" && formData.supporterInfo}
+                {:else if currentRole === "support" && formData.supporterInfo}
                     <div class="grid md:grid-cols-2 gap-6 text-sm">
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <Clock class="w-4 h-4 text-gray-500" />
+                                <Clock class="size-4 text-gray-500" />
                                 <span class="font-medium">Availability:</span>
                                 <Badge variant="outline"
                                     >{formData.supporterInfo
@@ -491,7 +482,7 @@
                             {#if formData.supporterInfo.supportType?.length > 0}
                                 <div class="flex items-start gap-2">
                                     <Users
-                                        class="w-4 h-4 text-gray-500 mt-0.5"
+                                        class="size-4 text-gray-500 mt-0.5"
                                     />
                                     <div>
                                         <span class="font-medium"
@@ -531,7 +522,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <Target class="w-5 h-5 text-green-600" />
+                <Target class="size-5 text-green-600" />
                 Goals & Objectives
             </CardTitle>
             <Button
@@ -539,7 +530,7 @@
                 size="sm"
                 onclick={() => handleEditStep("goals")}
             >
-                <Edit class="w-4 h-4 mr-1" />
+                <Edit class="size-4 mr-1" />
                 Edit
             </Button>
         </CardHeader>
@@ -547,14 +538,14 @@
             <div class="grid md:grid-cols-2 gap-6 text-sm">
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <Target class="w-4 h-4 text-gray-500" />
+                        <Target class="size-4 text-gray-500" />
                         <span class="font-medium">Primary Goal:</span>
                         <Badge variant="default"
                             >{formData.goals?.primaryGoal || "Not set"}</Badge
                         >
                     </div>
                     <div class="flex items-center gap-2">
-                        <Clock class="w-4 h-4 text-gray-500" />
+                        <Clock class="size-4 text-gray-500" />
                         <span class="font-medium">Time Commitment:</span>
                         <span
                             >{formatTimeCommitment(
@@ -566,7 +557,7 @@
                 <div class="space-y-3">
                     {#if formData.goals?.specificNeeds?.length > 0}
                         <div class="flex items-start gap-2">
-                            <Users class="w-4 h-4 text-gray-500 mt-0.5" />
+                            <Users class="size-4 text-gray-500 mt-0.5" />
                             <div>
                                 <span class="font-medium">Specific Needs:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
@@ -632,7 +623,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <Award class="w-5 h-5 text-purple-600" />
+                <Award class="size-5 text-purple-600" />
                 Skills & Experience
             </CardTitle>
             <Button
@@ -640,7 +631,7 @@
                 size="sm"
                 onclick={() => handleEditStep("skills")}
             >
-                <Edit class="w-4 h-4 mr-1" />
+                <Edit class="size-4 mr-1" />
                 Edit
             </Button>
         </CardHeader>
@@ -648,7 +639,7 @@
             <div class="grid md:grid-cols-2 gap-6 text-sm">
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <Award class="w-4 h-4 text-gray-500" />
+                        <Award class="size-4 text-gray-500" />
                         <span class="font-medium">Experience Level:</span>
                         <Badge variant="outline"
                             >{formatExperienceLevel(
@@ -660,7 +651,7 @@
                 <div class="space-y-3">
                     {#if formData.skills?.industries?.length > 0}
                         <div class="flex items-start gap-2">
-                            <TrendingUp class="w-4 h-4 text-gray-500 mt-0.5" />
+                            <TrendingUp class="size-4 text-gray-500 mt-0.5" />
                             <div>
                                 <span class="font-medium">Industries:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
@@ -732,7 +723,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <Settings class="w-5 h-5 text-orange-600" />
+                <Settings class="size-5 text-orange-600" />
                 Communication Preferences
             </CardTitle>
             <Button
@@ -740,7 +731,7 @@
                 size="sm"
                 onclick={() => handleEditStep("preferences")}
             >
-                <Edit class="w-4 h-4 mr-1" />
+                <Edit class="size-4 mr-1" />
                 Edit
             </Button>
         </CardHeader>
@@ -750,7 +741,7 @@
                     {#if formData.preferences?.communicationMethods?.length > 0}
                         <div class="flex items-start gap-2">
                             <MessageCircle
-                                class="w-4 h-4 text-gray-500 mt-0.5"
+                                class="size-4 text-gray-500 mt-0.5"
                             />
                             <div>
                                 <span class="font-medium"
@@ -770,7 +761,7 @@
                     {/if}
                     {#if formData.preferences?.themePreference}
                         <div class="flex items-center gap-2">
-                            <Palette class="w-4 h-4 text-gray-500" />
+                            <Palette class="size-4 text-gray-500" />
                             <span class="font-medium">Theme:</span>
                             <Badge variant="outline"
                                 >{formatTheme(
@@ -783,7 +774,7 @@
                 <div class="space-y-3">
                     {#if formData.preferences?.notificationTypes?.length > 0}
                         <div class="flex items-start gap-2">
-                            <Bell class="w-4 h-4 text-gray-500 mt-0.5" />
+                            <Bell class="size-4 text-gray-500 mt-0.5" />
                             <div>
                                 <span class="font-medium">Notifications:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">

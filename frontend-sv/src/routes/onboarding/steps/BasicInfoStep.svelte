@@ -191,14 +191,7 @@
     // Auto-save changes
     $effect(() => {
         const timeoutId = setTimeout(() => {
-            // Convert languages array to string for validation
-            const formDataForSave = {
-                ...formData,
-                languages: Array.isArray(formData.languages)
-                    ? formData.languages.join(", ")
-                    : formData.languages,
-            };
-            onboarding.updateFormData({ basicInfo: formDataForSave });
+            onboarding.updateFormData({ basicInfo: formData });
         }, 500);
 
         return () => clearTimeout(timeoutId);
@@ -249,14 +242,8 @@
             onboarding.markStepComplete("basic-info");
             console.log("Step marked as complete");
 
-            // Update the form data one final time with languages converted to string
-            const formDataForSave = {
-                ...formData,
-                languages: Array.isArray(formData.languages)
-                    ? formData.languages.join(", ")
-                    : formData.languages,
-            };
-            onboarding.updateFormData({ basicInfo: formDataForSave });
+            // Update the form data one final time
+            onboarding.updateFormData({ basicInfo: formData });
             console.log("Form data updated");
 
             // Navigate to the next step using the parent's navigation

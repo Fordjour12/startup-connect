@@ -451,7 +451,15 @@ class OnboardingState {
         // Ensure all required fields exist with proper defaults
         this.formData = {
           role: progressData.formData.role,
-          basicInfo: progressData.formData.basicInfo,
+          basicInfo: progressData.formData.basicInfo ? {
+            ...progressData.formData.basicInfo,
+            // Ensure languages is always an array
+            languages: Array.isArray(progressData.formData.basicInfo.languages)
+              ? progressData.formData.basicInfo.languages
+              : typeof progressData.formData.basicInfo.languages === 'string'
+                ? progressData.formData.basicInfo.languages.split(',').map(lang => lang.trim()).filter(lang => lang.length > 0)
+                : []
+          } : undefined,
           goals: {
             personalGoals: Array.isArray(progressData.formData.goals?.personalGoals)
               ? progressData.formData.goals.personalGoals
