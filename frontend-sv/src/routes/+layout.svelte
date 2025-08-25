@@ -3,7 +3,15 @@
     import { Toaster } from "@/components/ui/sonner";
     import { ModeWatcher } from "mode-watcher";
     import { MetaTags } from "svelte-meta-tags";
+    import { onMount } from "svelte";
+    // import { handleClientNavigation } from "$hooks.client";
+
     let { children } = $props();
+
+    // Handle client-side navigation based on user role and onboarding status
+    // onMount(() => {
+    //     handleClientNavigation();
+    // });
 </script>
 
 <MetaTags

@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { Button } from "$lib/components/ui/button";
+    import { Button } from "@/components/ui/button";
     import {
         Card,
         CardContent,
         CardHeader,
         CardTitle,
-    } from "$lib/components/ui/card";
-    import { Badge } from "$lib/components/ui/badge";
-    import { Separator } from "$lib/components/ui/separator";
+    } from "@/components/ui/card";
+    import { Badge } from "@/components/ui/badge";
+    import { Separator } from "@/components/ui/separator";
     import {
         CheckCircle,
         Edit,
@@ -33,10 +33,15 @@
         Palette,
         AlertCircle,
         Rocket,
+        ArrowRight,
     } from "@lucide/svelte";
+    import type {
+        OnboardingState,
+        OnboardingStep,
+    } from "@/hooks/onboarding-state.svelte";
 
     interface Props {
-        onboarding: any;
+        onboarding: OnboardingState;
     }
 
     let { onboarding }: Props = $props();
@@ -48,7 +53,16 @@
     let submitError = $state("");
 
     // Get role display info
-    function getRoleInfo(role: string) {
+    function getRoleInfo(role: string | undefined) {
+        if (!role) {
+            return {
+                label: "Unknown",
+                icon: User,
+                color: "text-body",
+                bgColor: "bg-muted",
+            };
+        }
+
         switch (role) {
             case "founder":
                 return {
@@ -84,13 +98,8 @@
     const roleInfo = getRoleInfo(currentRole);
 
     function formatCommunicationMethod(method: string) {
-        const methods = {
-            video_calls: "Video Calls",
-            email: "Email",
-            in_person: "In-Person",
-            chat: "Chat/Messaging",
-        };
-        return methods[method as keyof typeof methods] || method;
+        // The schema now uses the exact values, so just return as is
+        return method;
     }
 
     function formatNotificationType(type: string) {
@@ -135,8 +144,14 @@
         return themes[theme as keyof typeof themes] || theme;
     }
 
-    async function handleEditStep(step: string) {
+    async function handleEditStep(step: OnboardingStep) {
         await onboarding.goToStep(step);
+    }
+
+    async function handleNext() {
+        // Mark review step as complete and proceed to completion
+        await onboarding.markStepComplete("review");
+        await onboarding.goNext();
     }
 
     async function handleSubmit() {
@@ -144,6 +159,7 @@
         submitError = "";
 
         try {
+            // Submit onboarding - this will handle marking steps as complete
             const result = await onboarding.submitOnboarding();
 
             if (!result.success) {
@@ -162,11 +178,6 @@
 <div class="space-y-8">
     <!-- Header -->
     <div class="text-center space-y-4">
-        <div class="flex justify-center mb-4">
-            <div class="{roleInfo.bgColor} p-4 rounded-full">
-                <roleInfo.icon class="size-8 {roleInfo.color}" />
-            </div>
-        </div>
         <h2 class="text-2xl font-bold text-heading">Review Your Profile</h2>
         <p class="text-body max-w-2xl mx-auto">
             Please review all the information below. You can edit any section by
@@ -177,26 +188,42 @@
 
     <!-- Role Selection Review -->
     <Card>
-        <CardHeader class="flex flex-row items-center justify-between">
-            <CardTitle class="flex items-center gap-2">
-                <roleInfo.icon class="size-5 {roleInfo.color}" />
-                Role Selection
-            </CardTitle>
-            <Button
-                variant="outline"
-                size="sm"
-                onclick={() => handleEditStep("role-selection")}
-            >
-                <Edit class="w-4 h-4 mr-1" />
-                Edit
-            </Button>
+        <CardHeader class="pb-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg bg-primary/10">
+                        <roleInfo.icon class="size-5 text-primary" />
+                    </div>
+                    <div>
+                        <CardTitle class="text-lg">Role Selection</CardTitle>
+                        <p class="text-sm text-muted-foreground">
+                            Your selected role in the ecosystem
+                        </p>
+                    </div>
+                </div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onclick={() => handleEditStep("role-selection")}
+                    class="text-muted-foreground hover:text-foreground"
+                >
+                    <Edit class="size-4 mr-2" />
+                    Edit
+                </Button>
+            </div>
         </CardHeader>
-        <CardContent>
-            <div class="flex items-center gap-3">
-                <Badge variant="secondary" class="text-base px-4 py-2">
-                    {roleInfo.label}
-                </Badge>
-                <CheckCircle class="w-5 h-5 text-success" />
+        <CardContent class="pt-0">
+            <div
+                class="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+            >
+                <div class="flex items-center gap-3">
+                    <Badge variant="default" class="text-sm font-medium">
+                        {roleInfo.label}
+                    </Badge>
+                    <span class="text-sm text-muted-foreground"
+                        >Role confirmed</span
+                    >
+                </div>
             </div>
         </CardContent>
     </Card>
@@ -205,7 +232,7 @@
     <Card>
         <CardHeader class="flex flex-row items-center justify-between">
             <CardTitle class="flex items-center gap-2">
-                <User class="w-5 h-5 text-info" />
+                <User class="size-5 text-info" />
                 Basic Information
             </CardTitle>
             <Button
@@ -213,7 +240,7 @@
                 size="sm"
                 onclick={() => handleEditStep("basic-info")}
             >
-                <Edit class="w-4 h-4 mr-1" />
+                <Edit class="size-4 mr-1" />
                 Edit
             </Button>
         </CardHeader>
@@ -226,15 +253,14 @@
                     </h4>
                     <div class="space-y-2 text-sm">
                         <div class="flex items-center gap-2">
-                            <User class="w-4 h-4 text-muted" />
+                            <User class="size-4 text-accent" />
                             <span class="font-medium">Name:</span>
                             <span
-                                >{formData.basicInfo?.name ||
-                                    "Not provided"}</span
-                            >
+                                >{formData.basicInfo?.name || "Not provided"}
+                            </span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <Mail class="w-4 h-4 text-muted" />
+                            <Mail class="size-4 text-accent" />
                             <span class="font-medium">Email:</span>
                             <span
                                 >{formData.basicInfo?.email ||
@@ -244,7 +270,7 @@
                         {#if formData.basicInfo?.bio}
                             <div class="flex items-start gap-2">
                                 <MessageCircle
-                                    class="w-4 h-4 text-muted mt-0.5"
+                                    class="size-4 text-accent mt-0.5"
                                 />
                                 <div>
                                     <span class="font-medium">Bio:</span>
@@ -265,7 +291,7 @@
                     <div class="space-y-2 text-sm">
                         {#if formData.basicInfo?.location || formData.basicInfo?.city}
                             <div class="flex items-center gap-2">
-                                <MapPin class="w-4 h-4 text-muted" />
+                                <MapPin class="size-4 text-accent" />
                                 <span class="font-medium">Location:</span>
                                 <span>
                                     {[
@@ -279,23 +305,21 @@
                         {/if}
                         {#if formData.basicInfo?.jobTitle}
                             <div class="flex items-center gap-2">
-                                <Briefcase class="w-4 h-4 text-muted" />
+                                <Briefcase class="size-4 text-accent" />
                                 <span class="font-medium">Position:</span>
                                 <span>{formData.basicInfo.jobTitle}</span>
                             </div>
                         {/if}
                         {#if formData.basicInfo?.industry}
                             <div class="flex items-center gap-2">
-                                <TrendingUp class="w-4 h-4 text-muted" />
+                                <TrendingUp class="size-4 text-accent" />
                                 <span class="font-medium">Industry:</span>
                                 <span>{formData.basicInfo.industry}</span>
                             </div>
                         {/if}
                         {#if formData.basicInfo?.languages && formData.basicInfo.languages.length > 0}
                             <div class="flex items-start gap-2">
-                                <Languages
-                                    class="w-4 h-4 text-muted mt-0.5"
-                                />
+                                <Languages class="size-4 text-accent mt-0.5" />
                                 <div>
                                     <span class="font-medium">Languages:</span>
                                     <div class="flex flex-wrap gap-1 mt-1">
@@ -303,8 +327,9 @@
                                             <Badge
                                                 variant="outline"
                                                 class="text-xs"
-                                                >{language}</Badge
                                             >
+                                                {language}
+                                            </Badge>
                                         {/each}
                                     </div>
                                 </div>
@@ -324,13 +349,13 @@
                     <div class="grid md:grid-cols-2 gap-3 text-sm">
                         {#if formData.basicInfo?.phone}
                             <div class="flex items-center gap-2">
-                                <Phone class="w-4 h-4 text-muted" />
+                                <Phone class="size-4 text-accent" />
                                 <span>{formData.basicInfo.phone}</span>
                             </div>
                         {/if}
                         {#if formData.basicInfo?.linkedinUrl}
                             <div class="flex items-center gap-2">
-                                <Linkedin class="w-4 h-4 text-muted" />
+                                <Linkedin class="size-4 text-accent" />
                                 <a
                                     href={formData.basicInfo.linkedinUrl}
                                     target="_blank"
@@ -342,7 +367,7 @@
                         {/if}
                         {#if formData.basicInfo?.githubProfile}
                             <div class="flex items-center gap-2">
-                                <Github class="w-4 h-4 text-muted" />
+                                <Github class="size-4 text-accent" />
                                 <a
                                     href={formData.basicInfo.githubProfile}
                                     target="_blank"
@@ -354,7 +379,7 @@
                         {/if}
                         {#if formData.basicInfo?.portfolioWebsite}
                             <div class="flex items-center gap-2">
-                                <Globe class="w-4 h-4 text-muted" />
+                                <Globe class="size-4 text-accent" />
                                 <a
                                     href={formData.basicInfo.portfolioWebsite}
                                     target="_blank"
@@ -383,7 +408,7 @@
                     size="sm"
                     onclick={() => handleEditStep("role-specific")}
                 >
-                    <Edit class="w-4 h-4 mr-1" />
+                    <Edit class="size-4 mr-1" />
                     Edit
                 </Button>
             </CardHeader>
@@ -392,7 +417,7 @@
                     <div class="grid md:grid-cols-2 gap-6 text-sm">
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
-                                <DollarSign class="w-4 h-4 text-muted" />
+                                <DollarSign class="size-4 text-accent" />
                                 <span class="font-medium">Investment Size:</span
                                 >
                                 <Badge variant="outline"
@@ -401,7 +426,7 @@
                                 >
                             </div>
                             <div class="flex items-center gap-2">
-                                <Target class="w-4 h-4 text-muted" />
+                                <Target class="size-4 text-accent" />
                                 <span class="font-medium">Risk Appetite:</span>
                                 <Badge variant="outline"
                                     >{formData.investorInfo.riskAppetite}</Badge
@@ -409,7 +434,7 @@
                             </div>
                             {#if formData.investorInfo.portfolioCompanies}
                                 <div class="flex items-center gap-2">
-                                    <TrendingUp class="w-4 h-4 text-muted" />
+                                    <TrendingUp class="size-4 text-accent" />
                                     <span class="font-medium"
                                         >Portfolio Companies:</span
                                     >
@@ -424,7 +449,7 @@
                             {#if formData.investorInfo.preferredStages?.length > 0}
                                 <div class="flex items-start gap-2">
                                     <TrendingUp
-                                        class="w-4 h-4 text-muted mt-0.5"
+                                        class="size-4 text-accent mt-0.5"
                                     />
                                     <div>
                                         <span class="font-medium"
@@ -468,7 +493,7 @@
                             </div>
                             {#if formData.supporterInfo.hourlyRate}
                                 <div class="flex items-center gap-2">
-                                    <DollarSign class="w-4 h-4 text-muted" />
+                                    <DollarSign class="size-4 text-accent" />
                                     <span class="font-medium">Hourly Rate:</span
                                     >
                                     <span
@@ -481,9 +506,7 @@
                         <div class="space-y-2">
                             {#if formData.supporterInfo.supportType?.length > 0}
                                 <div class="flex items-start gap-2">
-                                    <Users
-                                        class="size-4 text-muted mt-0.5"
-                                    />
+                                    <Users class="size-4 text-accent mt-0.5" />
                                     <div>
                                         <span class="font-medium"
                                             >Support Types:</span
@@ -538,14 +561,14 @@
             <div class="grid md:grid-cols-2 gap-6 text-sm">
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <Target class="size-4 text-muted" />
+                        <Target class="size-4 text-accent" />
                         <span class="font-medium">Primary Goal:</span>
                         <Badge variant="default"
                             >{formData.goals?.primaryGoal || "Not set"}</Badge
                         >
                     </div>
                     <div class="flex items-center gap-2">
-                        <Clock class="size-4 text-muted" />
+                        <Clock class="size-4 text-accent" />
                         <span class="font-medium">Time Commitment:</span>
                         <span
                             >{formatTimeCommitment(
@@ -555,16 +578,19 @@
                     </div>
                 </div>
                 <div class="space-y-3">
-                    {#if formData.goals?.specificNeeds?.length > 0}
+                    {#if formData.goals?.specificNeeds && formData.goals.specificNeeds.length > 0}
                         <div class="flex items-start gap-2">
-                            <Users class="size-4 text-muted mt-0.5" />
+                            <Users class="size-8 text-accent mt-0.5" />
                             <div>
                                 <span class="font-medium">Specific Needs:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
                                     {#each formData.goals.specificNeeds as need}
-                                        <Badge variant="outline" class="text-xs"
-                                            >{need}</Badge
+                                        <Badge
+                                            variant="outline"
+                                            class="text-xs"
                                         >
+                                            {need}
+                                        </Badge>
                                     {/each}
                                 </div>
                             </div>
@@ -573,10 +599,10 @@
                 </div>
             </div>
 
-            {#if formData.goals?.personalGoals?.length > 0 || formData.goals?.platformGoals?.length > 0}
+            {#if formData.goals && ((formData.goals.personalGoals && formData.goals.personalGoals.length > 0) || (formData.goals.platformGoals && formData.goals.platformGoals.length > 0))}
                 <Separator />
                 <div class="grid md:grid-cols-2 gap-6">
-                    {#if formData.goals?.personalGoals?.length > 0}
+                    {#if formData.goals.personalGoals && formData.goals.personalGoals.length > 0}
                         <div class="space-y-2">
                             <span class="font-medium text-sm"
                                 >Personal Goals:</span
@@ -590,7 +616,7 @@
                             </div>
                         </div>
                     {/if}
-                    {#if formData.goals?.platformGoals?.length > 0}
+                    {#if formData.goals.platformGoals && formData.goals.platformGoals.length > 0}
                         <div class="space-y-2">
                             <span class="font-medium text-sm"
                                 >Platform Goals:</span
@@ -639,19 +665,19 @@
             <div class="grid md:grid-cols-2 gap-6 text-sm">
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <Award class="size-4 text-muted" />
+                        <Award class="size-4 text-accent" />
                         <span class="font-medium">Experience Level:</span>
-                        <Badge variant="outline"
-                            >{formatExperienceLevel(
+                        <Badge variant="outline">
+                            {formatExperienceLevel(
                                 formData.skills?.experienceLevel || "",
-                            )}</Badge
-                        >
+                            )}
+                        </Badge>
                     </div>
                 </div>
                 <div class="space-y-3">
-                    {#if formData.skills?.industries?.length > 0}
+                    {#if formData.skills?.industries && formData.skills.industries.length > 0}
                         <div class="flex items-start gap-2">
-                            <TrendingUp class="size-4 text-muted mt-0.5" />
+                            <TrendingUp class="size-4 text-accent mt-0.5" />
                             <div>
                                 <span class="font-medium">Industries:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
@@ -667,7 +693,7 @@
                 </div>
             </div>
 
-            {#if formData.skills?.skills?.length > 0}
+            {#if formData.skills?.skills && formData.skills.skills.length > 0}
                 <Separator />
                 <div class="space-y-2">
                     <span class="font-medium text-sm">Skills:</span>
@@ -738,11 +764,9 @@
         <CardContent class="space-y-4">
             <div class="grid md:grid-cols-2 gap-6 text-sm">
                 <div class="space-y-3">
-                    {#if formData.preferences?.communicationMethods?.length > 0}
+                    {#if formData.preferences?.communicationMethods && formData.preferences.communicationMethods.length > 0}
                         <div class="flex items-start gap-2">
-                            <MessageCircle
-                                class="size-4 text-muted mt-0.5"
-                            />
+                            <MessageCircle class="size-4 text-accent mt-0.5" />
                             <div>
                                 <span class="font-medium"
                                     >Communication Methods:</span
@@ -761,7 +785,7 @@
                     {/if}
                     {#if formData.preferences?.themePreference}
                         <div class="flex items-center gap-2">
-                            <Palette class="size-4 text-muted" />
+                            <Palette class="size-4 text-accent" />
                             <span class="font-medium">Theme:</span>
                             <Badge variant="outline"
                                 >{formatTheme(
@@ -772,9 +796,9 @@
                     {/if}
                 </div>
                 <div class="space-y-3">
-                    {#if formData.preferences?.notificationTypes?.length > 0}
+                    {#if formData.preferences?.notificationTypes && formData.preferences.notificationTypes.length > 0}
                         <div class="flex items-start gap-2">
-                            <Bell class="size-4 text-muted mt-0.5" />
+                            <Bell class="size-4 text-accent mt-0.5" />
                             <div>
                                 <span class="font-medium">Notifications:</span>
                                 <div class="flex flex-wrap gap-1 mt-1">
@@ -813,27 +837,39 @@
                     <div
                         class="flex items-center gap-2 text-error bg-error p-3 rounded-lg border border-error"
                     >
-                        <AlertCircle class="w-5 h-5" />
+                        <AlertCircle class="size-5" />
                         <span class="text-sm">{submitError}</span>
                     </div>
                 {/if}
 
-                <Button
-                    onclick={handleSubmit}
-                    disabled={isSubmitting}
-                    size="lg"
-                    class="bg-success hover:bg-success text-white px-8 py-3"
-                >
-                    {#if isSubmitting}
-                        <div
-                            class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
-                        ></div>
-                        Creating Your Profile...
-                    {:else}
-                        <CheckCircle class="w-5 h-5 mr-2" />
-                        Complete Setup & Join Startup Connect
-                    {/if}
-                </Button>
+                <div class="flex gap-4 justify-center">
+                    <Button
+                        onclick={handleNext}
+                        variant="outline"
+                        size="lg"
+                        class="px-8 py-3"
+                    >
+                        <ArrowRight class="size-5 mr-2" />
+                        Next
+                    </Button>
+
+                    <Button
+                        onclick={handleSubmit}
+                        disabled={isSubmitting}
+                        size="lg"
+                        class="bg-success hover:bg-success text-white px-8 py-3"
+                    >
+                        {#if isSubmitting}
+                            <div
+                                class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+                            ></div>
+                            Creating Your Profile...
+                        {:else}
+                            <CheckCircle class="size-5 mr-2" />
+                            Complete Setup & Join Startup Connect
+                        {/if}
+                    </Button>
+                </div>
 
                 <p class="text-xs text-success">
                     This will create your profile and give you access to the
@@ -844,7 +880,7 @@
     </Card>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-muted space-y-2">
+    <div class="text-center text-sm space-y-2">
         <p>
             Need to make changes? Click any "Edit" button above to go back to
             that step

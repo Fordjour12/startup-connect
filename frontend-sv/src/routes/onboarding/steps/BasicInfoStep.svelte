@@ -238,19 +238,18 @@
         if (validateCurrentStep()) {
             console.log("Validation passed, proceeding...");
 
-            // Mark the basic-info step as complete
-            onboarding.markStepComplete("basic-info");
-            console.log("Step marked as complete");
-
             // Update the form data one final time
-            onboarding.updateFormData({ basicInfo: formData });
+            await onboarding.updateFormData({ basicInfo: formData });
             console.log("Form data updated");
+
+            // Mark basic-info step as complete
+            await onboarding.markStepComplete("basic-info");
 
             // Navigate to the next step using the parent's navigation
             console.log("About to call onboarding.goNext()...");
             console.log("Current onboarding step:", onboarding.currentStep);
             console.log("Available steps:", onboarding.availableSteps);
-            console.log("Next step:", onboarding.nextStep);
+            // console.log("Next step:", onboarding.nextStep);
 
             await onboarding.goNext();
             console.log("onboarding.goNext() completed");

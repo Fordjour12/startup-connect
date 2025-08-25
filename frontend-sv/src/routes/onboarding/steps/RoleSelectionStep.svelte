@@ -1,7 +1,14 @@
 <script lang="ts">
     import { Card, CardContent, CardHeader } from "@/components/ui/card";
     import { Badge } from "@/components/ui/badge";
-    import { Rocket, Users, DollarSign, CheckCircle2 } from "@lucide/svelte";
+    import { Button } from "@/components/ui/button";
+    import {
+        Rocket,
+        Users,
+        DollarSign,
+        CheckCircle2,
+        ArrowRight,
+    } from "@lucide/svelte";
     import type { UserRole } from "@/z-schema/onboarding-schema";
     import type { OnboardingState } from "@/hooks/onboarding-state.svelte";
 
@@ -82,20 +89,31 @@
         selectedRole ? roles.find((r) => r.id === selectedRole) : null,
     );
 
-    function selectRole(role: UserRole) {
+    async function selectRole(role: UserRole) {
         selectedRole = role;
-        onboarding.updateFormData({ role });
+        await onboarding.updateFormData({ role });
     }
 
     async function handleContinue() {
         if (selectedRole) {
-            onboarding.markStepComplete("role-selection");
+            console.log(
+                "RoleSelectionStep: Marking role-selection as complete and proceeding to next step",
+            );
+            // Mark role-selection step as complete
+            await onboarding.markStepComplete("role-selection");
+            console.log(
+                "RoleSelectionStep: Step marked complete, calling goNext()",
+            );
             await onboarding.goNext();
+            console.log("RoleSelectionStep: goNext() completed");
+        } else {
+            console.warn(
+                "RoleSelectionStep: No role selected, cannot continue",
+            );
         }
     }
 </script>
 
-<!---->
 <div class="space-y-8">
     <!-- Header -->
     <div class="text-center space-y-4">
@@ -107,7 +125,7 @@
             startup community. You can always update this later.
         </p>
     </div>
-    <!--    <!-- Role Selection Cards -->
+    <!-- Role Selection Cards -->
     <div class="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
         {#each roles as role}
             <Card
@@ -174,7 +192,7 @@
                     </div>
 
                     <!-- Examples -->
-                    <div class="mt-auto">
+                    <!--  <div class="mt-auto">
                         <h4
                             class="font-medium text-foreground mb-3 text-sm font-head"
                         >
@@ -198,7 +216,7 @@
                                 </Badge>
                             {/if}
                         </div>
-                    </div>
+                    </div> -->
                 </CardContent>
             </Card>
         {/each}
@@ -235,6 +253,17 @@
                                     {example}
                                 </Badge>
                             {/each}
+                        </div>
+
+                        <!-- Continue Button -->
+                        <div class="mt-6 text-center">
+                            <Button
+                                onclick={handleContinue}
+                                class="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            >
+                                Continue to Basic Information
+                                <ArrowRight class="w-4 h-4 ml-2" />
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -375,7 +375,8 @@
 
     async function handleContinue() {
         if (validateForm()) {
-            onboarding.markStepComplete("goals");
+            // Mark goals step as complete
+            await onboarding.markStepComplete("goals");
             await onboarding.goNext();
         }
     }
@@ -394,7 +395,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Target class="w-5 h-5 text-info" />
+                <Target class="size-5 text-info" />
                 Personal Goals
             </CardTitle>
             <p class="text-sm text-body">
@@ -418,7 +419,7 @@
                                 disabled={formData.personalGoals.includes(goal)}
                                 class="text-xs h-8"
                             >
-                                <Plus class="w-3 h-3 mr-1" />
+                                <Plus class="size-3 mr-1" />
                                 {goal}
                             </Button>
                         {/each}
@@ -442,7 +443,7 @@
                         onclick={addPersonalGoal}
                         disabled={!personalGoalInput.trim()}
                     >
-                        <Plus class="w-4 h-4" />
+                        <Plus class="size-4" />
                     </Button>
                 </div>
             </div>
@@ -553,7 +554,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <TrendingUp class="w-5 h-5 text-success" />
+                <TrendingUp class="size-5 text-success" />
                 Primary Goal *
             </CardTitle>
             <p class="text-sm text-body">
@@ -573,14 +574,14 @@
                         />
                         <Label for={option.value} class="flex-1 cursor-pointer">
                             <div class="flex items-start gap-3">
-                                <div class="p-2 bg-gray-100 rounded-lg">
+                                <div class="p-2 bg-muted rounded-lg">
                                     <option.icon class="size-4 text-body" />
                                 </div>
                                 <div>
                                     <div class="font-medium">
                                         {option.label}
                                     </div>
-                                    <div class="text-sm text-muted mt-1">
+                                    <div class="text-sm text-accent mt-1 pt-1">
                                         {option.description}
                                     </div>
                                 </div>
@@ -610,18 +611,17 @@
         <CardContent class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {#each (currentRole && specificNeedsOptions[currentRole]) || [] as need}
-                    <button
+                    <Label
                         class="flex items-center space-x-2 p-2 border rounded-lg hover:bg-muted cursor-pointer"
-                        onclick={() => toggleSpecificNeed(need)}
                     >
                         <Checkbox
                             checked={formData.specificNeeds.includes(need)}
                             onCheckedChange={() => toggleSpecificNeed(need)}
                         />
-                        <Label class="text-sm cursor-pointer flex-1"
-                            >{need}</Label
-                        >
-                    </button>
+                        <Label class="text-sm cursor-pointer flex-1">
+                            {need}
+                        </Label>
+                    </Label>
                 {/each}
             </div>
             {#if errors.specificNeeds}
@@ -634,7 +634,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Clock class="w-5 h-5 text-orange-600" />
+                <Clock class="size-5 text-accent" />
                 Time Commitment *
             </CardTitle>
             <p class="text-sm text-body">
@@ -652,7 +652,7 @@
                         <Label for={option.value} class="flex-1 cursor-pointer">
                             <div class="flex flex-col">
                                 <span class="font-medium">{option.label}</span>
-                                <span class="text-sm text-muted"
+                                <span class="text-sm text-accent"
                                     >{option.description}</span
                                 >
                             </div>
@@ -686,7 +686,7 @@
                     rows={4}
                     maxlength={300}
                 />
-                <p class="text-xs text-muted">
+                <p class="text-xs">
                     {formData.additionalGoals.length}/300 characters
                 </p>
             </div>
@@ -706,7 +706,7 @@
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-muted">
+    <div class="text-center text-sm">
         <p>
             Your goals help us personalize your experience and show you relevant
             matches

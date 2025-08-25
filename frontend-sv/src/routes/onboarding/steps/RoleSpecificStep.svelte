@@ -9,16 +9,13 @@
     import { Input } from "@/components/ui/input";
     import { Textarea } from "@/components/ui/textarea";
     import { Label } from "@/components/ui/label";
-    import { Badge } from "@/components/ui/badge";
     import { Checkbox } from "@/components/ui/checkbox";
     import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
     import {
         DollarSign,
         TrendingUp,
-        Users,
         Clock,
         Target,
-        Briefcase,
         Building,
         Star,
         Lightbulb,
@@ -27,24 +24,48 @@
     } from "@lucide/svelte";
     import type { UserRole } from "@/z-schema/onboarding-schema";
 
+    import type { OnboardingState } from "@/hooks/onboarding-state.svelte";
+
     interface Props {
-        onboarding: any;
+        onboarding: OnboardingState;
     }
 
     let { onboarding }: Props = $props();
 
+    // Add these type definitions at the top of your script
+    type InvestmentStage =
+        | "Bootstrapped"
+        | "Pre-seed"
+        | "Seed"
+        | "Series A"
+        | "Series B"
+        | "Series C+"
+        | "Acquired";
+    type InvestmentSize =
+        | "Under-50k"
+        | "50k-100k"
+        | "100k-500k"
+        | "500k-1m"
+        | "1m-plus";
+    type RiskAppetite = "conservative" | "Moderate" | "Aggressive";
+    type Availability = "One Off" | "Ongoing" | "Project Based";
+
     // Get current role
     const currentRole = onboarding.formData.role as UserRole;
 
-    // Investor form data
+    // Update your state definitions to use undefined instead of null
     let investorData = $state({
         investmentSize:
-            onboarding.formData.investorInfo?.investmentSize || null,
+            onboarding.formData.investorInfo?.investmentSize ||
+            (undefined as InvestmentSize | undefined),
         preferredStages:
-            onboarding.formData.investorInfo?.preferredStages || [],
+            onboarding.formData.investorInfo?.preferredStages ||
+            ([] as InvestmentStage[]),
         investmentHistory:
             onboarding.formData.investorInfo?.investmentHistory || "",
-        riskAppetite: onboarding.formData.investorInfo?.riskAppetite || null,
+        riskAppetite:
+            onboarding.formData.investorInfo?.riskAppetite ||
+            (undefined as RiskAppetite | undefined),
         portfolioCompanies:
             onboarding.formData.investorInfo?.portfolioCompanies || 0,
     });
@@ -52,7 +73,9 @@
     // Supporter form data
     let supporterData = $state({
         supportType: onboarding.formData.supporterInfo?.supportType || [],
-        availability: onboarding.formData.supporterInfo?.availability || null,
+        availability:
+            onboarding.formData.supporterInfo?.availability ||
+            (undefined as Availability | undefined),
         hourlyRate: onboarding.formData.supporterInfo?.hourlyRate || null,
         expertise: onboarding.formData.supporterInfo?.expertise || "",
     });
@@ -71,8 +94,9 @@
     // Form validation - derived value for form validity
     let isFormValid = $derived(Object.keys(errors).length === 0);
 
-    // Effect to update validation errors when form data changes
+    // Single consolidated effect for validation and auto-save
     $effect(() => {
+        // Validation logic
         const newErrors: Record<string, string> = {};
 
         if (currentRole === "investor") {
@@ -99,7 +123,54 @@
         }
 
         errors = newErrors;
+
+        // Auto-save logic with debouncing
+        const timeoutId = setTimeout(async () => {
+            try {
+                if (currentRole === "investor") {
+                    const cleanData = cleanRoleData(currentRole, investorData);
+                    await onboarding.updateRoleSpecificData(
+                        currentRole,
+                        cleanData,
+                    );
+                } else if (currentRole === "support") {
+                    const cleanData = cleanRoleData(currentRole, supporterData);
+                    await onboarding.updateRoleSpecificData(
+                        currentRole,
+                        cleanData,
+                    );
+                } else if (currentRole === "founder") {
+                    const cleanData = cleanRoleData(currentRole, founderData);
+                    await onboarding.updateRoleSpecificData(
+                        currentRole,
+                        cleanData,
+                    );
+                }
+            } catch (error) {
+                console.error("Failed to auto-save:", error);
+            }
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
     });
+
+    // Save data to onboarding state
+    async function saveInvestorData() {
+        await onboarding.updateRoleSpecificData("investor", investorData);
+    }
+
+    async function saveSupporterData() {
+        await onboarding.updateRoleSpecificData("support", supporterData);
+    }
+
+    // Auto-save when data changes
+    // $effect(() => {
+    //     if (currentRole === "investor") {
+    //         saveInvestorData();
+    //     } else if (currentRole === "support") {
+    //         saveSupporterData();
+    //     }
+    // });
 
     // Function to validate form (for explicit validation calls)
     function validateForm(): boolean {
@@ -109,75 +180,93 @@
     // Investment size options
     const investmentSizeOptions = [
         {
-            value: "under_50k",
+            value: "Under-50k",
             label: "Under $50K",
             description: "Angel investments, small checks",
         },
         {
-            value: "50k_100k",
+            value: "50k-100k",
             label: "$50K - $100K",
             description: "Seed round participation",
         },
         {
-            value: "100k_500k",
+            value: "100k-500k",
             label: "$100K - $500K",
             description: "Lead or co-lead seed rounds",
         },
         {
-            value: "500k_1m",
+            value: "500k-1m",
             label: "$500K - $1M",
             description: "Series A participation",
         },
         {
-            value: "1m_plus",
+            value: "1m-plus",
             label: "$1M+",
             description: "Major rounds, institutional",
         },
     ];
 
     // Investment stages
-    const investmentStages = [
+    const investmentStages: Array<{
+        value: InvestmentStage;
+        label: string;
+        description: string;
+    }> = [
         {
-            value: "pre_seed",
+            value: "Bootstrapped",
+            label: "Bootstrapped",
+            description: "Self-funded, no external investment",
+        },
+        {
+            value: "Pre-seed",
             label: "Pre-seed",
             description: "Idea stage, MVP development",
         },
         {
-            value: "seed",
+            value: "Seed",
             label: "Seed",
             description: "Early revenue, product-market fit",
         },
         {
-            value: "series_a",
+            value: "Series A",
             label: "Series A",
             description: "Proven traction, scaling",
         },
         {
-            value: "series_b",
+            value: "Series B",
             label: "Series B",
             description: "Growth stage, market expansion",
         },
         {
-            value: "growth",
-            label: "Growth",
+            value: "Series C+",
+            label: "Series C+",
             description: "Later stage, mature business",
+        },
+        {
+            value: "Acquired",
+            label: "Acquired",
+            description: "Company has been acquired",
         },
     ];
 
     // Risk appetite options
-    const riskOptions = [
+    const riskOptions: Array<{
+        value: RiskAppetite;
+        label: string;
+        description: string;
+    }> = [
         {
             value: "conservative",
             label: "Conservative",
             description: "Prefer proven models, lower risk",
         },
         {
-            value: "moderate",
+            value: "Moderate",
             label: "Moderate",
             description: "Balanced approach to risk/reward",
         },
         {
-            value: "aggressive",
+            value: "Aggressive",
             label: "Aggressive",
             description: "High risk, high reward opportunities",
         },
@@ -200,19 +289,23 @@
     ];
 
     // Availability options
-    const availabilityOptions = [
+    const availabilityOptions: Array<{
+        value: Availability;
+        label: string;
+        description: string;
+    }> = [
         {
-            value: "one_off",
+            value: "One Off",
             label: "One-off Projects",
             description: "Specific deliverables, short-term",
         },
         {
-            value: "ongoing",
+            value: "Ongoing",
             label: "Ongoing Support",
             description: "Regular consultations, long-term",
         },
         {
-            value: "project_based",
+            value: "Project Based",
             label: "Project-based",
             description: "Complete projects, defined scope",
         },
@@ -242,25 +335,26 @@
     }
 
     // Auto-save changes
-    $effect(() => {
-        const timeoutId = setTimeout(() => {
-            // Clean the data before auto-saving
-            if (currentRole === "investor") {
-                const cleanData = cleanRoleData(currentRole, investorData);
-                onboarding.updateRoleSpecificData(currentRole, cleanData);
-            } else if (currentRole === "support") {
-                const cleanData = cleanRoleData(currentRole, supporterData);
-                onboarding.updateRoleSpecificData(currentRole, cleanData);
-            } else if (currentRole === "founder") {
-                const cleanData = cleanRoleData(currentRole, founderData);
-                onboarding.updateRoleSpecificData(currentRole, cleanData);
-            }
-        }, 500);
+    // $effect(() => {
+    //     const timeoutId = setTimeout(() => {
+    //         // Clean the data before auto-saving
+    //         if (currentRole === "investor") {
+    //             const cleanData = cleanRoleData(currentRole, investorData);
+    //             onboarding.updateRoleSpecificData(currentRole, cleanData);
+    //         } else if (currentRole === "support") {
+    //             const cleanData = cleanRoleData(currentRole, supporterData);
+    //             onboarding.updateRoleSpecificData(currentRole, cleanData);
+    //         } else if (currentRole === "founder") {
+    //             const cleanData = cleanRoleData(currentRole, founderData);
+    //             onboarding.updateRoleSpecificData(currentRole, cleanData);
+    //         }
+    //     }, 500);
 
-        return () => clearTimeout(timeoutId);
-    });
+    //     return () => clearTimeout(timeoutId);
+    // });
 
-    function toggleInvestmentStage(stage: string) {
+    // Fix the function signature
+    function toggleInvestmentStage(stage: InvestmentStage) {
         if (investorData.preferredStages.includes(stage)) {
             investorData.preferredStages = investorData.preferredStages.filter(
                 (s: string) => s !== stage,
@@ -285,19 +379,8 @@
 
     async function handleContinue() {
         if (validateForm()) {
-            // Ensure form data is updated before proceeding
-            if (currentRole === "investor") {
-                const cleanData = cleanRoleData(currentRole, investorData);
-                onboarding.updateRoleSpecificData(currentRole, cleanData);
-            } else if (currentRole === "support") {
-                const cleanData = cleanRoleData(currentRole, supporterData);
-                onboarding.updateRoleSpecificData(currentRole, cleanData);
-            } else if (currentRole === "founder") {
-                const cleanData = cleanRoleData(currentRole, founderData);
-                onboarding.updateRoleSpecificData(currentRole, cleanData);
-            }
-
-            onboarding.markStepComplete("role-specific");
+            // Mark role-specific step as complete
+            await onboarding.markStepComplete("role-specific");
             await onboarding.goNext();
         }
     }
@@ -311,7 +394,7 @@
                 ? "expertise"
                 : currentRole.toLowerCase()} interests
         </h2>
-        <p class="text-muted">
+        <p class="font-body text-accent">
             This helps us match you with the most relevant opportunities
         </p>
     </div>
@@ -323,12 +406,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <DollarSign class="w-5 h-5 text-role-investor" />
+                        <DollarSign class="size-5 text-role-investor" />
                         Investment Size
                     </CardTitle>
-                    <p class="text-sm text-muted">
-                        What's your typical investment range?
-                    </p>
+                    <p class="text-sm">What's your typical investment range?</p>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <RadioGroup bind:value={investorData.investmentSize}>
@@ -343,12 +424,12 @@
                                     class="flex-1 cursor-pointer"
                                 >
                                     <div class="flex flex-col">
-                                        <span class="font-medium"
-                                            >{option.label}</span
-                                        >
-                                        <span class="text-sm text-muted"
-                                            >{option.description}</span
-                                        >
+                                        <span class="font-medium">
+                                            {option.label}
+                                        </span>
+                                        <span class="text-sm text-accent">
+                                            {option.description}
+                                        </span>
                                     </div>
                                 </Label>
                             </div>
@@ -366,10 +447,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <TrendingUp class="w-5 h-5 text-role-investor" />
+                        <TrendingUp class="size-5 text-role-investor" />
                         Preferred Investment Stages
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         Which stages are you most interested in? (Select
                         multiple)
                     </p>
@@ -377,10 +458,8 @@
                 <CardContent class="space-y-4">
                     <div class="grid gap-3">
                         {#each investmentStages as stage}
-                            <button
-                                class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                                onclick={() =>
-                                    toggleInvestmentStage(stage.value)}
+                            <Label
+                                class="inline-flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                             >
                                 <Checkbox
                                     checked={investorData.preferredStages.includes(
@@ -389,13 +468,13 @@
                                     onCheckedChange={() =>
                                         toggleInvestmentStage(stage.value)}
                                 />
-                                <div class="flex-1">
-                                    <div class="font-medium">{stage.label}</div>
-                                    <div class="text-sm text-muted">
+                                <div class="flex-1 place-items-center">
+                                    <h4>{stage.label}</h4>
+                                    <p class="text-accent font-body pt-2">
                                         {stage.description}
-                                    </div>
+                                    </p>
                                 </div>
-                            </button>
+                            </Label>
                         {/each}
                     </div>
                     {#if errors.preferredStages}
@@ -410,10 +489,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Target class="w-5 h-5 text-role-investor" />
+                        <Target class="size-5 text-role-investor" />
                         Risk Appetite
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         How would you describe your investment risk tolerance?
                     </p>
                 </CardHeader>
@@ -433,7 +512,7 @@
                                         <span class="font-medium"
                                             >{option.label}</span
                                         >
-                                        <span class="text-sm text-muted"
+                                        <span class="text-sm text-accent"
                                             >{option.description}</span
                                         >
                                     </div>
@@ -453,10 +532,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Building class="w-5 h-5 text-role-investor" />
+                        <Building class="size-5 text-role-investor" />
                         Portfolio Companies
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         How many companies are currently in your portfolio?
                     </p>
                 </CardHeader>
@@ -478,10 +557,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Star class="w-5 h-5 text-role-investor" />
+                        <Star class="size-5 text-role-investor" />
                         Investment History
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         Tell us about your investment experience and track
                         record
                     </p>
@@ -493,7 +572,7 @@
                         maxlength={500}
                         rows={4}
                     />
-                    <p class="text-sm text-muted mt-2">
+                    <p class="text-sm mt-2">
                         {investorData.investmentHistory.length}/500
                     </p>
                 </CardContent>
@@ -506,19 +585,18 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <HandHeart class="w-5 h-5 text-role-support" />
+                        <HandHeart class="size-5 text-role-support" />
                         Types of Support You Offer
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         Select all the types of support you can provide
                     </p>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div class="grid gap-3">
                         {#each supportTypes as type}
-                            <button
+                            <Label
                                 class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                                onclick={() => toggleSupportType(type)}
                             >
                                 <Checkbox
                                     checked={supporterData.supportType.includes(
@@ -530,7 +608,7 @@
                                 <div class="flex-1">
                                     <div class="font-medium">{type}</div>
                                 </div>
-                            </button>
+                            </Label>
                         {/each}
                     </div>
                     {#if errors.supportType}
@@ -543,10 +621,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Clock class="w-5 h-5 text-role-support" />
+                        <Clock class="size-5 text-role-support" />
                         Availability
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         How would you prefer to work with startups?
                     </p>
                 </CardHeader>
@@ -563,12 +641,12 @@
                                     class="flex-1 cursor-pointer"
                                 >
                                     <div class="flex flex-col">
-                                        <span class="font-medium"
-                                            >{option.label}</span
-                                        >
-                                        <span class="text-sm text-muted"
-                                            >{option.description}</span
-                                        >
+                                        <span class="font-medium">
+                                            {option.label}
+                                        </span>
+                                        <span class="text-sm text-accent">
+                                            {option.description}
+                                        </span>
                                     </div>
                                 </Label>
                             </div>
@@ -586,10 +664,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <DollarSign class="w-5 h-5 text-role-support" />
+                        <DollarSign class="size-5 text-role-support" />
                         Hourly Rate
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         What's your typical hourly rate? (Optional)
                     </p>
                 </CardHeader>
@@ -612,10 +690,10 @@
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Lightbulb class="w-5 h-5 text-role-support" />
+                        <Lightbulb class="size-5 text-role-support" />
                         Expertise
                     </CardTitle>
-                    <p class="text-sm text-muted">
+                    <p class="text-sm">
                         Tell us about your specific expertise and experience
                     </p>
                 </CardHeader>
@@ -626,7 +704,7 @@
                         maxlength={500}
                         rows={4}
                     />
-                    <p class="text-sm text-muted mt-2">
+                    <p class="text-sm mt-2">
                         {supporterData.expertise.length}/500 characters
                     </p>
                 </CardContent>
@@ -650,18 +728,13 @@
 
     <!-- Continue Button -->
     <div class="flex justify-center pt-6">
-        <Button
-            onclick={handleContinue}
-            disabled={!isFormValid}
-            size="lg"
-            class="px-8"
-        >
+        <Button onclick={handleContinue} disabled={!isFormValid} class="px-8">
             Continue to Goals
         </Button>
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-muted">
+    <div class="text-center text-sm text-accent">
         <p>This information helps us show you the most relevant matches</p>
         <p>You can always update these preferences later in your profile</p>
     </div>

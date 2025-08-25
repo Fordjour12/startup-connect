@@ -34,7 +34,7 @@
     let formData = $state({
         skills: onboarding.formData.skills?.skills || [],
         experienceLevel:
-            onboarding.formData.skills?.experienceLevel || "beginner",
+            onboarding.formData.skills?.experienceLevel || "Beginner",
         industries: onboarding.formData.skills?.industries || [],
         achievements: onboarding.formData.skills?.achievements || "",
         expertiseAreas: onboarding.formData.skills?.expertiseAreas || "",
@@ -60,7 +60,11 @@
         }
 
         if (formData.skills.length === 0) {
-            newErrors.skills = "Please add at least one skill";
+            newErrors.skills = "Add at least one skill";
+        }
+
+        if (formData.industries.length === 0) {
+            newErrors.industries = "Add at least one industry";
         }
 
         errors = newErrors;
@@ -77,19 +81,19 @@
     // Experience level options
     const experienceLevels = [
         {
-            value: "beginner",
+            value: "Beginner",
             label: "Beginner",
             description: "New to the field, learning fundamentals",
             icon: "🌱",
         },
         {
-            value: "intermediate",
+            value: "Intermediate",
             label: "Intermediate",
             description: "Some experience, comfortable with basics",
             icon: "🌿",
         },
         {
-            value: "expert",
+            value: "Expert",
             label: "Expert",
             description: "Extensive experience, recognized expertise",
             icon: "🌳",
@@ -263,7 +267,8 @@
 
     async function handleContinue(): Promise<void> {
         if (validateForm()) {
-            onboarding.markStepComplete("skills");
+            // Mark skills step as complete
+            await onboarding.markStepComplete("skills");
             await onboarding.goNext();
         }
     }
@@ -274,7 +279,7 @@
     <Card>
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
-                <Star class="size-5 text-yellow-600" />
+                <Star class="size-5 text-accent" />
                 Experience Level *
             </CardTitle>
             <p class="text-sm text-body">
@@ -297,7 +302,7 @@
                                 <span class="text-2xl">{level.icon}</span>
                                 <div>
                                     <div class="font-medium">{level.label}</div>
-                                    <div class="text-sm text-muted mt-1">
+                                    <div class="text-sm text-accent mt-1 pt-1">
                                         {level.description}
                                     </div>
                                 </div>
@@ -334,7 +339,6 @@
                         {#each suggestedSkills[currentRole].slice(0, 12) as skill}
                             <Button
                                 variant="outline"
-                                size="sm"
                                 onclick={() => addSuggestedSkill(skill)}
                                 disabled={formData.skills.includes(skill)}
                                 class="text-xs h-8"
@@ -349,9 +353,9 @@
 
             <!-- Technical Skills -->
             <div class="space-y-3">
-                <Label class="text-sm font-medium"
-                    >Common technical skills:</Label
-                >
+                <Label class="text-sm font-medium">
+                    Common technical skills:
+                </Label>
                 <div class="flex flex-wrap gap-2">
                     {#each technicalSkills.slice(0, 12) as skill}
                         <Button
@@ -361,7 +365,7 @@
                             disabled={formData.skills.includes(skill)}
                             class="text-xs h-8"
                         >
-                            <Plus class="w-3 h-3 mr-1" />
+                            <Plus class="size-3 mr-1" />
                             {skill}
                         </Button>
                     {/each}
@@ -384,7 +388,7 @@
                         onclick={addSkill}
                         disabled={!skillInput.trim()}
                     >
-                        <Plus class="w-4 h-4" />
+                        <Plus class="size-4" />
                     </Button>
                 </div>
                 <p class="text-xs text-muted">
@@ -437,7 +441,6 @@
                     {#each commonIndustries.slice(0, 12) as industry}
                         <Button
                             variant="outline"
-                            size="sm"
                             onclick={() => addCommonIndustry(industry)}
                             disabled={formData.industries.includes(industry)}
                             class="text-xs h-8"
@@ -488,6 +491,10 @@
                     </div>
                 </div>
             {/if}
+
+            {#if errors.industries}
+                <p class="text-sm text-error">{errors.industries}</p>
+            {/if}
         </CardContent>
     </Card>
 
@@ -512,7 +519,7 @@
                     rows={4}
                     maxlength={1000}
                 />
-                <p class="text-xs text-muted">
+                <p class="text-xs">
                     {formData.expertiseAreas.length}/1000 characters
                 </p>
             </div>
@@ -540,7 +547,7 @@
                     rows={4}
                     maxlength={1000}
                 />
-                <p class="text-xs text-muted">
+                <p class="text-xs">
                     {formData.achievements.length}/1000 characters
                 </p>
             </div>
@@ -568,7 +575,7 @@
                     rows={3}
                     maxlength={1000}
                 />
-                <p class="text-xs text-muted">
+                <p class="text-xs">
                     {formData.certifications.length}/1000 characters
                 </p>
             </div>
@@ -588,7 +595,7 @@
     </div>
 
     <!-- Help Text -->
-    <div class="text-center text-sm text-muted space-y-2">
+    <div class="text-center text-sm space-y-2">
         <p>
             Your skills help us match you with relevant opportunities and
             connections
