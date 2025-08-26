@@ -19,6 +19,7 @@ export const db = drizzle({ client: pool, schema });
 export * from "./schema";
 export * from "./utils/user-profile-operations";
 export * from "./utils/onboarding-transformer";
+export * from "./utils/admin-operations";
 
 
 
