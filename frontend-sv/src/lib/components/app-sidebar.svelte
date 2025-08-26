@@ -22,6 +22,7 @@
 
    import type { ComponentProps } from "svelte";
    // import FounderNavigation from "./founder/FounderNavigation.svelte";
+   import AdminNavigation from "./admin/AdminNavigation.svelte";
    import InvestorNavigation from "./investor/InvestorNavigation.svelte";
    import NavDocuments from "./nav-documents.svelte";
    import NavMain from "./nav-main.svelte";
@@ -95,7 +96,13 @@
       </Sidebar.Menu>
    </Sidebar.Header>
    <Sidebar.Content>
-      {#if page.url.pathname.includes("/dashboard/investor")}
+      {#if page.url.pathname.includes("/dashboard/admin")}
+         <Sidebar.Group>
+            <Sidebar.GroupContent class="flex flex-col gap-2">
+               <AdminNavigation />
+            </Sidebar.GroupContent>
+         </Sidebar.Group>
+      {:else if page.url.pathname.includes("/dashboard/investor")}
          <Sidebar.Group>
             <Sidebar.GroupContent class="flex flex-col gap-2">
                <InvestorNavigation />
