@@ -68,3 +68,25 @@ export {
 	type NewSupportTeamMember,
 	type NewTicketActivityLog
 } from "./support-schema";
+
+export {
+	supporters,
+	services,
+	engagements,
+	supporterReviews,
+	engagementMessages,
+	payments,
+	type Supporter,
+	type SupporterProfileData,
+	type Service,
+	type Engagement,
+	type SupporterReview,
+	type EngagementMessage,
+	type Payment,
+	type NewSupporter,
+	type NewService,
+	type NewEngagement,
+	type NewSupporterReview,
+	type NewEngagementMessage,
+	type NewPayment
+} from "./supporter-schema";
