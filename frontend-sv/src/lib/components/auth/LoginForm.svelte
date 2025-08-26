@@ -10,7 +10,6 @@
         type SuperValidated,
     } from "sveltekit-superforms";
     import { zodClient } from "sveltekit-superforms/adapters";
-    // import { page } from "$app/state";
 
     let { data }: { data: { form: SuperValidated<Infer<LoginSchema>> } } =
         $props();
