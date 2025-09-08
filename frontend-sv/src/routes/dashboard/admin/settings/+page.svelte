@@ -11,12 +11,12 @@
 	import { Label } from "$lib/components/ui/label";
 	import { Switch } from "$lib/components/ui/switch";
 	import {
-		Settings,
-		Mail,
-		Shield,
-		Database,
-		Save,
-		RefreshCw,
+		IconSettings,
+		IconMail,
+		IconShield,
+		IconDatabase,
+		IconDeviceFloppy,
+		IconRefresh,
 	} from "@tabler/icons-svelte";
 
 	let { data } = $props<{
@@ -39,7 +39,7 @@
 
 	function saveSettings() {
 		// TODO: Implement save functionality with API call
-		console.log("Saving settings:", settings);
+		console.log("Saving settings:", platformSettings);
 	}
 
 	function resetSettings() {
@@ -56,7 +56,7 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
+<div class="px-4 py-8">
 	<div
 		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
 	>
@@ -68,11 +68,11 @@
 		</div>
 		<div class="mt-4 md:mt-0 flex gap-2">
 			<Button variant="outline" onclick={resetSettings}>
-				<RefreshCw class="h-4 w-4 mr-2" />
+				<IconRefresh class="h-4 w-4 mr-2" />
 				Reset
 			</Button>
 			<Button onclick={saveSettings}>
-				<Save class="h-4 w-4 mr-2" />
+				<IconDeviceFloppy class="h-4 w-4 mr-2" />
 				Save Changes
 			</Button>
 		</div>
@@ -83,7 +83,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center space-x-2">
-					<Settings class="h-5 w-5" />
+					<IconSettings class="h-5 w-5" />
 					<span>Platform Settings</span>
 				</CardTitle>
 				<CardDescription>General platform configuration</CardDescription
@@ -113,7 +113,7 @@
 					<Input
 						id="contact-email"
 						type="email"
-						bind:value={settings.platform.contactEmail}
+						value={platformSettings.contactEmail}
 						placeholder="admin@example.com"
 					/>
 				</div>
@@ -125,7 +125,7 @@
 							Temporarily disable the platform
 						</p>
 					</div>
-					<Switch bind:checked={settings.platform.maintenanceMode} />
+					<Switch bind:checked={platformSettings.maintenanceMode} />
 				</div>
 
 				<div class="flex items-center justify-between">
@@ -136,7 +136,7 @@
 						</p>
 					</div>
 					<Switch
-						bind:checked={settings.platform.allowRegistrations}
+						bind:checked={platformSettings.allowRegistrations}
 					/>
 				</div>
 			</CardContent>
@@ -146,7 +146,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center space-x-2">
-					<Mail class="h-5 w-5" />
+					<IconMail class="h-5 w-5" />
 					<span>Email Settings</span>
 				</CardTitle>
 				<CardDescription
@@ -158,7 +158,7 @@
 					<Label for="smtp-host">SMTP Host</Label>
 					<Input
 						id="smtp-host"
-						bind:value={settings.email.smtpHost}
+						bind:value={emailSettings.smtpHost}
 						placeholder="smtp.example.com"
 					/>
 				</div>
@@ -168,7 +168,7 @@
 					<Input
 						id="smtp-port"
 						type="number"
-						bind:value={settings.email.smtpPort}
+						bind:value={emailSettings.smtpPort}
 						placeholder="587"
 					/>
 				</div>
@@ -177,7 +177,7 @@
 					<Label for="smtp-user">SMTP Username</Label>
 					<Input
 						id="smtp-user"
-						bind:value={settings.email.smtpUser}
+						bind:value={emailSettings.smtpUser}
 						placeholder="noreply@example.com"
 					/>
 				</div>
@@ -189,7 +189,7 @@
 							Use custom email templates
 						</p>
 					</div>
-					<Switch bind:checked={settings.email.emailTemplates} />
+					<Switch bind:checked={emailSettings.emailTemplates} />
 				</div>
 
 				<div class="flex items-center justify-between">
@@ -199,7 +199,7 @@
 							Send notification emails
 						</p>
 					</div>
-					<Switch bind:checked={settings.email.notificationEmails} />
+					<Switch bind:checked={emailSettings.notificationEmails} />
 				</div>
 			</CardContent>
 		</Card>
@@ -208,7 +208,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center space-x-2">
-					<Shield class="h-5 w-5" />
+					<IconShield class="h-5 w-5" />
 					<span>Security Settings</span>
 				</CardTitle>
 				<CardDescription
@@ -223,9 +223,7 @@
 							Require two-factor authentication
 						</p>
 					</div>
-					<Switch
-						bind:checked={settings.security.twoFactorRequired}
-					/>
+					<Switch bind:checked={securitySettings.twoFactorRequired} />
 				</div>
 
 				<div class="space-y-2">
@@ -235,7 +233,7 @@
 					<Input
 						id="session-timeout"
 						type="number"
-						bind:value={settings.security.sessionTimeout}
+						bind:value={securitySettings.sessionTimeout}
 						placeholder="30"
 					/>
 				</div>
@@ -245,7 +243,7 @@
 					<Input
 						id="password-length"
 						type="number"
-						bind:value={settings.security.passwordMinLength}
+						bind:value={securitySettings.passwordMinLength}
 						placeholder="8"
 					/>
 				</div>
@@ -258,7 +256,7 @@
 						</p>
 					</div>
 					<Switch
-						bind:checked={settings.security.requireStrongPasswords}
+						bind:checked={securitySettings.requireStrongPasswords}
 					/>
 				</div>
 			</CardContent>
@@ -268,7 +266,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center space-x-2">
-					<Database class="h-5 w-5" />
+					<IconDatabase class="h-5 w-5" />
 					<span>Feature Flags</span>
 				</CardTitle>
 				<CardDescription
@@ -283,7 +281,7 @@
 							Require admin approval for startups
 						</p>
 					</div>
-					<Switch bind:checked={settings.features.startupApprovals} />
+					<Switch bind:checked={featureFlags.startupApprovals} />
 				</div>
 
 				<div class="flex items-center justify-between">
@@ -293,9 +291,7 @@
 							Track investment transactions
 						</p>
 					</div>
-					<Switch
-						bind:checked={settings.features.investmentTracking}
-					/>
+					<Switch bind:checked={featureFlags.investmentTracking} />
 				</div>
 
 				<div class="flex items-center justify-between">
@@ -305,9 +301,7 @@
 							Show analytics to users
 						</p>
 					</div>
-					<Switch
-						bind:checked={settings.features.analyticsDashboard}
-					/>
+					<Switch bind:checked={featureFlags.analyticsDashboard} />
 				</div>
 
 				<div class="flex items-center justify-between">
@@ -317,7 +311,7 @@
 							Enable user messaging
 						</p>
 					</div>
-					<Switch bind:checked={settings.features.messagingSystem} />
+					<Switch bind:checked={featureFlags.messagingSystem} />
 				</div>
 			</CardContent>
 		</Card>

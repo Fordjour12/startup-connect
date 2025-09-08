@@ -10,14 +10,7 @@
 	import { Input } from "$lib/components/ui/input";
 	import { Label } from "$lib/components/ui/label";
 	import { Badge } from "$lib/components/ui/badge";
-	import {
-		Table,
-		TableBody,
-		TableCell,
-		TableHead,
-		TableHeader,
-		TableRow,
-	} from "$lib/components/ui/table";
+
 	import {
 		Dialog,
 		DialogContent,
@@ -31,7 +24,6 @@
 		SelectContent,
 		SelectItem,
 		SelectTrigger,
-		SelectValue,
 	} from "$lib/components/ui/select";
 	import {
 		Tabs,
@@ -40,26 +32,26 @@
 		TabsTrigger,
 	} from "$lib/components/ui/tabs";
 	import {
-		Activity,
-		AlertTriangle,
-		Key,
-		Shield,
-		TrendingUp,
-		Clock,
-		Server,
-		Zap,
-		Eye,
-		EyeOff,
-		Copy,
-		Plus,
-		Settings,
-		BarChart3,
-		Users,
-		FileText,
-		Database,
-		RefreshCw,
-		CheckCircle,
-		XCircle,
+		IconActivity,
+		IconAlertHexagon,
+		IconKey,
+		IconShield,
+		IconTrendingUp,
+		IconClock,
+		IconServer,
+		IconBolt,
+		IconEye,
+		IconEyeOff,
+		IconCopy,
+		IconPlus,
+		IconSettings,
+		IconChartBar,
+		IconUser,
+		IconFileText,
+		IconDatabase,
+		IconRefresh,
+		IconCircleCheck,
+		IconCircleX,
 	} from "@tabler/icons-svelte";
 
 	let { data } = $props<{
@@ -397,10 +389,8 @@
 			</p>
 		</div>
 		<div class="mt-4 md:mt-0 flex gap-2">
-			<Select bind:value={selectedTimeframe}>
-				<SelectTrigger class="w-40">
-					<SelectValue placeholder="Timeframe" />
-				</SelectTrigger>
+			<Select type="single" bind:value={selectedTimeframe}>
+				<SelectTrigger class="w-40">Timeframe</SelectTrigger>
 				<SelectContent>
 					{#each getTimeframeOptions() as option}
 						<SelectItem value={option.value}
@@ -410,7 +400,7 @@
 				</SelectContent>
 			</Select>
 			<Button variant="outline">
-				<RefreshCw class="h-4 w-4 mr-2" />
+				<IconRefresh class="h-4 w-4 mr-2" />
 				Refresh
 			</Button>
 		</div>
@@ -424,7 +414,7 @@
 			>
 				<CardTitle class="text-sm font-medium">Total Requests</CardTitle
 				>
-				<Activity class="h-4 w-4 text-muted-foreground" />
+				<IconActivity class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -441,7 +431,7 @@
 				<CardTitle class="text-sm font-medium"
 					>Avg Response Time</CardTitle
 				>
-				<Clock class="h-4 w-4 text-muted-foreground" />
+				<IconClock class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -456,7 +446,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">Error Rate</CardTitle>
-				<AlertTriangle class="h-4 w-4 text-muted-foreground" />
+				<IconAlertHexagon class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -471,7 +461,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">API Uptime</CardTitle>
-				<Server class="h-4 w-4 text-muted-foreground" />
+				<IconServer class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -483,7 +473,7 @@
 	</div>
 
 	<!-- Main Content Tabs -->
-	<Tabs defaultValue="endpoints" class="space-y-6">
+	<Tabs value="endpoints" class="space-y-6">
 		<TabsList class="grid w-full grid-cols-4">
 			<TabsTrigger value="endpoints">Endpoints</TabsTrigger>
 			<TabsTrigger value="keys">API Keys</TabsTrigger>
@@ -496,7 +486,7 @@
 			<Card>
 				<CardHeader>
 					<CardTitle class="flex items-center space-x-2">
-						<Server class="h-5 w-5" />
+						<IconServer class="h-5 w-5" />
 						<span>API Endpoints</span>
 					</CardTitle>
 					<CardDescription>
@@ -579,7 +569,7 @@
 											showRateLimitDialog = true;
 										}}
 									>
-										<Settings class="h-4 w-4" />
+										<IconSettings class="h-4 w-4" />
 									</Button>
 								</div>
 							</div>
@@ -599,9 +589,9 @@
 					</p>
 				</div>
 				<Dialog bind:open={showCreateKeyDialog}>
-					<DialogTrigger asChild>
+					<DialogTrigger>
 						<Button>
-							<Plus class="h-4 w-4 mr-2" />
+							<IconPlus class="h-4 w-4 mr-2" />
 							Create API Key
 						</Button>
 					</DialogTrigger>
@@ -625,6 +615,8 @@
 								<Label>Permissions</Label>
 								<div class="grid grid-cols-2 gap-2">
 									{#each availablePermissions as permission}
+										<!-- svelte-ignore a11y_click_events_have_key_events -->
+										<!-- svelte-ignore a11y_no_static_element_interactions -->
 										<div
 											class="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-accent"
 											onclick={() =>
@@ -684,7 +676,7 @@
 									class="flex items-center justify-between mb-3"
 								>
 									<div class="flex items-center space-x-3">
-										<Key
+										<IconKey
 											class="h-5 w-5 text-muted-foreground"
 										/>
 										<div>
@@ -707,7 +699,7 @@
 															apiKey.key,
 														)}
 												>
-													<Copy class="h-3 w-3" />
+													<IconCopy class="h-3 w-3" />
 												</Button>
 											</div>
 										</div>
@@ -782,7 +774,7 @@
 			<Card>
 				<CardHeader>
 					<CardTitle class="flex items-center space-x-2">
-						<Shield class="h-5 w-5" />
+						<IconShield class="h-5 w-5" />
 						<span>Rate Limits</span>
 					</CardTitle>
 					<CardDescription>
@@ -844,7 +836,7 @@
 			<Card>
 				<CardHeader>
 					<CardTitle class="flex items-center space-x-2">
-						<AlertTriangle class="h-5 w-5" />
+						<IconAlertHexagon class="h-5 w-5" />
 						<span>API Alerts</span>
 					</CardTitle>
 					<CardDescription>
@@ -900,7 +892,7 @@
 								<div class="flex items-center space-x-2">
 									{#if !alert.resolved}
 										<Button variant="outline" size="sm">
-											<CheckCircle class="h-4 w-4" />
+											<IconCircleCheck class="h-4 w-4" />
 										</Button>
 									{/if}
 								</div>

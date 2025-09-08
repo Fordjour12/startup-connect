@@ -32,27 +32,26 @@
 		SelectContent,
 		SelectItem,
 		SelectTrigger,
-		SelectValue,
 	} from "$lib/components/ui/select";
 	import {
-		AlertTriangle,
-		Users,
-		FileText,
-		Mail,
-		Download,
-		Upload,
-		Shield,
-		Trash2,
-		Edit,
-		CheckCircle,
-		XCircle,
-		Clock,
-		UserCheck,
-		UserX,
-		Send,
-		Database,
-		Settings,
-		Activity,
+		IconAlertHexagon,
+		IconUser,
+		IconFileText,
+		IconMail,
+		IconDownload,
+		IconUpload,
+		IconShield,
+		IconTrash,
+		IconEdit,
+		IconCircleCheck,
+		IconCircleX,
+		IconClock,
+		IconUserCheck,
+		IconUserX,
+		IconSend,
+		IconDatabase,
+		IconSettings,
+		IconActivity,
 	} from "@tabler/icons-svelte";
 
 	let { data } = $props<{
@@ -163,42 +162,42 @@
 				id: "approve",
 				name: "Approve Users",
 				description: "Approve selected user accounts",
-				icon: UserCheck,
+				icon: IconUserCheck,
 				color: "green",
 			},
 			{
 				id: "suspend",
 				name: "Suspend Users",
 				description: "Temporarily suspend user access",
-				icon: UserX,
+				icon: IconUserX,
 				color: "orange",
 			},
 			{
 				id: "delete",
 				name: "Delete Users",
 				description: "Permanently delete user accounts",
-				icon: Trash2,
+				icon: IconTrash,
 				color: "red",
 			},
 			{
 				id: "send_email",
 				name: "Send Email",
 				description: "Send email to selected users",
-				icon: Mail,
+				icon: IconMail,
 				color: "blue",
 			},
 			{
 				id: "change_role",
 				name: "Change Role",
 				description: "Change user roles in bulk",
-				icon: Edit,
+				icon: IconEdit,
 				color: "purple",
 			},
 			{
 				id: "export",
 				name: "Export Data",
 				description: "Export user data to file",
-				icon: Download,
+				icon: IconDownload,
 				color: "gray",
 			},
 		],
@@ -207,35 +206,35 @@
 				id: "approve",
 				name: "Approve Startups",
 				description: "Approve selected startup applications",
-				icon: CheckCircle,
+				icon: IconCircleCheck,
 				color: "green",
 			},
 			{
 				id: "reject",
 				name: "Reject Startups",
 				description: "Reject selected startup applications",
-				icon: XCircle,
+				icon: IconCircleX,
 				color: "red",
 			},
 			{
 				id: "feature",
 				name: "Feature Startups",
 				description: "Mark startups as featured",
-				icon: Settings,
+				icon: IconSettings,
 				color: "gold",
 			},
 			{
 				id: "export",
 				name: "Export Data",
 				description: "Export startup data to file",
-				icon: Download,
+				icon: IconDownload,
 				color: "gray",
 			},
 			{
 				id: "send_notification",
 				name: "Send Notification",
 				description: "Send notification to founders",
-				icon: Send,
+				icon: IconSend,
 				color: "blue",
 			},
 		],
@@ -244,28 +243,28 @@
 				id: "maintenance",
 				name: "Maintenance Mode",
 				description: "Enable/disable maintenance mode",
-				icon: Settings,
+				icon: IconSettings,
 				color: "orange",
 			},
 			{
 				id: "clear_cache",
 				name: "Clear Cache",
 				description: "Clear system cache",
-				icon: Database,
+				icon: IconDatabase,
 				color: "purple",
 			},
 			{
 				id: "backup",
 				name: "Create Backup",
 				description: "Create system backup",
-				icon: Upload,
+				icon: IconUpload,
 				color: "blue",
 			},
 			{
 				id: "send_broadcast",
 				name: "Broadcast Message",
 				description: "Send message to all users",
-				icon: Send,
+				icon: IconSend,
 				color: "green",
 			},
 		],
@@ -284,7 +283,7 @@
 
 	function getSelectedOperationData() {
 		return bulkOperationsByCategory[selectedCategory]?.find(
-			(op) => op.id === selectedOperation,
+			(op: { id: string; }) => op.id === selectedOperation,
 		);
 	}
 
@@ -422,13 +421,13 @@
 
 	<!-- Category Selection -->
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+		<!-- class:border-primary={selectedCategory === "users"} -->
 		<Card
 			class="cursor-pointer transition-all hover:shadow-md"
-			class:border-primary={selectedCategory === "users"}
 			onclick={() => (selectedCategory = "users")}
 		>
 			<CardHeader class="text-center">
-				<Users class="h-8 w-8 mx-auto mb-2 text-blue-600" />
+				<IconUser class="h-8 w-8 mx-auto mb-2 text-blue-600" />
 				<CardTitle class="text-lg">Users</CardTitle>
 				<CardDescription>Manage user accounts in bulk</CardDescription>
 			</CardHeader>
@@ -442,13 +441,13 @@
 			</CardContent>
 		</Card>
 
+		<!-- class:border-primary={selectedCategory === "startups"} -->
 		<Card
 			class="cursor-pointer transition-all hover:shadow-md"
-			class:border-primary={selectedCategory === "startups"}
 			onclick={() => (selectedCategory = "startups")}
 		>
 			<CardHeader class="text-center">
-				<FileText class="h-8 w-8 mx-auto mb-2 text-green-600" />
+				<IconFileText class="h-8 w-8 mx-auto mb-2 text-green-600" />
 				<CardTitle class="text-lg">Startups</CardTitle>
 				<CardDescription>Manage startup applications</CardDescription>
 			</CardHeader>
@@ -462,13 +461,13 @@
 			</CardContent>
 		</Card>
 
+		<!-- class:border-primary={selectedCategory === "system"} -->
 		<Card
 			class="cursor-pointer transition-all hover:shadow-md"
-			class:border-primary={selectedCategory === "system"}
 			onclick={() => (selectedCategory = "system")}
 		>
 			<CardHeader class="text-center">
-				<Settings class="h-8 w-8 mx-auto mb-2 text-purple-600" />
+				<IconSettings class="h-8 w-8 mx-auto mb-2 text-purple-600" />
 				<CardTitle class="text-lg">System</CardTitle>
 				<CardDescription>System-wide operations</CardDescription>
 			</CardHeader>
@@ -486,7 +485,7 @@
 		<Card class="mb-6 border-blue-200 bg-blue-50">
 			<CardContent class="pt-6">
 				<div class="flex items-center space-x-4">
-					<Activity class="h-5 w-5 text-blue-600 animate-spin" />
+					<IconActivity class="h-5 w-5 text-blue-600 animate-spin" />
 					<div class="flex-1">
 						<h3 class="font-semibold text-blue-900">
 							{operationProgress.operation}
@@ -533,6 +532,8 @@
 				>
 					{#each bulkOperationsByCategory[selectedCategory] || [] as operation}
 						{@const IconComponent = operation.icon}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<div
 							class="p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md {getOperationColorClass(
 								operation.color,
@@ -702,7 +703,7 @@
 				onclick={() => (showConfirmDialog = true)}
 				class="px-8 py-3"
 			>
-				<CheckCircle class="h-5 w-5 mr-2" />
+				<IconCircleCheck class="h-5 w-5 mr-2" />
 				Execute {getSelectedOperationData()?.name} ({selectedItems.length}
 				items)
 			</Button>
@@ -749,7 +750,7 @@
 		<DialogContent class="max-w-md">
 			<DialogHeader>
 				<DialogTitle class="flex items-center space-x-2">
-					<AlertTriangle class="h-5 w-5 text-orange-500" />
+					<IconAlertHexagon class="h-5 w-5 text-orange-500" />
 					<span>Confirm Operation</span>
 				</DialogTitle>
 				<DialogDescription>
@@ -824,7 +825,7 @@
 				{#if selectedOperation === "export"}
 					<div class="space-y-2">
 						<Label for="export-format">Export Format</Label>
-						<Select bind:value={exportFormat}>
+						<Select type="single" bind:value={exportFormat}>
 							<SelectTrigger>
 								<SelectValue placeholder="Select format" />
 							</SelectTrigger>
@@ -846,7 +847,7 @@
 					Cancel
 				</Button>
 				<Button onclick={executeBulkOperation}>
-					<CheckCircle class="h-4 w-4 mr-2" />
+					<IconCircleCheck class="h-4 w-4 mr-2" />
 					Execute
 				</Button>
 			</div>

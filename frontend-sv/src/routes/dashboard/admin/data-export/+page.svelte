@@ -32,7 +32,7 @@
 		SelectContent,
 		SelectItem,
 		SelectTrigger,
-		SelectValue,
+		
 	} from "$lib/components/ui/select";
 	import {
 		Tabs,
@@ -41,25 +41,20 @@
 		TabsTrigger,
 	} from "$lib/components/ui/tabs";
 	import {
-		Download,
-		FileText,
-		Database,
-		Settings,
-		Users,
-		Building2,
-		TrendingUp,
-		Calendar,
-		Filter,
-		Plus,
-		Edit,
-		Trash2,
-		Copy,
-		CheckCircle,
-		AlertTriangle,
-		Clock,
-		HardDrive,
-		FileSpreadsheet,
-		FileJson,
+		IconDownload,
+		IconFileText,
+		IconDatabase,
+		IconSettings,
+		IconUser,
+		IconBuilding,
+		IconTrendingUp,
+		IconFilter,
+		IconPlus,
+		IconEdit,
+		IconTrash,
+		IconClock,
+		IconFileSpreadsheet,
+		IconFileCode,
 	} from "@tabler/icons-svelte";
 
 	let { data } = $props<{
@@ -424,25 +419,25 @@
 			value: "csv",
 			label: "CSV",
 			description: "Comma-separated values for spreadsheet software",
-			icon: FileSpreadsheet,
+			icon: IconFileSpreadsheet,
 		},
 		{
 			value: "excel",
 			label: "Excel",
 			description: "Microsoft Excel format with multiple sheets",
-			icon: FileSpreadsheet,
+			icon: IconFileSpreadsheet,
 		},
 		{
 			value: "json",
 			label: "JSON",
 			description: "JavaScript Object Notation for developers",
-			icon: FileJson,
+			icon: IconFileCode,
 		},
 		{
 			value: "xml",
 			label: "XML",
 			description: "Extensible Markup Language for structured data",
-			icon: FileText,
+			icon: IconFileText,
 		},
 	];
 
@@ -540,11 +535,11 @@
 		switch (format) {
 			case "csv":
 			case "excel":
-				return FileSpreadsheet;
+				return IconFileSpreadsheet;
 			case "json":
-				return FileJson;
+				return IconFileCode;
 			default:
-				return FileText;
+				return IconFileText;
 		}
 	}
 
@@ -615,15 +610,15 @@
 	function getDataTypeIcon(dataType: string) {
 		switch (dataType) {
 			case "users":
-				return Users;
+				return IconUser;
 			case "startups":
-				return Building2;
+				return IconBuilding;
 			case "investments":
-				return TrendingUp;
+				return IconTrendingUp;
 			case "documents":
-				return FileText;
+				return IconFileText;
 			default:
-				return Database;
+				return IconDatabase;
 		}
 	}
 
@@ -651,7 +646,7 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
+<div class="px-4 py-8">
 	<div
 		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
 	>
@@ -663,11 +658,11 @@
 		</div>
 		<div class="mt-4 md:mt-0 flex gap-2">
 			<Button variant="outline">
-				<Filter class="h-4 w-4 mr-2" />
+				<IconFilter class="h-4 w-4 mr-2" />
 				Filters
 			</Button>
 			<Button variant="outline">
-				<Settings class="h-4 w-4 mr-2" />
+				<IconSettings class="h-4 w-4 mr-2" />
 				Settings
 			</Button>
 		</div>
@@ -709,6 +704,8 @@
 			<CardContent class="space-y-3">
 				{#each Object.keys(availableFields) as dataType}
 					{@const IconComponent = getDataTypeIcon(dataType)}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div
 						class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors {selectedDataType ===
 						dataType
@@ -730,7 +727,7 @@
 						</div>
 						<Checkbox
 							checked={selectedDataType === dataType}
-							readonly
+							
 						/>
 					</div>
 				{/each}
@@ -746,9 +743,9 @@
 			<CardContent class="space-y-4">
 				<div class="space-y-2">
 					<Label for="format">Export Format</Label>
-					<Select bind:value={selectedFormat}>
+					<Select type="single" bind:value={selectedFormat}>
 						<SelectTrigger>
-							<SelectValue placeholder="Select format" />
+							Select format
 						</SelectTrigger>
 						<SelectContent>
 							{#each formatOptions as option}
@@ -775,9 +772,9 @@
 
 				<div class="space-y-2">
 					<Label for="date-range">Date Range</Label>
-					<Select bind:value={dateRange}>
+					<Select type="single" bind:value={dateRange}>
 						<SelectTrigger>
-							<SelectValue placeholder="Select date range" />
+							Select date range
 						</SelectTrigger>
 						<SelectContent>
 							{#each dateRangeOptions as option}
@@ -834,13 +831,15 @@
 					</div>
 					<div class="max-h-64 overflow-y-auto space-y-1">
 						{#each getCurrentFields() as field}
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
 							<div
 								class="flex items-center space-x-2 p-2 border rounded cursor-pointer hover:bg-accent transition-colors"
 								onclick={() => toggleField(field.key)}
 							>
 								<Checkbox
 									checked={selectedFields.includes(field.key)}
-									readonly
+									
 								/>
 								<div class="flex-1 min-w-0">
 									<div class="font-medium text-sm truncate">
@@ -872,7 +871,7 @@
 		<Card class="mb-6 border-blue-200 bg-blue-50">
 			<CardContent class="pt-6">
 				<div class="flex items-center space-x-4">
-					<Database class="h-5 w-5 text-blue-600 animate-pulse" />
+					<IconDatabase class="h-5 w-5 text-blue-600 animate-pulse" />
 					<div class="flex-1">
 						<h3 class="font-semibold text-blue-900">
 							Exporting {getDataTypeName(selectedDataType)} Data
@@ -910,9 +909,9 @@
 		</div>
 		<div class="flex gap-2">
 			<Dialog bind:open={showCreateTemplateDialog}>
-				<DialogTrigger asChild>
+				<DialogTrigger>
 					<Button variant="outline">
-						<Plus class="h-4 w-4 mr-2" />
+						<IconPlus class="h-4 w-4 mr-2" />
 						Save Template
 					</Button>
 				</DialogTrigger>
@@ -968,10 +967,10 @@
 				class="min-w-32"
 			>
 				{#if isExporting}
-					<Clock class="h-4 w-4 mr-2 animate-spin" />
+					<IconClock class="h-4 w-4 mr-2 animate-spin" />
 					Exporting...
 				{:else}
-					<Download class="h-4 w-4 mr-2" />
+					<IconDownload class="h-4 w-4 mr-2" />
 					Export Data
 				{/if}
 			</Button>
@@ -979,7 +978,7 @@
 	</div>
 
 	<!-- Tabs for Templates and History -->
-	<Tabs defaultValue="templates" class="space-y-6">
+	<Tabs value="templates" class="space-y-6">
 		<TabsList class="grid w-full grid-cols-2">
 			<TabsTrigger value="templates">Export Templates</TabsTrigger>
 			<TabsTrigger value="history">Export History</TabsTrigger>
@@ -1050,7 +1049,7 @@
 										onclick={() => loadTemplate(template)}
 										class="flex-1"
 									>
-										<Edit class="h-3 w-3 mr-1" />
+											<IconEdit class="h-3 w-3 mr-1" />
 										Use
 									</Button>
 									<Button
@@ -1058,7 +1057,7 @@
 										size="sm"
 										onclick={() => deleteTemplate(template)}
 									>
-										<Trash2 class="h-3 w-3" />
+										<IconTrash class="h-3 w-3" />
 									</Button>
 								</div>
 							</div>
@@ -1137,7 +1136,7 @@
 											onclick={() =>
 												downloadExport(exportItem)}
 										>
-											<Download class="h-4 w-4 mr-1" />
+											<IconDownload class="h-4 w-4 mr-1" />
 											Download
 										</Button>
 									{/if}

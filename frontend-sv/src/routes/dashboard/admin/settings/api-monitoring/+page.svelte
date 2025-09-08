@@ -10,14 +10,7 @@
 	import { Input } from "$lib/components/ui/input";
 	import { Label } from "$lib/components/ui/label";
 	import { Badge } from "$lib/components/ui/badge";
-	import {
-		Table,
-		TableBody,
-		TableCell,
-		TableHead,
-		TableHeader,
-		TableRow,
-	} from "$lib/components/ui/table";
+
 	import {
 		Dialog,
 		DialogContent,
@@ -31,7 +24,6 @@
 		SelectContent,
 		SelectItem,
 		SelectTrigger,
-		SelectValue,
 	} from "$lib/components/ui/select";
 	import {
 		Tabs,
@@ -40,26 +32,20 @@
 		TabsTrigger,
 	} from "$lib/components/ui/tabs";
 	import {
-		Activity,
-		AlertTriangle,
-		Shield,
-		TrendingUp,
-		TrendingDown,
-		Clock,
-		Zap,
-		BarChart3,
-		Settings,
-		RefreshCw,
-		Eye,
-		EyeOff,
-		Plus,
-		Edit,
-		CheckCircle,
-		XCircle,
-		Users,
-		Server,
-		Database,
-		Globe,
+		IconActivity,
+		IconAlertHexagon,
+		IconShield,
+		IconTrendingUp,
+		IconTrendingDown,
+		IconClock,
+		IconBolt,
+		IconChartBar,
+		IconSettings,
+		IconRefresh,
+		IconPlus,
+		IconCircleCheck,
+		IconServer,
+		IconDatabase,
 	} from "@tabler/icons-svelte";
 
 	let { data } = $props<{
@@ -322,11 +308,11 @@
 	function getTrendIcon(trend: string) {
 		switch (trend) {
 			case "up":
-				return TrendingUp;
+				return IconTrendingUp;
 			case "down":
-				return TrendingDown;
+				return IconTrendingDown;
 			default:
-				return Activity;
+				return IconActivity;
 		}
 	}
 
@@ -399,9 +385,9 @@
 			</p>
 		</div>
 		<div class="mt-4 md:mt-0 flex gap-2">
-			<Select bind:value={selectedTimeframe}>
+			<Select type="single" bind:value={selectedTimeframe}>
 				<SelectTrigger class="w-40">
-					<SelectValue placeholder="Timeframe" />
+					Timeframe" placeholder="Timeframe" />
 				</SelectTrigger>
 				<SelectContent>
 					{#each getTimeframeOptions() as option}
@@ -412,7 +398,7 @@
 				</SelectContent>
 			</Select>
 			<Button variant="outline">
-				<RefreshCw class="h-4 w-4 mr-2" />
+				<IconRefresh class="h-4 w-4 mr-2" />
 				Refresh
 			</Button>
 		</div>
@@ -426,7 +412,7 @@
 			>
 				<CardTitle class="text-sm font-medium">Total Requests</CardTitle
 				>
-				<Activity class="h-4 w-4 text-muted-foreground" />
+				<IconActivity class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -442,10 +428,10 @@
 			<CardHeader
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
-				<CardTitle class="text-sm font-medium"
-					>Avg Response Time</CardTitle
+				<CardTitle class="text-sm font-medium">
+					Avg Response Time</CardTitle
 				>
-				<Clock class="h-4 w-4 text-muted-foreground" />
+				<IconClock class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -460,7 +446,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">Error Rate</CardTitle>
-				<AlertTriangle class="h-4 w-4 text-muted-foreground" />
+				<IconAlertHexagon class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -475,7 +461,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">API Uptime</CardTitle>
-				<Shield class="h-4 w-4 text-muted-foreground" />
+				<IconShield class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<div class="text-2xl font-bold">
@@ -487,7 +473,7 @@
 	</div>
 
 	<!-- Main Content Tabs -->
-	<Tabs defaultValue="endpoints" class="space-y-6">
+	<Tabs value="endpoints" class="space-y-6">
 		<TabsList class="grid w-full grid-cols-4">
 			<TabsTrigger value="endpoints">Endpoints</TabsTrigger>
 			<TabsTrigger value="ratelimits">Rate Limits</TabsTrigger>
@@ -500,7 +486,7 @@
 			<Card>
 				<CardHeader>
 					<CardTitle class="flex items-center space-x-2">
-						<Server class="h-5 w-5" />
+						<IconServer class="h-5 w-5" />
 						<span>Endpoint Performance</span>
 					</CardTitle>
 					<CardDescription>
@@ -607,7 +593,7 @@
 											showRateLimitDialog = true;
 										}}
 									>
-										<Settings class="h-4 w-4" />
+										<IconSettings class="h-4 w-4" />
 									</Button>
 								</div>
 							</div>
@@ -629,7 +615,7 @@
 					</p>
 				</div>
 				<Button>
-					<Plus class="h-4 w-4 mr-2" />
+					<IconPlus class="h-4 w-4 mr-2" />
 					Add Rate Limit
 				</Button>
 			</div>
@@ -711,7 +697,7 @@
 				<Card>
 					<CardHeader>
 						<CardTitle class="flex items-center space-x-2">
-							<BarChart3 class="h-5 w-5" />
+							<IconChartBar class="h-5 w-5" />
 							<span>Usage Patterns</span>
 						</CardTitle>
 						<CardDescription
@@ -752,7 +738,7 @@
 				<Card>
 					<CardHeader>
 						<CardTitle class="flex items-center space-x-2">
-							<Zap class="h-5 w-5" />
+							<IconBolt class="h-5 w-5" />
 							<span>Performance Metrics</span>
 						</CardTitle>
 						<CardDescription
@@ -816,10 +802,10 @@
 					<CardHeader
 						class="flex flex-row items-center justify-between space-y-0 pb-2"
 					>
-						<CardTitle class="text-sm font-medium"
-							>Response Time</CardTitle
-						>
-						<Clock class="h-4 w-4 text-muted-foreground" />
+						<CardTitle class="text-sm font-medium">
+							Response Time
+						</CardTitle>
+						<IconClock class="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div class="text-2xl font-bold">
@@ -833,10 +819,12 @@
 					<CardHeader
 						class="flex flex-row items-center justify-between space-y-0 pb-2"
 					>
-						<CardTitle class="text-sm font-medium"
-							>Success Rate</CardTitle
-						>
-						<CheckCircle class="h-4 w-4 text-muted-foreground" />
+						<CardTitle class="text-sm font-medium">
+							Success Rate
+						</CardTitle>
+						<IconCircleCheck
+							class="h-4 w-4 text-muted-foreground"
+						/>
 					</CardHeader>
 					<CardContent>
 						<div class="text-2xl font-bold">
@@ -852,10 +840,10 @@
 					<CardHeader
 						class="flex flex-row items-center justify-between space-y-0 pb-2"
 					>
-						<CardTitle class="text-sm font-medium"
-							>Data Transfer</CardTitle
-						>
-						<Database class="h-4 w-4 text-muted-foreground" />
+						<CardTitle class="text-sm font-medium">
+							Data Transfer
+						</CardTitle>
+						<IconDatabase class="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div class="text-2xl font-bold">
@@ -883,9 +871,9 @@
 				</div>
 				<div class="flex gap-2">
 					<Dialog bind:open={showAlertConfigDialog}>
-						<DialogTrigger asChild>
+						<DialogTrigger>
 							<Button variant="outline">
-								<Settings class="h-4 w-4 mr-2" />
+								<IconSettings class="h-4 w-4 mr-2" />
 								Configure Alerts
 							</Button>
 						</DialogTrigger>
@@ -1062,7 +1050,7 @@
 								<div class="flex items-center space-x-2">
 									{#if !alert.resolved}
 										<Button variant="outline" size="sm">
-											<CheckCircle class="h-4 w-4" />
+											<IconCircleCheck class="h-4 w-4" />
 										</Button>
 									{/if}
 								</div>
