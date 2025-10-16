@@ -1,36 +1,37 @@
-/*
-import { env } from '$env/dynamic/private';
 import * as schema from './schema';
-import { neon, neonConfig, Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { neonConfig, Pool } from '@neondatabase/serverless';
+import { drizzle as NeonAdapter } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
+import { env } from "$env/dynamic/private";
+import { drizzle as PostgresqlAdapter } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 
-neonConfig.webSocketConstructor = ws;
+let db: ReturnType<typeof NeonAdapter> | ReturnType<typeof PostgresqlAdapter>;
 
-// To work in edge environments (Cloudflare Workers, Vercel Edge, etc.), enable querying over fetch
-// neonConfig.poolQueryViaFetch = true
+if (env.NODE_ENV === "production") {
+  if (!env.DEPLOYMENT_DATABASE_URL) {
+    throw new Error("Failed to create database client");
+  }
+  neonConfig.webSocketConstructor = ws;
+
+  // To work in edge environments (Cloudflare Workers, Vercel Edge, etc.), enable querying over fetch
+  // neonConfig.poolQueryViaFetch = true
+
+  const pool = new Pool({ connectionString: env.DEPLOYMENT_DATABASE_URL });
+
+  db = NeonAdapter({ client: pool, schema });
+
+} else {
+  if (!env.DATABASE_URL) {
+    throw new Error("Failed to create database client");
+  }
+  const client = postgres(env.DATABASE_URL!);
+  db = PostgresqlAdapter(client, { schema });
+}
 
 
-const pool = new Pool({ connectionString: env.DEPLOYMENT_DATABASE_URL });
-
-export const db = drizzle({ client: pool, schema });
-*/
-
+export { db };
 export * from "./schema";
 export * from "./utils/user-profile-operations";
 export * from "./utils/onboarding-transformer";
-
-
-
-
-import { env } from '$env/dynamic/private';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-
-if (!env.DATABASE_URL) {
-   throw new Error("Failed to create database client");
-}
-const client = postgres(env.DATABASE_URL!);
-export const db = drizzle({ client });
-
-
+export * from "./utils/admin-operations";

@@ -3,6 +3,8 @@ import { defineConfig } from 'drizzle-kit';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required');
+} else if (!process.env.DEPLOYMENT_DATABASE_URL) {
+  throw new Error('DEPLOYMENT_DATABASE_URL environment variable is required');
 }
 
 export default defineConfig({

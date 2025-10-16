@@ -1,129 +1,104 @@
 <script lang="ts">
-  import { page } from "$app/stores";
-  import { authClient } from "$lib/auth-client";
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { USER_ROLES } from "$lib/db/schema/auth-schema";
+   import { goto } from "$app/navigation";
+   import { onMount } from "svelte";
+   import { USER_ROLES } from "$lib/db/schema/auth-schema";
 
-  // Role-based dashboard components
-  import FounderDashboard from "./components/FounderDashboard.svelte";
-  import InvestorDashboard from "./components/InvestorDashboard.svelte";
-  import SupportDashboard from "./components/SupportDashboard.svelte";
-  import DefaultDashboard from "./components/DefaultDashboard.svelte";
+   let { data } = $props<{ data: { user: any } }>();
 
-  let user: any = null;
-  let loading = true;
+   const { user } = data;
 
-  onMount(async () => {
-    try {
-      const session = await authClient.getSession();
-      if (!session) {
-        goto("/login");
-        return;
+   // Welcome screen state
+   let welcomeOpacity = $state(0);
+   let welcomeScale = $state(0.8);
+   let countdown = $state(5);
+
+   onMount(() => {
+      // Animate welcome screen in
+      setTimeout(() => {
+         welcomeOpacity = 1;
+         welcomeScale = 1;
+      }, 100);
+
+      // Start countdown and redirect
+      const timer = setInterval(() => {
+         countdown--;
+         if (countdown <= 0) {
+            clearInterval(timer);
+            // Animate out
+            welcomeOpacity = 0;
+            welcomeScale = 0.8;
+            setTimeout(() => {
+               redirectToRoleDashboard();
+            }, 300);
+         }
+      }, 1000);
+   });
+
+   function redirectToRoleDashboard() {
+      switch (user.role) {
+         case USER_ROLES.FOUNDER:
+            goto("/dashboard/founder");
+            break;
+         case USER_ROLES.INVESTOR:
+            goto("/dashboard/investor");
+            break;
+         case USER_ROLES.SUPPORT:
+            goto("/dashboard/support");
+            break;
+         default:
+            goto("/onboarding");
       }
-
-      user = session.data?.user;
-      loading = false;
-    } catch (error) {
-      console.error("Error fetching user session:", error);
-      goto("/login");
-    }
-  });
-
-  // Helper function to get role-specific dashboard component
-  function getDashboardComponent() {
-    if (!user) return null;
-
-    switch (user.role) {
-      case USER_ROLES.FOUNDER:
-        return FounderDashboard;
-      case USER_ROLES.INVESTOR:
-        return InvestorDashboard;
-      case USER_ROLES.SUPPORT:
-        return SupportDashboard;
-      default:
-        return DefaultDashboard;
-    }
-  }
+   }
 </script>
 
 <svelte:head>
-  <title>Dashboard - StartupConnect</title>
-  <meta
-    name="description"
-    content="Your personalized StartupConnect dashboard"
-  />
+   <title>Welcome - StartupConnect</title>
 </svelte:head>
 
-{#if loading}
-  <div class="container py-8">
-    <div class="max-w-4xl mx-auto">
-      <div class="flex items-center justify-center">
-        <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
-        ></div>
-        <span class="ml-2 text-muted-foreground">Loading dashboard...</span>
+<!-- Animated Welcome Screen -->
+<div
+   class="fixed inset-0 bg-gradient-to-br from-primary/50 via-background to-secondary/50 flex items-center justify-center z-50"
+   style="opacity: {welcomeOpacity}; transform: scale({welcomeScale}); transition: all 0.3s ease-out;"
+>
+   <div class="text-center space-y-6">
+      <!-- Logo -->
+      <div class="mb-8 animate-bounce">
+         <img src="/logo.svg" alt="StartupConnect" class="size-24 mx-auto" />
       </div>
-    </div>
-  </div>
-{:else if user}
-  <div class="container py-8">
-    <div class="max-w-7xl mx-auto">
-      <!-- Header Section -->
-      <div class="mb-8">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold mb-2">Welcome back, {user.name}!</h1>
-            <p class="text-muted-foreground">
-              {user.role === USER_ROLES.FOUNDER &&
-                "Manage your startup and connect with investors"}
-              {user.role === USER_ROLES.INVESTOR &&
-                "Discover startups and manage your investments"}
-              {user.role === USER_ROLES.SUPPORT &&
-                "Offer your services and connect with clients"}
-              {user.role === USER_ROLES.USER &&
-                "Complete your profile to get started"}
-              {user.role === USER_ROLES.MODERATOR &&
-                "Moderate the platform and manage users"}
-              {user.role === USER_ROLES.ADMIN &&
-                "Administer the platform and manage all users"}
-            </p>
-          </div>
 
-          <!-- Role Badge -->
-          <div class="flex items-center space-x-2">
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20"
+      <!-- Welcome Text -->
+      <div class="space-y-4">
+         <h1
+            class="text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-pulse"
+         >
+            Welcome!
+         </h1>
+         <p class="text-2xl text-muted-foreground">
+            Hello, <span class="font-semibold text-foreground">{user.name}</span
             >
-              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-            </span>
-          </div>
-        </div>
+         </p>
+         <p class="text-lg text-muted-foreground">
+            Redirecting to your {user.role?.toLowerCase()} dashboard in...
+         </p>
       </div>
 
-      <!-- Role-specific Dashboard Content -->
-      {#if getDashboardComponent()}
-        <svelte:component this={getDashboardComponent()} {user} />
-      {:else}
-        <DefaultDashboard {user} />
-      {/if}
-    </div>
-  </div>
-{:else}
-  <div class="container py-8">
-    <div class="max-w-4xl mx-auto">
-      <div class="text-center">
-        <h1 class="text-3xl font-bold mb-2">Access Denied</h1>
-        <p class="text-muted-foreground mb-4">
-          Please log in to access your dashboard
-        </p>
-        <a
-          href="/login"
-          class="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Go to Login
-        </a>
+      <!-- Countdown -->
+      <div class="text-4xl font-bold text-primary">
+         {countdown}
       </div>
-    </div>
-  </div>
-{/if}
+
+      <!-- Skip Button -->
+      <button
+         onclick={() => {
+            welcomeOpacity = 0;
+            welcomeScale = 0.8;
+            setTimeout(() => {
+               redirectToRoleDashboard();
+            }, 300);
+         }}
+         class="px-6 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+         Skip
+      </button>
+   </div>
+</div>
