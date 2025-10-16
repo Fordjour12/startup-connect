@@ -1,15 +1,16 @@
 <script lang="ts">
     // import data from "@/components/dashboard-01/data";
-    import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-    import AppSidebar from "$lib/components/app-sidebar.svelte";
-    import SiteHeader from "$lib/components/site-header.svelte";
+    import * as Sidebar from "@/components/ui/sidebar/index.js";
+    import AppSidebar from "@/components/app-sidebar.svelte";
+    import SiteHeader from "@/components/site-header.svelte";
+    import ImpersonationBanner from "@/components/admin/ImpersonationBanner.svelte";
     // import SectionCards from "$lib/components/section-cards.svelte";
     // import ChartAreaInteractive from "$lib/components/chart-area-interactive.svelte";
     // import DataTable from "$lib/components/data-table.svelte";
     import type { PageProps } from "./$types";
     import type { Snippet } from "svelte";
 
-    let { children, data }: { children: Snippet, data: PageProps } = $props();
+    let { children, data }: { children: Snippet; data: PageProps } = $props();
 </script>
 
 <Sidebar.Provider
@@ -18,6 +19,7 @@
     <AppSidebar variant="inset" {data} />
     <Sidebar.Inset>
         <SiteHeader />
+        <ImpersonationBanner user={data?.user || {}} />
         <main>
             {@render children?.()}
         </main>

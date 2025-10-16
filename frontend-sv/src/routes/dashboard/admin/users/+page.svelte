@@ -20,9 +20,11 @@
         IconTrash,
         IconShield,
         IconKeyframeAlignHorizontal,
+        IconUserCheck,
     } from "@tabler/icons-svelte";
 
     import * as Select from "@/components/ui/select";
+    import { goto } from "$app/navigation";
 
     let { data } = $props<{ data: { users: any[]; userStats: any } }>();
 
@@ -83,7 +85,14 @@
                 Manage user accounts, roles, and permissions
             </p>
         </div>
-        <div class="mt-4 md:mt-0">
+        <div class="mt-4 md:mt-0 flex space-x-2">
+            <Button
+                variant="outline"
+                onclick={() => goto("/dashboard/admin/users/impersonate")}
+            >
+                <IconUserCheck class="h-4 w-4 mr-2" />
+                Impersonate User
+            </Button>
             <Button>
                 <IconUserPlus class="h-4 w-4 mr-2" />
                 Add User
