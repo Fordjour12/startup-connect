@@ -9,14 +9,14 @@
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
 	import {
-		Shield,
-		AlertTriangle,
-		Lock,
-		Eye,
-		FileText,
-		Database,
-		Search,
-		Download,
+		IconShield,
+		IconAlertHexagon,
+		IconLock,
+		IconEye,
+		IconFileText,
+		IconDatabase,
+		IconSearch,
+		IconDownload,
 	} from "@tabler/icons-svelte";
 
 	let { data } = $props<{
@@ -73,7 +73,7 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
+<div class="px-4 py-8">
 	<div
 		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
 	>
@@ -85,7 +85,7 @@
 		</div>
 		<div class="mt-4 md:mt-0 flex gap-2">
 			<Button variant="outline">
-				<Download class="h-4 w-4 mr-2" />
+				<IconDownload class="h-4 w-4 mr-2" />
 				Export Logs
 			</Button>
 		</div>
@@ -98,7 +98,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">Firewall</CardTitle>
-				<Shield class="h-4 w-4 text-muted-foreground" />
+				<IconShield class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<Badge
@@ -115,7 +115,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">Encryption</CardTitle>
-				<Lock class="h-4 w-4 text-muted-foreground" />
+				<IconLock class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<Badge
@@ -132,7 +132,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">Backup Status</CardTitle>
-				<Database class="h-4 w-4 text-muted-foreground" />
+				<IconDatabase class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<Badge
@@ -149,7 +149,7 @@
 				class="flex flex-row items-center justify-between space-y-0 pb-2"
 			>
 				<CardTitle class="text-sm font-medium">Monitoring</CardTitle>
-				<Eye class="h-4 w-4 text-muted-foreground" />
+				<IconEye class="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
 				<Badge
@@ -167,7 +167,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center space-x-2">
-					<AlertTriangle class="h-5 w-5" />
+					<IconAlertHexagon class="h-5 w-5" />
 					<span>Security Alerts</span>
 				</CardTitle>
 				<CardDescription
@@ -219,12 +219,12 @@
 							</div>
 							<div class="flex gap-2 mt-3">
 								<Button variant="outline" size="sm">
-									<Eye class="h-4 w-4 mr-1" />
+									<IconEye class="h-4 w-4 mr-1" />
 									Investigate
 								</Button>
 								{#if !alert.resolved}
 									<Button variant="outline" size="sm">
-										<Shield class="h-4 w-4 mr-1" />
+										<IconShield class="h-4 w-4 mr-1" />
 										Resolve
 									</Button>
 								{/if}
@@ -239,7 +239,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle class="flex items-center space-x-2">
-					<FileText class="h-5 w-5" />
+					<IconFileText class="h-5 w-5" />
 					<span>Audit Log</span>
 				</CardTitle>
 				<CardDescription>Recent administrative actions</CardDescription>

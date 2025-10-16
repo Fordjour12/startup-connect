@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { goto } from "$app/navigation";
 	import {
 		Card,
 		CardContent,
@@ -15,7 +16,6 @@
 		SelectContent,
 		SelectItem,
 		SelectTrigger,
-		SelectValue,
 	} from "@/components/ui/select";
 	import { Badge } from "@/components/ui/badge";
 	import {
@@ -26,7 +26,14 @@
 		Clock,
 		MessageSquare,
 		ArrowRight,
-	} from "lucide-svelte";
+		Heart,
+		Bookmark,
+		Verified,
+		TrendingUp,
+		Users,
+		Calendar,
+		Eye,
+	} from "@lucide/svelte";
 
 	// Service categories
 	const SERVICE_CATEGORIES = [
@@ -55,10 +62,24 @@
 						location: "San Francisco, CA",
 					},
 				},
+				isVerified: true,
+				yearsExperience: 15,
+				completedProjects: 120,
+				responseRate: 98,
 			},
 			rating: 4.9,
 			reviewCount: 47,
 			responseTime: 4,
+			views: 156,
+			inquiries: 23,
+			bookings: 8,
+			isFeatured: true,
+			deliverables: [
+				"Market Analysis Report",
+				"Competitive Positioning Strategy",
+				"Growth Plan",
+			],
+			duration: "2-4 weeks",
 		},
 		{
 			id: "2",
@@ -75,10 +96,24 @@
 						location: "New York, NY",
 					},
 				},
+				isVerified: true,
+				yearsExperience: 12,
+				completedProjects: 85,
+				responseRate: 95,
 			},
 			rating: 4.8,
 			reviewCount: 32,
 			responseTime: 6,
+			views: 89,
+			inquiries: 12,
+			bookings: 4,
+			isFeatured: false,
+			deliverables: [
+				"Architecture Review Report",
+				"Performance Recommendations",
+				"Security Assessment",
+			],
+			duration: "1-2 weeks",
 		},
 		{
 			id: "3",
@@ -95,10 +130,126 @@
 						location: "Austin, TX",
 					},
 				},
+				isVerified: false,
+				yearsExperience: 8,
+				completedProjects: 45,
+				responseRate: 92,
 			},
 			rating: 4.7,
 			reviewCount: 28,
 			responseTime: 8,
+			views: 67,
+			inquiries: 8,
+			bookings: 2,
+			isFeatured: false,
+			deliverables: [
+				"Marketing Strategy",
+				"Campaign Recommendations",
+				"ROI Analysis",
+			],
+			duration: "Ongoing",
+		},
+		{
+			id: "4",
+			title: "Financial Planning & Fundraising",
+			description:
+				"Expert guidance on financial planning, fundraising strategies, and investor relations.",
+			category: "Legal & Finance",
+			subcategory: "Fundraising",
+			pricing: { type: "hourly", amount: 200, currency: "USD" },
+			supporter: {
+				profileData: {
+					personalInfo: {
+						name: "James Wilson",
+						location: "London, UK",
+					},
+				},
+				isVerified: true,
+				yearsExperience: 20,
+				completedProjects: 200,
+				responseRate: 99,
+			},
+			rating: 4.9,
+			reviewCount: 65,
+			responseTime: 2,
+			views: 234,
+			inquiries: 35,
+			bookings: 12,
+			isFeatured: true,
+			deliverables: [
+				"Financial Model",
+				"Pitch Deck Review",
+				"Investor List",
+			],
+			duration: "3-6 weeks",
+		},
+		{
+			id: "5",
+			title: "Operations Optimization",
+			description:
+				"Streamline your operations and improve efficiency with proven methodologies.",
+			category: "Operations",
+			subcategory: "Process Improvement",
+			pricing: { type: "project", amount: 1800, currency: "USD" },
+			supporter: {
+				profileData: {
+					personalInfo: {
+						name: "Lisa Park",
+						location: "Seattle, WA",
+					},
+				},
+				isVerified: true,
+				yearsExperience: 10,
+				completedProjects: 75,
+				responseRate: 96,
+			},
+			rating: 4.8,
+			reviewCount: 41,
+			responseTime: 5,
+			views: 98,
+			inquiries: 15,
+			bookings: 6,
+			isFeatured: false,
+			deliverables: [
+				"Process Map",
+				"Efficiency Report",
+				"Implementation Plan",
+			],
+			duration: "2-3 weeks",
+		},
+		{
+			id: "6",
+			title: "Startup Mentoring",
+			description:
+				"One-on-one mentoring sessions to guide you through startup challenges and growth.",
+			category: "Mentoring",
+			subcategory: "General Mentoring",
+			pricing: { type: "hourly", amount: 100, currency: "USD" },
+			supporter: {
+				profileData: {
+					personalInfo: {
+						name: "David Kim",
+						location: "Toronto, CA",
+					},
+				},
+				isVerified: false,
+				yearsExperience: 6,
+				completedProjects: 30,
+				responseRate: 90,
+			},
+			rating: 4.6,
+			reviewCount: 18,
+			responseTime: 12,
+			views: 45,
+			inquiries: 6,
+			bookings: 3,
+			isFeatured: false,
+			deliverables: [
+				"Mentoring Session",
+				"Action Plan",
+				"Follow-up Notes",
+			],
+			duration: "1 hour",
 		},
 	]);
 
@@ -127,11 +278,35 @@
 	function contactSupporter(serviceId: string) {
 		// TODO: Navigate to contact form or messaging
 		console.log("Contacting supporter for service:", serviceId);
+		goto(`/marketplace/services/${serviceId}/contact`);
 	}
 
 	function viewServiceDetails(serviceId: string) {
 		// TODO: Navigate to service detail page
 		console.log("Viewing service details:", serviceId);
+		goto(`/marketplace/services/${serviceId}`);
+	}
+
+	function bookmarkService(serviceId: string) {
+		// TODO: Implement bookmark functionality
+		console.log("Bookmarking service:", serviceId);
+	}
+
+	function getPricingDisplay(pricing: any) {
+		switch (pricing.type) {
+			case "hourly":
+				return `$${pricing.amount}/hour`;
+			case "project":
+				return `$${pricing.amount.toLocaleString()}`;
+			case "retainer":
+				return `$${pricing.amount.toLocaleString()}/month`;
+			case "equity":
+				return `${pricing.amount}% equity`;
+			case "free":
+				return "Free";
+			default:
+				return `$${pricing.amount}`;
+		}
 	}
 
 	onMount(() => {
@@ -148,7 +323,7 @@
 	/>
 </svelte:head>
 
-<div class="container mx-auto p-6 space-y-6">
+<div class="p-4 space-y-6">
 	<!-- Header -->
 	<div class="text-center space-y-4">
 		<h1 class="text-4xl font-bold tracking-tight">Service Marketplace</h1>
@@ -181,11 +356,12 @@
 						<Filter class="h-4 w-4 text-muted-foreground" />
 						<Label>Category:</Label>
 						<Select
+							type="single"
 							bind:value={selectedCategory}
 							onchange={() => filterServices()}
 						>
 							<SelectTrigger class="w-48">
-								<SelectValue placeholder="All Categories" />
+								All Categories
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="">All Categories</SelectItem>
@@ -201,11 +377,12 @@
 					<div class="flex items-center gap-2">
 						<Label>Sort by:</Label>
 						<Select
+							type="single"
 							bind:value={selectedSort}
 							onchange={() => filterServices()}
 						>
 							<SelectTrigger class="w-40">
-								<SelectValue />
+								"Filtering"
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="relevance"
@@ -239,18 +416,36 @@
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 		{#each services as service}
 			<Card
-				class="hover:shadow-lg transition-shadow cursor-pointer"
-				onclick={() => viewServiceDetails(service.id)}
+				class="hover:shadow-lg transition-shadow cursor-pointer group"
 			>
 				<CardHeader>
 					<div class="flex items-start justify-between">
-						<div class="space-y-2">
-							<CardTitle class="text-lg"
-								>{service.title}</CardTitle
-							>
+						<div class="space-y-2 flex-1">
+							<div class="flex items-center gap-2">
+								<CardTitle class="text-lg"
+									>{service.title}</CardTitle
+								>
+								{#if service.isFeatured}
+									<Badge variant="secondary" class="text-xs"
+										>Featured</Badge
+									>
+								{/if}
+							</div>
 							<CardDescription class="line-clamp-2">
 								{service.description}
 							</CardDescription>
+						</div>
+						<div class="flex items-center gap-1">
+							<Button
+								variant="ghost"
+								size="sm"
+								onclick={(e) => {
+									e.stopPropagation();
+									bookmarkService(service.id);
+								}}
+							>
+								<Bookmark class="h-4 w-4" />
+							</Button>
 						</div>
 					</div>
 				</CardHeader>
@@ -275,16 +470,38 @@
 					<div
 						class="flex items-center gap-2 text-sm text-muted-foreground"
 					>
-						<MapPin class="h-4 w-4" />
-						<span
-							>{service.supporter.profileData.personalInfo
-								.name}</span
-						>
+						<div class="flex items-center gap-1">
+							<span
+								>{service.supporter.profileData.personalInfo
+									.name}</span
+							>
+							{#if service.supporter.isVerified}
+								<Verified class="h-3 w-3 text-blue-500" />
+							{/if}
+						</div>
 						<span>•</span>
 						<span
 							>{service.supporter.profileData.personalInfo
 								.location}</span
 						>
+					</div>
+
+					<!-- Supporter Stats -->
+					<div
+						class="grid grid-cols-2 gap-2 text-xs text-muted-foreground"
+					>
+						<div class="flex items-center gap-1">
+							<Users class="h-3 w-3" />
+							<span
+								>{service.supporter.yearsExperience} years exp</span
+							>
+						</div>
+						<div class="flex items-center gap-1">
+							<TrendingUp class="h-3 w-3" />
+							<span
+								>{service.supporter.responseRate}% response rate</span
+							>
+						</div>
 					</div>
 
 					<!-- Response Time -->
@@ -296,39 +513,66 @@
 						>
 					</div>
 
+					<!-- Duration -->
+					{#if service.duration}
+						<div
+							class="flex items-center gap-2 text-sm text-muted-foreground"
+						>
+							<Calendar class="h-4 w-4" />
+							<span>{service.duration}</span>
+						</div>
+					{/if}
+
 					<!-- Pricing -->
 					<div class="flex items-center justify-between">
-						<div class="text-lg font-bold">
-							{service.pricing.type === "hourly" &&
-								`$${service.pricing.amount}/hr`}
-							{service.pricing.type === "project" &&
-								`$${service.pricing.amount}`}
-							{service.pricing.type === "retainer" &&
-								`$${service.pricing.amount}/mo`}
+						<span class="text-sm text-muted-foreground"
+							>Pricing:</span
+						>
+						<span class="font-semibold text-lg"
+							>{getPricingDisplay(service.pricing)}</span
+						>
+					</div>
+
+					<!-- Service Stats -->
+					<div class="grid grid-cols-3 gap-2 text-center text-xs">
+						<div>
+							<div class="font-semibold">{service.views}</div>
+							<div class="text-muted-foreground">Views</div>
 						</div>
-						<Badge variant="secondary" class="capitalize">
-							{service.pricing.type}
-						</Badge>
+						<div>
+							<div class="font-semibold">{service.inquiries}</div>
+							<div class="text-muted-foreground">Inquiries</div>
+						</div>
+						<div>
+							<div class="font-semibold">{service.bookings}</div>
+							<div class="text-muted-foreground">Bookings</div>
+						</div>
 					</div>
 
 					<!-- Actions -->
-					<div class="flex items-center gap-2 pt-2">
-						<Button
-							variant="outline"
-							class="flex-1"
-							onclick|stopPropagation={() =>
-								contactSupporter(service.id)}
-						>
-							<MessageSquare class="h-4 w-4 mr-2" />
-							Contact
-						</Button>
+					<div class="flex gap-2">
 						<Button
 							variant="outline"
 							size="sm"
-							onclick|stopPropagation={() =>
-								viewServiceDetails(service.id)}
+							class="flex-1"
+							onclick={(e) => {
+								e.stopPropagation();
+								viewServiceDetails(service.id);
+							}}
 						>
-							<ArrowRight class="h-4 w-4" />
+							<Eye class="h-4 w-4 mr-2" />
+							View Details
+						</Button>
+						<Button
+							size="sm"
+							class="flex-1"
+							onclick={(e) => {
+								e.stopPropagation();
+								contactSupporter(service.id);
+							}}
+						>
+							<MessageSquare class="h-4 w-4 mr-2" />
+							Contact
 						</Button>
 					</div>
 				</CardContent>

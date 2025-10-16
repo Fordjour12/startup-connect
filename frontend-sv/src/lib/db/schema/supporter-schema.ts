@@ -1,424 +1,419 @@
-import { pgTable, text, timestamp, integer, boolean, jsonb, uuid, decimal } from "drizzle-orm/pg-core";
+import {
+	pgTable,
+	text,
+	timestamp,
+	boolean,
+	integer,
+	decimal,
+	jsonb,
+	pgEnum,
+	check
+} from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 import { user } from "./auth-schema";
+import { relations } from "drizzle-orm";
 
-// Supporters table - External consultants, mentors, advisors
-export const supporters = pgTable("supporters", {
+// =============================================================================
+// SUPPORTER SCHEMA - Database tables for supporter marketplace functionality
+// =============================================================================
+
+// Enums
+export const serviceCategoryEnum = pgEnum('service_category', [
+	'business_strategy',
+	'technical',
+	'marketing_sales',
+	'legal_finance',
+	'operations',
+	'mentoring',
+	'other'
+]);
+
+export const servicePricingTypeEnum = pgEnum('service_pricing_type', [
+	'hourly',
+	'project',
+	'retainer',
+	'equity',
+	'free'
+]);
+
+export const bookingStatusEnum = pgEnum('booking_status', [
+	'pending',
+	'confirmed',
+	'in_progress',
+	'completed',
+	'cancelled',
+	'disputed'
+]);
+
+export const communicationTypeEnum = pgEnum('communication_type', [
+	'text',
+	'file',
+	'system',
+	'booking_request',
+	'booking_confirmation',
+	'booking_cancellation'
+]);
+
+// Supporter profiles table
+export const supporterProfile = pgTable("supporter_profile", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
-	userId: text("user_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+	userId: text("user_id")
+		.notNull()
+		.unique()
+		.references(() => user.id, { onDelete: "cascade" }),
 
-	// Profile data stored as JSONB for flexibility
-	profileData: jsonb("profile_data").notNull(),
+	// Professional information
+	title: text("title"), // e.g., "Senior Business Consultant"
+	company: text("company"),
+	yearsExperience: integer("years_experience"),
+	hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }),
 
-	// Verification status
-	verificationStatus: text("verification_status").$default("pending").notNull(), // pending, verified, rejected
+	// Verification and credentials
+	isVerified: boolean("is_verified").$defaultFn(() => false).notNull(),
+	verificationDocuments: jsonb("verification_documents").$type<{
+		certifications?: string[];
+		portfolio?: string[];
+		references?: string[];
+		backgroundCheck?: boolean;
+	}>(),
 
-	// Timestamps
-	createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
-	updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).$onUpdateFn(() => new Date()).notNull(),
-	verifiedAt: timestamp("verified_at")
+	// Availability and preferences
+	availability: jsonb("availability").$type<{
+		timezone: string;
+		availableHours: {
+			monday?: { start: string; end: string }[];
+			tuesday?: { start: string; end: string }[];
+			wednesday?: { start: string; end: string }[];
+			thursday?: { start: string; end: string }[];
+			friday?: { start: string; end: string }[];
+			saturday?: { start: string; end: string }[];
+			sunday?: { start: string; end: string }[];
+		};
+		maxConcurrentProjects: number;
+		responseTimeHours: integer;
+	}>(),
+
+	// Specializations and expertise
+	specializations: jsonb("specializations").$type<{
+		industries: string[];
+		skills: string[];
+		certifications: string[];
+		languages: string[];
+		serviceTypes: string[];
+	}>(),
+
+	// Performance metrics
+	rating: decimal("rating", { precision: 3, scale: 2 }).$defaultFn(() => "0.00"),
+	totalReviews: integer("total_reviews").$defaultFn(() => 0),
+	completedProjects: integer("completed_projects").$defaultFn(() => 0),
+	responseRate: decimal("response_rate", { precision: 5, scale: 2 }).$defaultFn(() => "0.00"),
+
+	// Profile status
+	isActive: boolean("is_active").$defaultFn(() => true).notNull(),
+	isPublic: boolean("is_public").$defaultFn(() => true).notNull(),
+
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => new Date())
+		.notNull(),
+	updatedAt: timestamp("updated_at")
+		.$defaultFn(() => new Date())
+		.$onUpdateFn(() => new Date())
+		.notNull(),
 });
 
-// Services table - What supporters offer
-export const services = pgTable("services", {
+// Services table
+export const service = pgTable("service", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
-	supporterId: text("supporter_id").references(() => supporters.id, { onDelete: "cascade" }).notNull(),
+	supporterId: text("supporter_id")
+		.notNull()
+		.references(() => supporterProfile.id, { onDelete: "cascade" }),
 
 	// Service details
 	title: text("title").notNull(),
-	description: text("description"),
-	category: text("category").notNull(), // business_strategy, technical, marketing_sales, legal_finance, operations, mentoring
+	description: text("description").notNull(),
+	category: serviceCategoryEnum("category").notNull(),
 	subcategory: text("subcategory"),
 
-	// Pricing structure
-	pricing: jsonb("pricing").notNull(), // { type: 'hourly'|'project'|'retainer', amount: number, currency: string }
+	// Pricing
+	pricingType: servicePricingTypeEnum("pricing_type").notNull(),
+	priceAmount: decimal("price_amount", { precision: 10, scale: 2 }),
+	priceCurrency: text("price_currency").$defaultFn(() => "USD"),
 
-	// Availability and scheduling
-	availability: jsonb("availability"), // { workingHours: {}, timezone: string, responseTime: number }
+	// Service details
+	deliverables: jsonb("deliverables").$type<string[]>(),
+	duration: text("duration"), // e.g., "2-4 weeks", "1 hour session"
+	requirements: text("requirements"),
 
 	// Service status
-	status: text("status").$default("active").notNull(), // active, inactive, draft
-
-	// Timestamps
-	createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
-	updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).$onUpdateFn(() => new Date()).notNull()
-});
-
-// Engagements table - Client relationships and projects
-export const engagements = pgTable("engagements", {
-	id: text("id").primaryKey().$defaultFn(() => createId()),
-	serviceId: text("service_id").references(() => services.id, { onDelete: "cascade" }).notNull(),
-	startupId: text("startup_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
-	supporterId: text("supporter_id").references(() => supporters.id, { onDelete: "cascade" }).notNull(),
-
-	// Engagement status
-	status: text("status").$default("proposed").notNull(), // proposed, negotiating, active, completed, cancelled
-
-	// Proposal and contract data
-	proposalData: jsonb("proposal_data"), // Scope, deliverables, timeline, milestones
-	contractData: jsonb("contract_data"), // Terms, conditions, payment schedule
-
-	// Payment status
-	paymentStatus: text("payment_status").$default("pending").notNull(), // pending, partial, completed, disputed
-
-	// Timestamps
-	createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
-	updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).$onUpdateFn(() => new Date()).notNull(),
-	startedAt: timestamp("started_at"),
-	completedAt: timestamp("completed_at")
-});
-
-// Reviews and ratings table
-export const supporterReviews = pgTable("supporter_reviews", {
-	id: text("id").primaryKey().$defaultFn(() => createId()),
-	engagementId: text("engagement_id").references(() => engagements.id, { onDelete: "cascade" }).notNull(),
-	reviewerId: text("reviewer_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
-	supporterId: text("supporter_id").references(() => supporters.id, { onDelete: "cascade" }).notNull(),
-
-	// Rating components
-	overallRating: integer("overall_rating").notNull(), // 1-5 stars
-	expertiseRating: integer("expertise_rating"),
-	communicationRating: integer("communication_rating"),
-	valueRating: integer("value_rating"),
-	timelinessRating: integer("timeliness_rating"),
-	resultsRating: integer("results_rating"),
-
-	// Review content
-	reviewText: text("review_text"),
-	highlights: jsonb("highlights").$defaultFn(() => []), // Array of highlight strings
-	areasForImprovement: jsonb("areas_for_improvement").$defaultFn(() => []), // Array of improvement areas
+	isActive: boolean("is_active").$defaultFn(() => true).notNull(),
+	isFeatured: boolean("is_featured").$defaultFn(() => false).notNull(),
 
 	// Metrics
-	projectSuccess: boolean("project_success"),
-	onTimeDelivery: boolean("on_time_delivery"),
-	withinBudget: boolean("within_budget"),
-	exceededExpectations: boolean("exceeded_expectations"),
-	wouldRecommend: boolean("would_recommend"),
+	views: integer("views").$defaultFn(() => 0),
+	inquiries: integer("inquiries").$defaultFn(() => 0),
+	bookings: integer("bookings").$defaultFn(() => 0),
 
-	// Timestamps
-	createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
-	updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).$onUpdateFn(() => new Date()).notNull()
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => new Date())
+		.notNull(),
+	updatedAt: timestamp("updated_at")
+		.$defaultFn(() => new Date())
+		.$onUpdateFn(() => new Date())
+		.notNull(),
 });
 
-// Messages table for communication
-export const engagementMessages = pgTable("engagement_messages", {
+// Bookings table
+export const booking = pgTable("booking", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
-	engagementId: text("engagement_id").references(() => engagements.id, { onDelete: "cascade" }).notNull(),
-	senderId: text("sender_id").references(() => user.id, { onDelete: "cascade" }).notNull(),
+	serviceId: text("service_id")
+		.notNull()
+		.references(() => service.id, { onDelete: "cascade" }),
+	supporterId: text("supporter_id")
+		.notNull()
+		.references(() => supporterProfile.id, { onDelete: "cascade" }),
+	startupId: text("startup_id").notNull(), // Will reference startup table when created
+
+	// Booking details
+	title: text("title").notNull(),
+	description: text("description"),
+	status: bookingStatusEnum("status").$defaultFn(() => "pending").notNull(),
+
+	// Scheduling
+	scheduledStart: timestamp("scheduled_start"),
+	scheduledEnd: timestamp("scheduled_end"),
+	duration: integer("duration"), // in minutes
+
+	// Pricing
+	agreedPrice: decimal("agreed_price", { precision: 10, scale: 2 }),
+	currency: text("currency").$defaultFn(() => "USD"),
+
+	// Communication
+	startupNotes: text("startup_notes"),
+	supporterNotes: text("supporter_notes"),
+
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => new Date())
+		.notNull(),
+	updatedAt: timestamp("updated_at")
+		.$defaultFn(() => new Date())
+		.$onUpdateFn(() => new Date())
+		.notNull(),
+});
+
+// Communications table
+export const communication = pgTable("communication", {
+	id: text("id").primaryKey().$defaultFn(() => createId()),
+	bookingId: text("booking_id")
+		.references(() => booking.id, { onDelete: "cascade" }),
+	senderId: text("sender_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	recipientId: text("recipient_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
 
 	// Message content
-	messageType: text("message_type").$default("text").notNull(), // text, file, proposal, contract
+	type: communicationTypeEnum("type").notNull(),
+	subject: text("subject"),
 	content: text("content"),
-	attachments: jsonb("attachments").$defaultFn(() => []), // Array of file references
+	attachments: jsonb("attachments").$type<{
+		filename: string;
+		url: string;
+		size: number;
+		type: string;
+	}[]>(),
 
-	// Message status
+	// Status
 	isRead: boolean("is_read").$defaultFn(() => false).notNull(),
 	readAt: timestamp("read_at"),
 
-	// Timestamps
-	createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull()
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => new Date())
+		.notNull(),
 });
 
-// Payments table
-export const payments = pgTable("payments", {
+// Reviews table
+export const review = pgTable("review", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
-	engagementId: text("engagement_id").references(() => engagements.id, { onDelete: "cascade" }).notNull(),
+	bookingId: text("booking_id")
+		.notNull()
+		.references(() => booking.id, { onDelete: "cascade" }),
+	reviewerId: text("reviewer_id")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	supporterId: text("supporter_id")
+		.notNull()
+		.references(() => supporterProfile.id, { onDelete: "cascade" }),
 
-	// Payment details
-	amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-	currency: text("currency").$default("USD").notNull(),
-	paymentMethod: text("payment_method").notNull(), // credit_card, bank_transfer, digital_wallet
+	// Review content
+	rating: integer("rating").notNull(),
+	title: text("title"),
+	comment: text("comment"),
 
-	// Payment status
-	status: text("status").$default("pending").notNull(), // pending, processing, completed, failed, refunded
+	// Review categories
+	categories: jsonb("categories").$type<{
+		communication: number;
+		quality: number;
+		timeliness: number;
+		value: number;
+	}>(),
 
-	// Transaction details
-	transactionId: text("transaction_id"),
-	gatewayResponse: jsonb("gateway_response"),
-
-	// Timestamps
-	createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
-	updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).$onUpdateFn(() => new Date()).notNull(),
-	completedAt: timestamp("completed_at")
+	createdAt: timestamp("created_at")
+		.$defaultFn(() => new Date())
+		.notNull(),
 });
 
-// Types for TypeScript
-export interface Supporter {
-	id: string;
-	userId: string;
-	profileData: SupporterProfileData;
-	verificationStatus: 'pending' | 'verified' | 'rejected';
-	createdAt: Date;
-	updatedAt: Date;
-	verifiedAt?: Date;
-}
+// =============================================================================
+// RELATIONS
+// =============================================================================
+
+export const supporterProfileRelations = relations(supporterProfile, ({ one, many }) => ({
+	user: one(user, {
+		fields: [supporterProfile.userId],
+		references: [user.id],
+	}),
+	services: many(service),
+	bookings: many(booking),
+	reviews: many(review),
+}));
+
+export const serviceRelations = relations(service, ({ one, many }) => ({
+	supporter: one(supporterProfile, {
+		fields: [service.supporterId],
+		references: [supporterProfile.id],
+	}),
+	bookings: many(booking),
+}));
+
+export const bookingRelations = relations(booking, ({ one, many }) => ({
+	service: one(service, {
+		fields: [booking.serviceId],
+		references: [service.id],
+	}),
+	supporter: one(supporterProfile, {
+		fields: [booking.supporterId],
+		references: [supporterProfile.id],
+	}),
+	communications: many(communication),
+	reviews: many(review),
+}));
+
+export const communicationRelations = relations(communication, ({ one }) => ({
+	booking: one(booking, {
+		fields: [communication.bookingId],
+		references: [booking.id],
+	}),
+	sender: one(user, {
+		fields: [communication.senderId],
+		references: [user.id],
+	}),
+	recipient: one(user, {
+		fields: [communication.recipientId],
+		references: [user.id],
+	}),
+}));
+
+export const reviewRelations = relations(review, ({ one }) => ({
+	booking: one(booking, {
+		fields: [review.bookingId],
+		references: [booking.id],
+	}),
+	reviewer: one(user, {
+		fields: [review.reviewerId],
+		references: [user.id],
+	}),
+	supporter: one(supporterProfile, {
+		fields: [review.supporterId],
+		references: [supporterProfile.id],
+	}),
+}));
+
+// =============================================================================
+// TYPES
+// =============================================================================
 
 export interface SupporterProfileData {
-	personalInfo: {
-		name: string;
-		title: string;
-		bio: string;
-		avatar?: string;
-		location: string;
-		languages: string[];
-	};
-	expertise: {
-		primaryCategories: string[];
-		skills: string[];
-		experience: number; // years
-		certifications: string[];
-	};
-	services: {
-		serviceTypes: string[];
-		pricing: PricingStructure;
-		availability: AvailabilitySchedule;
-	};
-	portfolio: {
-		caseStudies: CaseStudy[];
-		testimonials: Testimonial[];
-		successMetrics: SuccessMetric[];
-	};
-	credentials: {
-		education: Education[];
-		workHistory: WorkExperience[];
-		achievements: Achievement[];
-	};
-	preferences: {
-		startupStages: string[];
-		industries: string[];
-		engagementTypes: string[];
-		responseTime: number; // hours
-	};
-}
-
-export interface Service {
 	id: string;
-	supporterId: string;
-	title: string;
-	description?: string;
-	category: string;
-	subcategory?: string;
-	pricing: PricingStructure;
-	availability?: AvailabilitySchedule;
-	status: 'active' | 'inactive' | 'draft';
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface Engagement {
-	id: string;
-	serviceId: string;
-	startupId: string;
-	supporterId: string;
-	status: 'proposed' | 'negotiating' | 'active' | 'completed' | 'cancelled';
-	proposalData?: ProposalData;
-	contractData?: ContractData;
-	paymentStatus: 'pending' | 'partial' | 'completed' | 'disputed';
-	createdAt: Date;
-	updatedAt: Date;
-	startedAt?: Date;
-	completedAt?: Date;
-}
-
-export interface SupporterReview {
-	id: string;
-	engagementId: string;
-	reviewerId: string;
-	supporterId: string;
-	overallRating: number;
-	expertiseRating?: number;
-	communicationRating?: number;
-	valueRating?: number;
-	timelinessRating?: number;
-	resultsRating?: number;
-	reviewText?: string;
-	highlights: string[];
-	areasForImprovement: string[];
-	projectSuccess?: boolean;
-	onTimeDelivery?: boolean;
-	withinBudget?: boolean;
-	exceededExpectations?: boolean;
-	wouldRecommend?: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface EngagementMessage {
-	id: string;
-	engagementId: string;
-	senderId: string;
-	messageType: 'text' | 'file' | 'proposal' | 'contract';
-	content?: string;
-	attachments: string[];
-	isRead: boolean;
-	readAt?: Date;
-	createdAt: Date;
-}
-
-export interface Payment {
-	id: string;
-	engagementId: string;
-	amount: number;
-	currency: string;
-	paymentMethod: string;
-	status: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
-	transactionId?: string;
-	gatewayResponse?: any;
-	createdAt: Date;
-	updatedAt: Date;
-	completedAt?: Date;
-}
-
-// Supporting interfaces
-export interface PricingStructure {
-	type: 'hourly' | 'project' | 'retainer';
-	amount: number;
-	currency: string;
-	details?: string;
-}
-
-export interface AvailabilitySchedule {
-	workingHours: Record<string, { start: string; end: string }>;
-	timezone: string;
-	responseTime: number; // hours
-}
-
-export interface CaseStudy {
-	title: string;
-	description: string;
-	results: string;
-	clientIndustry: string;
-	projectValue?: number;
-}
-
-export interface Testimonial {
-	clientName: string;
-	clientTitle: string;
-	clientCompany: string;
-	content: string;
-	rating: number;
-}
-
-export interface SuccessMetric {
-	metric: string;
-	value: string;
-	description: string;
-}
-
-export interface Education {
-	institution: string;
-	degree: string;
-	field: string;
-	graduationYear: number;
-}
-
-export interface WorkExperience {
-	company: string;
-	title: string;
-	startDate: string;
-	endDate?: string;
-	description: string;
-}
-
-export interface Achievement {
-	title: string;
-	description: string;
-	year: number;
-	issuer?: string;
-}
-
-export interface ProposalData {
-	scope: string[];
-	deliverables: string[];
-	timeline: {
-		startDate: string;
-		endDate: string;
-		milestones: Milestone[];
-	};
-}
-
-export interface ContractData {
-	terms: string[];
-	paymentSchedule: PaymentSchedule[];
-	cancellationPolicy: string;
-	confidentialityTerms: string;
-}
-
-export interface Milestone {
-	title: string;
-	description: string;
-	dueDate: string;
-	deliverable: string;
-}
-
-export interface PaymentSchedule {
-	amount: number;
-	dueDate: string;
-	trigger: string; // milestone, date, etc.
-}
-
-// New supporter types for database operations
-export interface NewSupporter {
 	userId: string;
-	profileData: SupporterProfileData;
-	verificationStatus?: 'pending' | 'verified' | 'rejected';
+	title?: string;
+	company?: string;
+	yearsExperience?: number;
+	hourlyRate?: string;
+	isVerified: boolean;
+	verificationDocuments?: {
+		certifications?: string[];
+		portfolio?: string[];
+		references?: string[];
+		backgroundCheck?: boolean;
+	};
+	availability?: {
+		timezone: string;
+		availableHours: {
+			monday?: { start: string; end: string }[];
+			tuesday?: { start: string; end: string }[];
+			wednesday?: { start: string; end: string }[];
+			thursday?: { start: string; end: string }[];
+			friday?: { start: string; end: string }[];
+			saturday?: { start: string; end: string }[];
+			sunday?: { start: string; end: string }[];
+		};
+		maxConcurrentProjects: number;
+		responseTimeHours: number;
+	};
+	specializations?: {
+		industries: string[];
+		skills: string[];
+		certifications: string[];
+		languages: string[];
+		serviceTypes: string[];
+	};
+	rating: string;
+	totalReviews: number;
+	completedProjects: number;
+	responseRate: string;
+	isActive: boolean;
+	isPublic: boolean;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-export interface NewService {
+export interface ServiceData {
+	id: string;
 	supporterId: string;
 	title: string;
-	description?: string;
+	description: string;
 	category: string;
 	subcategory?: string;
-	pricing: PricingStructure;
-	availability?: AvailabilitySchedule;
-	status?: 'active' | 'inactive' | 'draft';
+	pricingType: string;
+	priceAmount?: string;
+	priceCurrency: string;
+	deliverables?: string[];
+	duration?: string;
+	requirements?: string;
+	isActive: boolean;
+	isFeatured: boolean;
+	views: number;
+	inquiries: number;
+	bookings: number;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-export interface NewEngagement {
+export interface BookingData {
+	id: string;
 	serviceId: string;
+	supporterId: string;
 	startupId: string;
-	supporterId: string;
-	status?: 'proposed' | 'negotiating' | 'active' | 'completed' | 'cancelled';
-	proposalData?: ProposalData;
-	contractData?: ContractData;
-	paymentStatus?: 'pending' | 'partial' | 'completed' | 'disputed';
-}
-
-export interface NewSupporterReview {
-	engagementId: string;
-	reviewerId: string;
-	supporterId: string;
-	overallRating: number;
-	expertiseRating?: number;
-	communicationRating?: number;
-	valueRating?: number;
-	timelinessRating?: number;
-	resultsRating?: number;
-	reviewText?: string;
-	highlights?: string[];
-	areasForImprovement?: string[];
-	projectSuccess?: boolean;
-	onTimeDelivery?: boolean;
-	withinBudget?: boolean;
-	exceededExpectations?: boolean;
-	wouldRecommend?: boolean;
-}
-
-export interface NewEngagementMessage {
-	engagementId: string;
-	senderId: string;
-	messageType: 'text' | 'file' | 'proposal' | 'contract';
-	content?: string;
-	attachments?: string[];
-}
-
-export interface NewPayment {
-	engagementId: string;
-	amount: number;
-	currency?: string;
-	paymentMethod: string;
-	status?: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
-	transactionId?: string;
-	gatewayResponse?: any;
+	title: string;
+	description?: string;
+	status: string;
+	scheduledStart?: Date;
+	scheduledEnd?: Date;
+	duration?: number;
+	agreedPrice?: string;
+	currency: string;
+	startupNotes?: string;
+	supporterNotes?: string;
+	createdAt: Date;
+	updatedAt: Date;
 }
